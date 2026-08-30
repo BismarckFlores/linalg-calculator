@@ -14,7 +14,7 @@ from .worksheet import Worksheet
 
 @dataclass(frozen=True)
 class Elimination:
-    """What a reduction produced: the result, how it got there, were the pivots are"""
+    """What a reduction produced: the result, how it got there, where the pivots are"""
 
     original: Matrix
     result: Matrix

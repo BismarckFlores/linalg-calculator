@@ -30,7 +30,7 @@ class Matrix:
         rows = [[to_scalar(value) for value in row] for row in data]
         if len({len(row) for row in rows}) > 1:
             widths = ", ".join(str(len(row)) for row in data)
-            raise ValueError(f"Every row needs the same lenght, got {widths}.")
+            raise ValueError(f"Every row needs the same length, got {widths}.")
 
         self.data: list[list[Scalar]] = rows
         self.rows: int = len(rows)
@@ -55,7 +55,7 @@ class Matrix:
         """The main diagonal, as far as it reaches."""
         return [self.data[i][i] for i in range(min(self.rows, self.cols))]
 
-    def is_squared(self) -> bool:
+    def is_square(self) -> bool:
         return self.rows == self.cols
 
     def is_zero_row(self, i: int) -> bool:

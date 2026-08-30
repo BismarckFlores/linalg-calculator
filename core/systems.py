@@ -31,7 +31,7 @@ class SystemKind(Enum):
     UNIQUE = "unique"
     INFINITE = "infinite"
 
-@dataclass
+@dataclass(frozen=True)
 class BackSubstitution:
     """One unknown cleared from the echelon form, and what it took to clear it."""
 

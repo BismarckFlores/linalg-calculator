@@ -104,5 +104,3 @@ check("and it checks out", verify(third.coefficients, third.constants, third.val
 
 print()
 print("Everything above says ok: the engine is wired correctly.")
-
-print(Matrix([[1, 2], [3, 4]]))
