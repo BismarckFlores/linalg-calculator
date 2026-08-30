@@ -55,16 +55,16 @@ The cost is that a decimal typed in becomes a fraction on the way out — `0.18`
 comes back as `9/50` — which is the right trade for a course where the answers
 are fractions.
 
-## The two sweeps are one walk
+## Only what has been asked for
 
-`to_ref` is the downward sweep and `to_rref` is that same sweep followed by an
-upward one, both on a single `Worksheet`. Nothing is reduced twice and there is
-one log, so the reduced form is genuinely a continuation of the echelon form
-rather than a separate computation that happens to agree.
+The engine reduces to the echelon form and clears the unknowns by back
+substitution. It does not carry the elimination on to the reduced form, and it
+has no way to pick between methods, because nothing has needed one yet.
 
-The upward sweep goes from the last pivot backwards. Clearing above the last
-pivot first leaves every column already dealt with clear, so no entry is ever
-cleared twice.
+That is the rule for this repository generally: a capability lands when an
+assignment asks for it, not when it looks like it might be useful later. A
+`Method` enum with a single member, or a second reduction nobody calls, is
+weight that has to be read, tested and kept correct for no return.
 
 ## Classification comes from the pivots, not from the answer
 

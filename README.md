@@ -16,7 +16,7 @@ linalg-calculator/
 │   ├── matrix.py         # the matrix and the operations that need no explaining
 │   ├── steps.py          # the step by step (Step, StepLog)
 │   ├── worksheet.py      # matrix + record: the blackboard operations happen on
-│   ├── elimination.py    # row echelon form and reduced row echelon form
+│   ├── elimination.py    # row elimination down to the echelon form
 │   ├── systems.py        # classification and solution of a linear system
 │   └── verification.py   # putting a solution back into the original system
 └── docs/                 # design notes
@@ -68,17 +68,17 @@ sheet.matrix        # where the work stands now
 sheet.log           # every operation that got it there
 ```
 
-`to_ref` and `to_rref` run on one of those, so a reduction and its step by step
-are two readings of the same walk. Both return an `Elimination`, which carries
-the result, the log and the position of every pivot — and from the pivots come
-the rank, the pivot columns and the free ones.
+`to_ref` runs on one of those, so a reduction and its step by step are two
+readings of the same walk. It returns an `Elimination`, which carries the
+result, the log and the position of every pivot — and from the pivots come the
+rank, the pivot columns and the free ones.
 
 `solve` reads an augmented matrix `[A | b]` and classifies the system by
 comparing ranks: `rank(A) < rank(A|b)` has no solution, `rank(A) = rank(A|b) <
 unknowns` has infinitely many, and equality with the number of unknowns has
-exactly one. With `Method.GAUSS` it finishes by back substitution and keeps every
-step of it; with `Method.GAUSS_JORDAN` it reads the values straight off the last
-column. The two always agree.
+exactly one. In that last case it clears the unknowns by back substitution, from
+the last to the first, and keeps every one of those steps: seeing the echelon
+matrix and then the clearing is the point of the method.
 
 `verify` is the independent check: hand it A, b and the values found and it
 evaluates every equation of the original system, comparing both sides exactly.
