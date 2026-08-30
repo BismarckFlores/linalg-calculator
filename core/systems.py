@@ -51,7 +51,7 @@ class Solution:
     values: tuple[Scalar, ...]
     free_columns: tuple[int, ...]
     homogeneous: bool
-    substitution: tuple[BackSubstitution, ...]
+    substitutions: tuple[BackSubstitution, ...]
 
     @property
     def log(self) -> StepLog:
@@ -76,6 +76,16 @@ class Solution:
     def constants(self) -> Matrix:
         """b on its own, as a single column."""
         return self.augmented.take_columns(self.unknowns + 1, self.unknowns + 1)
+
+    @property
+    def rank(self) -> int:
+        """Rank of the augmented matrix."""
+        return self.reduction.rank
+
+    @property
+    def coefficient_rank(self) -> int:
+        """Rank of A: the pivots that fall on an unknown, not on the constants."""
+        return sum(1 for _row, col in self.reduction.pivots if col <= self.unknowns)
 
 def solve(augmented: Matrix) -> Solution:
     """
