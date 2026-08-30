@@ -151,7 +151,7 @@ class Matrix:
                 for row in self.data
             ])
 
-        if isinstance(other, (int, float, Scalar)) and not isinstance(other, bool):
+        if isinstance(other, (int, float, Scalar, str)) and not isinstance(other, bool):
             factor = to_scalar(other)
             return Matrix([[value * factor for value in row] for row in self.data])
 
