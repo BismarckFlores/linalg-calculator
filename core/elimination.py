@@ -49,7 +49,7 @@ def to_ref(matrix: Matrix, title: str = "") -> Elimination:
     staircase uneven when a variable turns out to be free.
     """
     sheet = Worksheet(matrix, title)
-    pivots = _forward(sheet)
+    pivots: list[tuple[int, int]] = []
     row = 1
 
     for col in range(1, matrix.cols + 1):
