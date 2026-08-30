@@ -11,6 +11,8 @@ Spanish. It returns the augmented matrix [A | b] and nothing else; what to do
 with it is somebody else's decision.
 """
 
+import sys
+
 from core.matrix import Matrix
 from core.scalar import Scalar, to_scalar
 
@@ -56,6 +58,18 @@ def ask_yes_no(question: str) -> bool:
         if answer in ("n", "no"):
             return False
         print("  Responde s o n.")
+
+def pause(message: str = "  [Enter] para continuar...") -> None:
+    """
+    Wait for Enter, so one section can be read before the next one arrives.
+
+    Only when a person is watching. With the input redirected there is nobody
+    to press anything, so the program runs straight through instead of stopping
+    on a prompt that will never be answered.
+    """
+    if not sys.stdin.isatty():
+        return
+    input(message)
 
 def ask_system() -> Matrix:
     """
