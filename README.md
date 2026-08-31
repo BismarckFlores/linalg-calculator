@@ -27,7 +27,11 @@ linalg-calculator/
 │   └── out/              # generated single files, not versioned
 ├── build.py              # assembles the single file that gets handed in
 ├── translations.py       # Spanish for every docstring and comment it carries
-└── docs/                 # design notes
+└── docs/
+    ├── usage.md          # how to run everything, and what it asks for
+    ├── how-it-works.md   # one system solved end to end, module by module
+    ├── reference.md      # what each module exposes, and how they connect
+    └── design.md         # why the pieces are split where they are
 ```
 
 ```bash
@@ -37,6 +41,11 @@ python check.py                     # smoke test the engine
 ```
 
 This section grows as modules land. Nothing is listed here before it exists.
+
+**Start with [docs/usage.md](docs/usage.md)** to run it, and
+[docs/how-it-works.md](docs/how-it-works.md) to understand what it does.
+[docs/reference.md](docs/reference.md) is what to open before changing
+something: it lists what every module exposes without you having to read it.
 
 ## Rules
 
