@@ -93,6 +93,43 @@ elimination against itself, and would agree with any bug that was consistent.
 It compares both sides exactly, with no tolerance. That is affordable only
 because nothing was ever rounded, and it is why every entry is a `Fraction`.
 
+## The handed-in file is built, never written
+
+The course wants one self-contained `.py`. A project split into modules is what
+is worth writing. `build.py` resolves that by assembling the file: it reads the
+modules in dependency order, drops the imports between them (everything lands in
+one namespace anyway), merges the standard-library imports into one block, and
+puts a Spanish heading in front of each block explaining what it does.
+
+The generated file is never edited — a change goes into the module and the file
+is built again.
+
+## The translation is keyed by text, and missing one stops the build
+
+The handed-in file has to read in Spanish, comments and docstrings included,
+while the repository stays in English. Keeping two copies of every module would
+guarantee they drift, so instead `translations.py` holds the Spanish for each
+docstring and comment, keyed by the exact English text, and `build.py` swaps one
+for the other as it assembles.
+
+Keying by text is what makes it safe. Edit an English docstring and its Spanish
+is stale — the build then fails naming it, rather than quietly shipping the old
+wording. Add a function and the build fails until its docstring is translated.
+There is no path that ends with English in the file handed in.
+
+Comments are found with `tokenize`, not by looking for a `#`, because a `#`
+inside a string is not a comment. Docstrings are replaced from the bottom of the
+file upwards, so changing the length of one cannot move the line numbers of the
+ones not yet reached.
+
+What stays in English is the text of the exceptions the engine raises. Those
+describe programming mistakes and are addressed to whoever is writing the code;
+a person using the program never sees one, because the interface catches what
+they can get wrong and says it in Spanish first.
+
+`build.py` compiles what it produced before writing it out, so a build that
+succeeds cannot have shipped a syntax error.
+
 ## The engine raises in English
 
 `core/` speaks no Spanish, not even when it fails. Its messages describe a

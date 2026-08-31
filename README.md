@@ -19,7 +19,21 @@ linalg-calculator/
 │   ├── elimination.py    # row elimination down to the echelon form
 │   ├── systems.py        # classification and solution of a linear system
 │   └── verification.py   # putting a solution back into the original system
+├── ui/                   # everything a person reads, in Spanish
+│   ├── presentation.py   # engine objects → the words that go on screen
+│   └── prompts.py        # reading a system from the keyboard, one number at a time
+├── deliverables/         # the scripts handed in to the course
+│   ├── program1.py       # Programa 1: systems by row elimination
+│   └── out/              # generated single files, not versioned
+├── build.py              # assembles the single file that gets handed in
+├── translations.py       # Spanish for every docstring and comment it carries
 └── docs/                 # design notes
+```
+
+```bash
+python -m deliverables.program1     # run Programa 1
+python build.py                     # write deliverables/out/Programa 1_GrupoN.py
+python check.py                     # smoke test the engine
 ```
 
 This section grows as modules land. Nothing is listed here before it exists.
@@ -44,7 +58,8 @@ conditionals, loops and functions. `fractions`, `dataclasses`, `enum` and
 
 **Deliverables are generated, not written.** Each file handed in is a single
 self-contained script produced out of the modules in this repository. The
-repository is the source of truth; the handed-in file is a build artefact.
+repository is the source of truth; the handed-in file is a build artefact, and
+`build.py` translates its docstrings and comments into Spanish on the way out.
 
 ## The engine so far
 
@@ -84,3 +99,22 @@ matrix and then the clearing is the point of the method.
 evaluates every equation of the original system, comparing both sides exactly.
 It trusts nothing the elimination did, which is the only way the check is worth
 anything.
+
+## The wording
+
+`ui/presentation.py` turns those objects into the text a person reads, and it is
+the only file in the project that writes Spanish. It builds strings and returns
+them — no `print`, no widgets — so whatever displays them decides where they go
+while the words stay the same everywhere.
+
+It also owns the two pieces of formatting that need to know what a matrix
+*means*: the bar between A and b in `[ 1  -2   1 | 0 ]`, which `Matrix.__str__`
+cannot draw because only a system knows its last column is different, and the
+names of the unknowns (`x`, `y`, `z`, `w`, then `x5` and up).
+
+`ui/prompts.py` is the other half: the only module in the project that calls
+`input`. It asks for the size and then for every coefficient by name — `a_11`,
+`a_12`, `b_1` — and a wrong answer just asks again, so nothing a person types
+can end the program. It hands back the augmented matrix and decides nothing
+else. End of input (Ctrl+D) is left to travel up to whoever started the
+program, which is the only place that knows whether stopping is an error.
