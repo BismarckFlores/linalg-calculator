@@ -25,7 +25,7 @@ from translations import COMMENTS, DOCSTRINGS
 # only these two things have to be right here.
 # ---------------------------------------------------------------------
 
-GROUP_NUMBER = "x"
+GROUP_NUMBER = "5"
 
 PROGRAM_NUMBER = 1
 PROGRAM_TITLE = "Solución de Sistemas de Ecuaciones Lineales por Eliminación por Filas"
@@ -168,6 +168,17 @@ def imports_only_type_checking(node: ast.stmt) -> bool:
         and all(alias.name == "TYPE_CHECKING" for alias in node.names)
     )
 
+def last_line(node: ast.stmt) -> int:
+    """
+    The last line a statement covers.
+
+    `end_lineno` is optional in the AST because a hand-built tree may not carry
+    positions, but everything here comes from `ast.parse`, where it is always
+    set. Falling back to the first line keeps the type checker happy without
+    inventing a case that can happen.
+    """
+    return node.end_lineno or node.lineno
+
 def translate_comments(source: str, missing: list[str]) -> str:
     """
     Swap every `#` comment for its Spanish.
@@ -222,7 +233,7 @@ def translate_docstrings(source: str, missing: list[str]) -> str:
             continue
         quote = node.body[0]
         indent = " " * quote.col_offset
-        edits.append((quote.lineno - 1, quote.end_lineno, as_docstring(spanish, indent)))
+        edits.append((quote.lineno - 1, last_line(quote), as_docstring(spanish, indent)))
 
     for start, end, replacement in sorted(edits, reverse=True):
         lines[start:end] = replacement
@@ -251,7 +262,7 @@ def split_module(
     cut: set[int] = set()
 
     for index, node in enumerate(tree.body):
-        span = range(node.lineno - 1, node.end_lineno)
+        span = range(node.lineno - 1, last_line(node))
 
         docstring = (
             index == 0
@@ -269,9 +280,10 @@ def split_module(
                 continue
             if isinstance(node, ast.Import):
                 plain.update(named(alias) for alias in node.names)
-            else:
+            elif node.module:
                 # Gathered by module, so two files asking for different names
-                # out of the same one end up on a single line.
+                # out of the same one end up on a single line. A missing module
+                # means `from . import x`, which `is_local_import` already took.
                 grouped.setdefault(node.module, set()).update(
                     named(alias) for alias in node.names
                 )
