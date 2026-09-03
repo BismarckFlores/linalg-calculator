@@ -325,6 +325,18 @@ DOCSTRINGS: dict[str, str] = {
         "El que le haya puesto quien escribio el sistema, cuando lo escribio como\n"
         "ecuaciones y hay un nombre que usar. Si no, los del pizarron de siempre:\n"
         "x, y, z, w, y de ahi en adelante x5, x6...",
+    "A step label in typographic notation: `f₂ → f₂ + 3 · f₁`.\n"
+    "\n"
+    "The same operation the course writes as `f_2 -> f_2 + 3*f_1`, which is what\n"
+    "`core/steps.py` produces and what the handed-in file prints. A window has the\n"
+    "glyphs for it and a plain transcript cannot be trusted to, so the choice\n"
+    "belongs to whoever is drawing rather than to the engine.":
+        "Una etiqueta de paso en notacion tipografica: f₂ → f₂ + 3 · f₁.\n"
+        "\n"
+        "La misma operacion que el curso escribe como f_2 -> f_2 + 3*f_1, que es lo\n"
+        "que produce steps.py y lo que imprime el archivo entregado. Una ventana\n"
+        "tiene los caracteres para escribirlo y una transcripcion de texto plano no\n"
+        "necesariamente, asi que la decision es de quien dibuja, no del motor.",
     "The augmented matrix with the bar between A and b: `[ 1  -2   1 |  0 ]`.\n"
     "\n"
     "The bar is drawn here and not in `Matrix.__str__` because only a system\n"
@@ -507,6 +519,8 @@ COMMENTS: dict[str, str] = {
     # ----- ui/presentation.py -----
     "# Named after the blackboard for the sizes that fit on it; x5, x6... beyond.":
         "# Con los nombres del pizarron mientras quepan; a partir de ahi x5, x6...",
+    "# Digits as subscripts, for writing f_12 as f₁₂ where the glyphs are available.":
+        "# Los digitos como subindices, para escribir f_12 como f₁₂ donde se pueda.",
     "# A and b get their own width, so a wide coefficient does not stretch b too.":
         "# A y b llevan su propio ancho, para que un coeficiente largo no estire tambien b.",
     "# Pad the numbering so equation 9 and equation 10 still line up.":

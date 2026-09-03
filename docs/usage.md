@@ -150,7 +150,7 @@ the way:
 
 ```
 Escrito: deliverables/out/Programa 1_Grupo5.py
-  1465 lineas, 11 bloques, sin dependencias
+  1480 lineas, 11 bloques, sin dependencias
   Todo el texto del archivo esta en castellano.
 ```
 

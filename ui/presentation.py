@@ -9,6 +9,7 @@ The three classifications are worded exactly as the assignment demands them,
 down to the capital letters.
 """
 
+import re
 from collections.abc import Sequence
 
 from core.matrix import Matrix
@@ -19,6 +20,9 @@ from core.verification import RowCheck, Verification
 
 # Named after the blackboard for the sizes that fit on it; x5, x6... beyond.
 UNKNOWN_NAMES = ("x", "y", "z", "w")
+
+# Digits as subscripts, for writing f_12 as f₁₂ where the glyphs are available.
+SUBSCRIPTS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 
 CLASSIFICATIONS = {
     SystemKind.UNIQUE: "Sistema Consistente Determinado: Presenta Solución Única.",
@@ -70,6 +74,18 @@ def render_steps(log: StepLog, unknowns: int) -> str:
             f"Paso {number}:  {step.label}\n{render_augmented(step.after, unknowns)}"
         )
     return "\n\n".join(blocks)
+
+def pretty_label(label: str) -> str:
+    """
+    A step label in typographic notation: `f₂ → f₂ + 3 · f₁`.
+
+    The same operation the course writes as `f_2 -> f_2 + 3*f_1`, which is what
+    `core/steps.py` produces and what the handed-in file prints. A window has the
+    glyphs for it and a plain transcript cannot be trusted to, so the choice
+    belongs to whoever is drawing rather than to the engine.
+    """
+    text = label.replace("<->", "↔").replace("->", "→").replace("*", " · ")
+    return re.sub(r"f_(\d+)", lambda match: "f" + match[1].translate(SUBSCRIPTS), text)
 
 def describe(solution: Solution) -> str:
     """The classification, in the exact words the assignment asks for."""

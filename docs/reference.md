@@ -256,6 +256,7 @@ nothing.
 | `describe(solution)` | The classification, in the assignment's exact words. |
 | `render_values(solution, names=())` | The values, or the free variables, or the contradictory row — whichever applies to the kind. |
 | `render_equations(solution, names=())` | The echelon form read back as equations. |
+| `pretty_label(label)` | One step label in typographic notation: `f_2 -> f_2 + 3*f_1` becomes `f₂ → f₂ + 3 · f₁`. For a front end with the glyphs for it; the handed-in file prints the plain form. |
 | `render_substitutions(solution, names=())` | The clearing, four lines per unknown. |
 | `render_verification(verification)` | Each equation substituted, and the verdict. |
 
