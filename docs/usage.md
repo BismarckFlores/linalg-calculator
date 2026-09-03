@@ -9,6 +9,14 @@ python check.py                     # confirm the engine still works
 python build.py                     # write the file that gets handed in
 ```
 
+The window is the one thing that needs installing, because it is the one thing
+that is not standard library. [docs/gui.md](gui.md) covers it:
+
+```bash
+pip install -r requirements-gui.txt
+python -m gui
+```
+
 ## Solving a system
 
 `python -m deliverables.program1` offers two ways to hand it a system, and then

@@ -199,10 +199,11 @@ The program names the row rather than saying one exists somewhere.
 | Every word on screen | `ui/presentation.py` |
 | Reading the keyboard | `ui/prompts.py` |
 | Ordering the seven sections | `deliverables/program1.py` |
+| The same thing in a window | `gui/` |
 
 Not one of the `core/` modules prints anything or contains a word of Spanish.
 They return data; the interface decides how to say it. That is why the same
-engine could drive a window without a line of it changing, and why the wording
-of the classification exists in exactly one place.
+engine drives a window without a line of it changing, and why the wording of the
+classification exists in exactly one place. `docs/gui.md` covers the window.
 
 `docs/design.md` covers why the pieces are split where they are.

@@ -99,6 +99,27 @@ elimination against itself, and would agree with any bug that was consistent.
 It compares both sides exactly, with no tolerance. That is affordable only
 because nothing was ever rounded, and it is why every entry is a `Fraction`.
 
+## The window is a front end, not a second program
+
+`gui/` sits beside `core/` and `ui/`, imports both, and is imported by neither.
+It draws matrices, reads them back, and calls `solve`, `to_rref`, `verify` and
+the `Matrix` operators for everything else. Not one number on screen is computed
+inside the package.
+
+That is what the layering was for, and it is the first time it has been tested:
+a window landed without a line of `core/` changing, and it says exactly what the
+terminal says because both ask `ui/presentation.py` for the words.
+
+It is deliberately outside `build.py`. The course wants one self-contained
+script with no dependencies, and CustomTkinter is a dependency — so the file
+handed in cannot contain the window, and the repository does not pretend
+otherwise. `requirements-gui.txt` is named for the same reason: it is the
+requirements of one package, not of the project.
+
+`ui/` was not the place for it either. `ui/prompts.py` calls `input`, which
+makes that package the terminal's; `ui/presentation.py` only builds strings,
+which is why both front ends can share it.
+
 ## The handed-in file is built, never written
 
 The course wants one self-contained `.py`. A project split into modules is what

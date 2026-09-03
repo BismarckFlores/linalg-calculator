@@ -1,0 +1,3 @@
+# Only the window needs this. The engine, the terminal program and the file
+# handed in are standard library and nothing else.
+customtkinter>=6.0

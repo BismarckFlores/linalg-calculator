@@ -23,20 +23,28 @@ linalg-calculator/
 ├── ui/                   # everything a person reads, in Spanish
 │   ├── presentation.py   # engine objects → the words that go on screen
 │   └── prompts.py        # reading a system from the keyboard, two ways in
+├── gui/                  # the window: a third front end, never built in
+│   ├── theme.py          # colours, fonts, the light/dark switch
+│   ├── widgets.py        # the shapes CustomTkinter does not have
+│   ├── app.py            # the window, the sidebar, which page is open
+│   └── pages/            # one module per page
 ├── deliverables/         # the scripts handed in to the course
 │   ├── program1.py       # Programa 1: systems by row elimination
 │   └── out/              # generated single files, not versioned
 ├── build.py              # assembles the single file that gets handed in
 ├── translations.py       # Spanish for every docstring and comment it carries
+├── requirements-gui.txt  # CustomTkinter, needed by the window and nothing else
 └── docs/
     ├── usage.md          # how to run everything, and what it asks for
     ├── how-it-works.md   # one system solved end to end, module by module
+    ├── gui.md            # the window: what is on it and how it is put together
     ├── reference.md      # what each module exposes, and how they connect
     └── design.md         # why the pieces are split where they are
 ```
 
 ```bash
 python -m deliverables.program1     # run Programa 1
+python -m gui                       # the same engine in a window
 python build.py                     # write deliverables/out/Programa 1_GrupoN.py
 python check.py                     # smoke test the engine
 ```
@@ -45,6 +53,7 @@ This section grows as modules land. Nothing is listed here before it exists.
 
 **Start with [docs/usage.md](docs/usage.md)** to run it, and
 [docs/how-it-works.md](docs/how-it-works.md) to understand what it does.
+[docs/gui.md](docs/gui.md) covers the window.
 [docs/reference.md](docs/reference.md) is what to open before changing
 something: it lists what every module exposes without you having to read it.
 
@@ -64,7 +73,9 @@ end says exactly the same thing.
 **Standard library only.** No NumPy, no SciPy, no linear algebra helpers from
 `math`: the assignments require the algorithms to be built from lists,
 conditionals, loops and functions. `fractions`, `dataclasses`, `enum` and
-`tkinter` are standard and are allowed.
+`tkinter` are standard and are allowed. `gui/` is the one exception and pays for
+itself: CustomTkinter is only ever imported there, `build.py` does not know the
+package exists, and nothing that gets handed in imports anything.
 
 **Deliverables are generated, not written.** Each file handed in is a single
 self-contained script produced out of the modules in this repository. The
@@ -122,6 +133,14 @@ It also owns the two pieces of formatting that need to know what a matrix
 cannot draw because only a system knows its last column is different, and the
 names of the unknowns — whatever the person called them when they wrote the
 system out, and otherwise `x`, `y`, `z`, `w`, then `x5` and up.
+
+`gui/` is the third caller of the same engine, and it proves the point: a window
+built on `core/` and `ui/presentation.py` needed no change to either. It is a
+CustomTkinter application with the matrix arithmetic on the first tab and the
+elimination on the second — Gauss and Gauss-Jordan chosen inside it, since they
+are two settings of one method — and it is deliberately outside `build.py` so
+that what gets handed in stays standard library only. See
+[docs/gui.md](docs/gui.md).
 
 `ui/prompts.py` is the other half: the only module in the project that calls
 `input`. It offers two ways in. Either the equations go in as they are written,

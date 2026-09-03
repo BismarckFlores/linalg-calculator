@@ -29,6 +29,9 @@ prompts       reads a system from the keyboard, either way round
 program1      orders the seven sections
 ```
 
+`gui/` hangs off `presentation` as a second reader of it, next to `prompts`.
+It imports `core/` and `ui/presentation.py`, and nothing imports it.
+
 Two modules hang off to the side deliberately. `verification` imports `matrix`
 and `scalar` only, so it cannot accidentally check the elimination against
 itself; `equations` imports the same two, because reading text into a matrix
@@ -253,10 +256,10 @@ nothing.
 | `unknown_name(col, names=())` | The name that was typed, when there is one; otherwise `x`, `y`, `z`, `w`, then `x5` and up. |
 | `render_augmented(matrix, unknowns)` | `[  1  -2   1 \|  0 ]`, with the bar. |
 | `render_steps(log, unknowns)` | Every operation, numbered, with the matrix after it. |
+| `pretty_label(label)` | One step label in typographic notation: `f_2 -> f_2 + 3*f_1` becomes `f₂ → f₂ + 3 · f₁`. For a front end with the glyphs for it; the handed-in file prints the plain form. |
 | `describe(solution)` | The classification, in the assignment's exact words. |
 | `render_values(solution, names=())` | The values, or the free variables, or the contradictory row — whichever applies to the kind. |
 | `render_equations(solution, names=())` | The echelon form read back as equations. |
-| `pretty_label(label)` | One step label in typographic notation: `f_2 -> f_2 + 3*f_1` becomes `f₂ → f₂ + 3 · f₁`. For a front end with the glyphs for it; the handed-in file prints the plain form. |
 | `render_substitutions(solution, names=())` | The clearing, four lines per unknown. |
 | `render_verification(verification)` | Each equation substituted, and the verdict. |
 
@@ -297,6 +300,29 @@ The script. Calculates nothing and words nothing beyond its headings.
 | `solve_one_system()` | The seven sections, once. |
 | `main()` | The header, the loop, and a clean exit on Ctrl+C or Ctrl+D. |
 
+## `gui/`
+
+The window. `python -m gui`, from the repository root. Full notes in
+[gui.md](gui.md); this is the map.
+
+| Module | Holds |
+| --- | --- |
+| `gui/theme.py` | Every colour as a `(light, dark)` pair, the fonts, `set_dark`, and `on_change` for the parts drawn by hand. |
+| `gui/widgets.py` | `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `MonoBlock`. |
+| `gui/app.py` | `MODULES` — the sidebar, in order — plus `NavRow`, `Application` and `main()`. |
+| `gui/pages/operations.py` | `OperationsPage`: the five matrix operations. |
+| `gui/pages/gauss.py` | `GaussPage`: `A x = b` by either method, with the step by step. |
+
+`MODULES` holds only what works. A row is added when its page is; a program with
+no page has no row, and `_build_page` raises for a key it does not know rather
+than falling back to something apologetic.
+
+`MatrixEntryGrid.matrix()` is the one boundary worth knowing: it returns a
+`Matrix` or raises `CellError`, whose message is already Spanish and already
+names the cell.
+
+Nothing in `gui/` calculates. It is not in `build.py` and never will be.
+
 ## Outside the packages
 
 | File | Does |
@@ -304,6 +330,7 @@ The script. Calculates nothing and words nothing beyond its headings.
 | `check.py` | Runs the engine end to end and prints one line per claim. Run it after touching `core/`. |
 | `build.py` | Assembles the handed-in file. `BLOCKS` lists the modules in order with their Spanish headings; `GROUP_NUMBER` and `PROGRAM_NUMBER` name the output. |
 | `translations.py` | `DOCSTRINGS` and `COMMENTS`, keyed by the exact English text. A missing entry stops the build. |
+| `requirements-gui.txt` | CustomTkinter. Needed by `gui/` and by nothing else. |
 
 ## Conventions worth knowing before changing anything
 
