@@ -20,7 +20,7 @@ The sidebar lists what works, and nothing else. Two rows:
 | Row | What it does |
 | --- | --- |
 | **Operaciones Matriciales** | `A + B`, `A − B`, `A × B`, `k · A`, `Aᵀ`. Each matrix is resized with its own steppers, and B follows A wherever the shapes have to agree. |
-| **Eliminación Gaussiana** | Solves `A x = b`: the step by step, the classification, the clearing and the verification. Gauss or Gauss-Jordan is chosen inside the page. |
+| **Eliminación Gaussiana** | Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
 
 The arithmetic tab comes first deliberately. Everything else in the course is
 written in terms of those five operations.
@@ -33,10 +33,51 @@ a duplicated menu, not a feature.
 A program that has not been written has no row. A menu of things that do
 nothing is a plan, and the plan lives in this repository, not in the window.
 
-### Solving a system
+### Two ways to hand over a system
 
-Type A and b, press **Calcular**, and the cards below the input answer the seven
-requirements of Programa 1, in the order the assignment numbers them:
+The pill at the top of the input card is the same choice `ui/prompts.py` offers
+in the terminal, and it reads the system with the same two modules.
+
+**Coeficientes** is a grid for A and a column for b, resized with their own
+steppers. b follows A: one equation is one row of A and one entry of b, and they
+cannot drift apart.
+
+**Ecuaciones** is a box where the system is written the way it is on paper, one
+equation per line:
+
+```
+a - 2b + c = 0
+2b - 8c = 8
+-4a + 5b + 9c = -9
+```
+
+`core/equations.py` reads them. Nobody says how many unknowns there are — they
+are whatever the equations turn out to mention, and the list of them is read
+back under the box (`Incógnitas encontradas (3): a, b, c`) before anything is
+done with it. That echo is the point: `2x + 3x = 5` written where `2x + 3y = 5`
+was meant shows up there, immediately, instead of as a system that classifies
+wrong for no visible reason. The window earns it — the line only appears once
+the equations have actually parsed, and disappears the moment one is edited.
+
+Whatever the unknowns were called is what comes out. A system typed in `a`, `b`
+and `c` is cleared, verified and printed in `a`, `b` and `c`; that name list is
+what `ui/presentation.py` has taken as its `names` argument all along. The grid
+route names nothing, so it falls back to `x`, `y`, `z`, `w`.
+
+Everything the terminal parser accepts, this box accepts, because it is the
+same parser: `2*x`, `2.5x`, `2,5x`, `(1/3)x`, unknowns on the right, constants
+on the left, the same unknown twice, and `x2` sorting before `x10`. The table in
+[usage.md](usage.md) is the full list.
+
+What cannot be read is said in Spanish, naming the line — `A la ecuación 2 le
+falta el '='`, `En la ecuación 1 no entiendo la parte '&'`. The terminal does
+not need the number, because it has just asked for that one equation; the window
+does, because all of them are on screen at once.
+
+### What comes out
+
+Press **Calcular** and the cards below the input answer the seven requirements
+of Programa 1, in the order the assignment numbers them:
 
 | Requirement | Where it is |
 | --- | --- |
@@ -72,8 +113,6 @@ the equivalent system show.
 
 ### What it does not do yet
 
-- The equations cannot be typed as `2x + 3y - z = 5`. `core/equations.py` reads
-  them and the terminal offers it; the window does not, yet.
 - An indeterminate system reports its free variables and stops there. Writing
   the family out in terms of parameters needs `core/parametric.py`, which does
   not exist in any front end.

@@ -137,9 +137,10 @@ system out, and otherwise `x`, `y`, `z`, `w`, then `x5` and up.
 `gui/` is the third caller of the same engine, and it proves the point: a window
 built on `core/` and `ui/presentation.py` needed no change to either. It is a
 CustomTkinter application with the matrix arithmetic on the first tab and the
-elimination on the second — Gauss and Gauss-Jordan chosen inside it, since they
-are two settings of one method — and it is deliberately outside `build.py` so
-that what gets handed in stays standard library only. See
+elimination on the second — the system typed as coefficients or as equations,
+and Gauss or Gauss-Jordan chosen inside it, since they are two settings of one
+method. It is deliberately outside `build.py` so that what gets handed in stays
+standard library only. See
 [docs/gui.md](docs/gui.md).
 
 `ui/prompts.py` is the other half: the only module in the project that calls

@@ -311,7 +311,7 @@ The window. `python -m gui`, from the repository root. Full notes in
 | `gui/widgets.py` | `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `MonoBlock`. |
 | `gui/app.py` | `MODULES` — the sidebar, in order — plus `NavRow`, `Application` and `main()`. |
 | `gui/pages/operations.py` | `OperationsPage`: the five matrix operations. |
-| `gui/pages/gauss.py` | `GaussPage`: `A x = b` by either method, with the step by step. |
+| `gui/pages/gauss.py` | `GaussPage`: `A x = b` by either method, from coefficients or from written equations, with the step by step. |
 
 `MODULES` holds only what works. A row is added when its page is; a program with
 no page has no row, and `_build_page` raises for a key it does not know rather
@@ -319,7 +319,10 @@ than falling back to something apologetic.
 
 `MatrixEntryGrid.matrix()` is the one boundary worth knowing: it returns a
 `Matrix` or raises `CellError`, whose message is already Spanish and already
-names the cell.
+names the cell. `GaussPage._read_system` is the other: it hands back `[A | b]`
+and the names of the unknowns, exactly like `prompts.ask_system`, and the names
+are empty for the coefficient route because nothing there ever says what the
+unknowns are called.
 
 Nothing in `gui/` calculates. It is not in `build.py` and never will be.
 

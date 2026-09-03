@@ -18,6 +18,16 @@ from typing import Any
 import customtkinter as ctk
 
 from core.elimination import Elimination, to_rref
+from core.equations import (
+    Equation,
+    EquationError,
+    MissingEquals,
+    UnreadableTerm,
+    parse_equation,
+    to_augmented,
+    unknown_names,
+)
+from core.matrix import Matrix
 from core.scalar import format_scalar
 from core.systems import Solution, SystemKind, solve
 from core.verification import verify
@@ -34,6 +44,7 @@ from ui.presentation import (
 
 from .. import theme
 from ..widgets import (
+    SIZE_LIMIT,
     Card,
     CellError,
     Chip,
@@ -49,6 +60,17 @@ from ..widgets import (
 
 GAUSS = "Gauss"
 JORDAN = "Gauss-Jordan"
+
+# The two ways a system can be handed over, the same two the terminal offers.
+COEFFICIENTS = "Coeficientes"
+EQUATIONS = "Ecuaciones"
+
+EQUATION_HELP = (
+    "Una ecuación por línea. Por ejemplo:  2x + 3y - z = 5   o   2x = 3y + 1\n"
+    "Se admiten enteros, decimales (2.5 o 2,5) y fracciones (1/3)."
+)
+
+EXAMPLE_SYSTEM = "x - 2y + z = 0\n2y - 8z = 8\n-4x + 5y + 9z = -9"
 
 # One page and one title; only the line underneath changes with the method,
 # because where the walk stops is the whole difference between the two.
@@ -84,6 +106,8 @@ class GaussPage(ctk.CTkFrame):
     def __init__(self, master: Any) -> None:
         super().__init__(master, fg_color="transparent")
         self._method = GAUSS
+        self._way_in = COEFFICIENTS
+        self._names: list[str] = []
         self._output: list[ctk.CTkBaseClass] = []
         self._elimination: Elimination | None = None
         self._index = 0
@@ -100,10 +124,26 @@ class GaussPage(ctk.CTkFrame):
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=24)
 
-        matrices = ctk.CTkFrame(inside, fg_color="transparent")
-        matrices.pack(fill="x")
+        SegmentedControl(inside, (COEFFICIENTS, EQUATIONS), self._choose_way_in).pack(
+            anchor="w", pady=(0, 18)
+        )
+
+        self._grids = self._build_grids(inside)
+        self._grids.pack(fill="x")
+        self._typed = self._build_equations(inside)
+
+        self._error = ErrorBanner(inside)
+
+        self._buttons = ctk.CTkFrame(inside, fg_color="transparent")
+        self._buttons.pack(fill="x", pady=(18, 0))
+        PrimaryButton(self._buttons, "Calcular  →", self._calculate).pack(side="right")
+        self._error.appear_before(self._buttons)
+
+    def _build_grids(self, master: Any) -> ctk.CTkFrame:
+        """The coefficients typed one cell at a time: A beside b."""
+        frame = ctk.CTkFrame(master, fg_color="transparent")
         self._a = MatrixEntryGrid(
-            matrices,
+            frame,
             "Matriz A",
             3,
             3,
@@ -113,7 +153,7 @@ class GaussPage(ctk.CTkFrame):
         )
         self._a.grid(row=0, column=0, sticky="nw", padx=(0, 40))
         self._b = MatrixEntryGrid(
-            matrices,
+            frame,
             "Vector b",
             3,
             1,
@@ -123,15 +163,66 @@ class GaussPage(ctk.CTkFrame):
             on_resize=self._b_resized,
         )
         self._b.grid(row=0, column=1, sticky="nw")
+        return frame
 
-        self._error = ErrorBanner(inside)
+    def _build_equations(self, master: Any) -> ctk.CTkFrame:
+        """The system written out, one equation per line, the way it is on paper."""
+        frame = ctk.CTkFrame(master, fg_color="transparent")
+        ctk.CTkLabel(
+            frame, text="ECUACIONES", font=theme.font("label"), text_color=theme.MUTED
+        ).pack(anchor="w", pady=(0, 8))
 
-        buttons = ctk.CTkFrame(inside, fg_color="transparent")
-        buttons.pack(fill="x", pady=(18, 0))
-        PrimaryButton(buttons, "Calcular  →", self._calculate).pack(side="right")
-        self._error.appear_before(buttons)
+        self._lines = ctk.CTkTextbox(
+            frame,
+            height=150,
+            corner_radius=12,
+            fg_color=theme.FIELD,
+            border_width=1,
+            border_color=theme.BORDER,
+            # CTkTextbox annotates text_color as a single colour while accepting
+            # the same (light, dark) pair as everything else, and honouring it.
+            text_color=theme.INK,  # type: ignore[arg-type]
+            font=theme.font("mono"),
+            wrap="none",
+        )
+        self._lines.insert("1.0", EXAMPLE_SYSTEM)
+        self._lines.bind("<KeyRelease>", lambda _event: self._retyped())
+        self._lines.pack(fill="x")
 
-    # ----- The two methods, and the two sizes that follow each other -----
+        ctk.CTkLabel(
+            frame,
+            text=EQUATION_HELP,
+            font=theme.font("small"),
+            text_color=theme.MUTED,
+            justify="left",
+            anchor="w",
+        ).pack(anchor="w", pady=(8, 0))
+
+        # Filled in once the equations have been read, never before: the list of
+        # unknowns is a proof of what was understood, so it has to be earned.
+        self._found = ctk.CTkLabel(
+            frame, text="", font=theme.font("small"), text_color=theme.ACCENT, anchor="w"
+        )
+        return frame
+
+    # ----- The two methods, the two ways in, and the sizes that follow -----
+
+    def _choose_way_in(self, way_in: str) -> None:
+        """Swap the grids for the text box, or back. Each keeps what was typed."""
+        self._way_in = way_in
+        self._clear_output()
+        self._error.hide()
+        if way_in == EQUATIONS:
+            self._grids.pack_forget()
+            self._typed.pack(fill="x", before=self._buttons)
+        else:
+            self._typed.pack_forget()
+            self._grids.pack(fill="x", before=self._buttons)
+
+    def _retyped(self) -> None:
+        """A changed equation invalidates the unknowns that were read from it."""
+        self._found.pack_forget()
+        self._clear_output()
 
     def _choose_method(self, method: str) -> None:
         self._method = method
@@ -153,12 +244,13 @@ class GaussPage(ctk.CTkFrame):
     def _calculate(self) -> None:
         self._clear_output()
         try:
-            augmented = self._a.matrix().augment(self._b.matrix())
-        except (CellError, ValueError) as problem:
+            augmented, names = self._read_system()
+        except (CellError, EquationError, ValueError) as problem:
             self._error.show(str(problem))
             return
 
         self._error.hide()
+        self._names = names
         solution = solve(augmented)
         self._unknowns = solution.unknowns
         self._elimination = (
@@ -175,6 +267,72 @@ class GaussPage(ctk.CTkFrame):
             if self._method == GAUSS:
                 self._draw_substitutions(solution)
             self._draw_verification(solution)
+
+    # ----- Reading the system, whichever way it was written -----
+
+    def _read_system(self) -> tuple[Matrix, list[str]]:
+        """
+        The augmented matrix, and the names of the unknowns when there are any.
+
+        Only the typed equations know what the unknowns are called. Coefficients
+        in a grid never say, so that route hands back an empty list and
+        `ui/presentation.py` falls back to x, y, z, w.
+        """
+        if self._way_in == EQUATIONS:
+            return self._read_equations()
+        return self._a.matrix().augment(self._b.matrix()), []
+
+    def _read_equations(self) -> tuple[Matrix, list[str]]:
+        """
+        Every non-blank line parsed, or a Spanish sentence about the first that
+        was not.
+
+        `core/equations.py` raises one exception per kind of mistake and says
+        nothing to anybody; the wording is decided here, exactly as
+        `ui/prompts.py` decides it for the terminal. What the window has to add
+        is the number of the line, because every equation is on screen at once
+        and nothing else would say which one is meant.
+        """
+        lines = [line.strip() for line in self._lines.get("1.0", "end").splitlines()]
+        lines = [line for line in lines if line]
+
+        if not lines:
+            raise ValueError("Escribe al menos una ecuación.")
+        if len(lines) > SIZE_LIMIT:
+            raise ValueError(
+                f"Son {len(lines)} ecuaciones y el máximo es {SIZE_LIMIT}."
+            )
+
+        equations: list[Equation] = []
+        for number, text in enumerate(lines, start=1):
+            try:
+                equations.append(parse_equation(text))
+            except MissingEquals:
+                raise ValueError(
+                    f"A la ecuación {number} le falta el '='. "
+                    "Una ecuación se escribe como  2x + 3y = 5"
+                ) from None
+            except UnreadableTerm as problem:
+                raise ValueError(
+                    f"En la ecuación {number} no entiendo la parte "
+                    f"'{problem.text}'. Revísala."
+                ) from None
+            except EquationError:
+                raise ValueError(
+                    f"No pude leer la ecuación {number}. Escríbela otra vez."
+                ) from None
+
+        names = unknown_names(equations)
+        if not names:
+            raise ValueError("Ninguna de las ecuaciones tiene incógnitas.")
+        if len(names) > SIZE_LIMIT:
+            raise ValueError(f"Son {len(names)} incógnitas y el máximo es {SIZE_LIMIT}.")
+
+        self._found.configure(
+            text=f"Incógnitas encontradas ({len(names)}): {', '.join(names)}"
+        )
+        self._found.pack(anchor="w", pady=(10, 0))
+        return to_augmented(equations, names), names
 
     # ----- The step by step -----
 
@@ -321,7 +479,7 @@ class GaussPage(ctk.CTkFrame):
         ).pack(fill="x", pady=(0, 12))
 
         walked = replace(solution, reduction=self._elimination)
-        MonoBlock(inside, _typographic(render_equations(walked))).pack(anchor="w")
+        MonoBlock(inside, _typographic(render_equations(walked, self._names))).pack(anchor="w")
 
     def _draw_result(self, solution: Solution) -> None:
         card = self._add_card()
@@ -357,7 +515,7 @@ class GaussPage(ctk.CTkFrame):
             for column, value in enumerate(solution.values, start=1):
                 Chip(
                     values,
-                    f"✓  {unknown_name(column)} = {format_scalar(value)}",
+                    f"✓  {unknown_name(column, self._names)} = {format_scalar(value)}",
                 ).pack(side="left", padx=(0, 8))
             if solution.homogeneous:
                 ctk.CTkLabel(
@@ -381,7 +539,7 @@ class GaussPage(ctk.CTkFrame):
         else:
             ctk.CTkLabel(
                 inside,
-                text=_typographic(render_values(solution)),
+                text=_typographic(render_values(solution, self._names)),
                 font=theme.font("body"),
                 text_color=theme.MUTED,
                 justify="left",
@@ -406,7 +564,7 @@ class GaussPage(ctk.CTkFrame):
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
         SectionTitle(inside, "Despeje por sustitución hacia atrás").pack(fill="x", pady=(0, 14))
-        MonoBlock(inside, _typographic(render_substitutions(solution))).pack(anchor="w")
+        MonoBlock(inside, _typographic(render_substitutions(solution, self._names))).pack(anchor="w")
 
     def _draw_verification(self, solution: Solution) -> None:
         card = self._add_card()
