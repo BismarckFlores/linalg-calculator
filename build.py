@@ -76,7 +76,11 @@ BLOCKS: list[Block] = [
         "El método de Gauss: busca un pivote en cada columna, lo lleva a 1 y hace\n"
         "ceros por debajo. Si una columna está toda a cero de esa fila hacia\n"
         "abajo no tiene pivote y se salta, que es lo que hace que la escalera\n"
-        "quede irregular cuando hay variables libres.",
+        "quede irregular cuando hay variables libres.\n"
+        "\n"
+        "La forma escalonada reducida (Gauss-Jordan) es el mismo recorrido con\n"
+        "una segunda pasada de vuelta hacia arriba, y vive aquí al lado por eso\n"
+        "mismo. Este programa no la usa: le basta con la forma escalonada.",
     ),
     (
         "core/systems.py",

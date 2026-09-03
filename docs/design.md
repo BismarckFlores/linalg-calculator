@@ -57,14 +57,20 @@ are fractions.
 
 ## Only what has been asked for
 
-The engine reduces to the echelon form and clears the unknowns by back
-substitution. It does not carry the elimination on to the reduced form, and it
-has no way to pick between methods, because nothing has needed one yet.
+The engine reduces to the echelon form, carries the elimination on to the
+reduced form, and clears the unknowns by back substitution. It has no way to
+pick between methods, though: a caller names the reduction it wants by calling
+it, and no `Method` enum sits in between, because nothing has needed one yet.
 
 That is the rule for this repository generally: a capability lands when an
 assignment asks for it, not when it looks like it might be useful later. A
-`Method` enum with a single member, or a second reduction nobody calls, is
-weight that has to be read, tested and kept correct for no return.
+`Method` enum with a single member is weight that has to be read, tested and
+kept correct for no return.
+
+`to_rref` is the exception that proves it: the reduced form landed the day
+Programa 2 asked for it, not the day `to_ref` made it look easy. It costs
+almost nothing precisely because it was not designed for in advance — it is the
+same walk with a second pass, so there was no abstraction waiting for it.
 
 ## Classification comes from the pivots, not from the answer
 

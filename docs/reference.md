@@ -17,7 +17,7 @@ steps         a record: the starting matrix, and one Step per operation
    │
 worksheet     matrix + record, where an operation happens and is written down
    │
-elimination   drives a worksheet down to the echelon form
+elimination   drives a worksheet down to the echelon form, reduced or not
    │
 systems       classifies what came out, and clears the unknowns
    │                                      verification   checks it independently
@@ -156,10 +156,16 @@ operation that does nothing would be noise in the step by step.
 | `rank(matrix) -> int` | How many pivots that form has. |
 
 **`Elimination`** — frozen. Fields `original`, `result`, `log`, `pivots`
-(a tuple of `(row, col)`, 1-based, ordered by row).
+(a tuple of `(row, col)`, 1-based, ordered by row) and `reduced`, which says
+which of the two forms `result` is in.
 
+| `to_rref(matrix, title="") -> Elimination` | Keeps going to the reduced form: Gauss-Jordan. |
 | Member | Meaning |
 | --- | --- |
+`to_rref` is `to_ref` plus a second pass, not a second algorithm: the walk down
+finds the pivots and normalizes them, the walk back up clears the entries above
+each one, rightmost pivot first. Going back up never moves a pivot.
+
 | `rank` | Number of pivots. |
 | `pivot_columns()` | The columns holding one. |
 | `free_columns()` | The columns without one. |
@@ -171,6 +177,8 @@ After `to_ref`, every pivot is exactly 1 and everything below it is 0.
 
 | Name | Meaning |
 | --- | --- |
+After `to_rref`, everything above it is 0 as well, so a pivot is the only
+non-zero entry in its column.
 | `solve(augmented) -> Solution` | The whole thing. Raises `ValueError` if the matrix has fewer than one equation or two columns. |
 | `SystemKind` | `UNIQUE`, `INFINITE`, `INCONSISTENT`. |
 

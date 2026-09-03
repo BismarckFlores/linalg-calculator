@@ -16,7 +16,7 @@ linalg-calculator/
 │   ├── matrix.py         # the matrix and the operations that need no explaining
 │   ├── steps.py          # the step by step (Step, StepLog)
 │   ├── worksheet.py      # matrix + record: the blackboard operations happen on
-│   ├── elimination.py    # row elimination down to the echelon form
+│   ├── elimination.py    # row elimination, to the echelon form and the reduced one
 │   ├── systems.py        # classification and solution of a linear system
 │   └── verification.py   # putting a solution back into the original system
 ├── ui/                   # everything a person reads, in Spanish

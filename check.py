@@ -7,7 +7,7 @@ it says it should, the seven modules of `core/` are wired together correctly.
 
 from fractions import Fraction
 
-from core.elimination import to_ref
+from core.elimination import to_ref, to_rref
 from core.matrix import Matrix
 from core.scalar import format_scalar
 from core.systems import SystemKind, solve
@@ -71,6 +71,17 @@ check("the original is untouched", echelon.original, big)
 check("identity needs no work", to_ref(Matrix.identity(3)).log.is_empty(), True)
 check("a zero column holds no pivot", to_ref(Matrix([[0, 1, 2], [0, 0, 3]])).pivots,
       ((1, 2), (2, 3)))
+
+print("gauss-jordan: the same walk, with a second pass back up")
+reduced = to_rref(big)
+check("result", reduced.result, Matrix([[1, 0, 0, 29], [0, 1, 0, 16], [0, 0, 1, 3]]))
+check("the pivots did not move", reduced.pivots, echelon.pivots)
+check("it says it is reduced", reduced.reduced, True)
+check("the walk down is the same walk",
+      [step.label for step in reduced.log][:len(echelon.log)],
+      [step.label for step in echelon.log])
+check("a free variable keeps its column", to_rref(Matrix([[1, 1, 5], [2, 2, 10]])).result,
+      Matrix([[1, 1, 5], [0, 0, 0]]))
 
 print("the three cases the assignment asks for")
 check("unique", solve(Matrix([[1, 1, 5], [1, -1, 1]])).kind, SystemKind.UNIQUE)

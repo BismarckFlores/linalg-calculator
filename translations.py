@@ -135,6 +135,48 @@ DOCSTRINGS: dict[str, str] = {
         "que esta toda a cero de esa fila hacia abajo no tiene pivote y se deja\n"
         "estar; la misma fila busca entonces una columna mas a la derecha, que es\n"
         "lo que hace que la escalera quede irregular cuando hay variables libres.",
+    "Reduce to the reduced row echelon form: Gauss-Jordan.\n"
+    "\n"
+    "The same walk down as `to_ref`, and then back up: starting from the pivot\n"
+    "furthest to the right, every entry above a pivot is cleared too. What comes\n"
+    "out satisfies the two extra conditions of the reduced form, that each\n"
+    "leading entry is 1 and is the only non-zero entry in its column.\n"
+    "\n"
+    "Going back up never moves a pivot, so the positions found on the way down\n"
+    "are still the positions on the way out.":
+        "Reduce a la forma escalonada reducida por filas: Gauss-Jordan.\n"
+        "\n"
+        "El mismo recorrido de bajada que to_ref, y despues la vuelta hacia arriba:\n"
+        "empezando por el pivote de mas a la derecha, se hacen ceros tambien por\n"
+        "encima de cada pivote. Lo que sale cumple las dos condiciones de mas de la\n"
+        "forma reducida: cada elemento principal es 1 y es el unico distinto de\n"
+        "cero en su columna.\n"
+        "\n"
+        "La vuelta hacia arriba no mueve ningun pivote, asi que las posiciones\n"
+        "encontradas en la bajada siguen siendo las posiciones al salir.",
+    "The walk down: find a pivot, scale it to 1, clear everything below it.\n"
+    "\n"
+    "Returns the pivot positions in the order they were found, which is by row.":
+        "La bajada: busca un pivote, lo lleva a 1 y hace ceros por debajo.\n"
+        "\n"
+        "Devuelve las posiciones de los pivotes en el orden en que se encontraron,\n"
+        "que es por filas.",
+    "The walk back up: clear the entries above each pivot, rightmost pivot first.\n"
+    "\n"
+    "Right to left matters. A pivot further right has already been isolated by\n"
+    "the time it is used to clear the column of a pivot further left, so no\n"
+    "operation here can put back a zero that a later one removed.\n"
+    "\n"
+    "Nothing is scaled: `_forward` left every pivot at 1 already.":
+        "La vuelta hacia arriba: hace ceros por encima de cada pivote, empezando\n"
+        "por el de mas a la derecha.\n"
+        "\n"
+        "El orden de derecha a izquierda importa. Un pivote de mas a la derecha ya\n"
+        "esta aislado cuando se usa para limpiar la columna de uno de mas a la\n"
+        "izquierda, asi que ninguna operacion de aqui puede deshacer un cero que\n"
+        "otra posterior ya habia conseguido.\n"
+        "\n"
+        "No se multiplica ninguna fila: _forward ya dejo todos los pivotes en 1.",
     "How many pivots the echelon form of this matrix has.":
         "Cuantos pivotes tiene la forma escalonada de esta matriz.",
     "The first row at or below `from_row` whose entry in `col` is not zero.":
