@@ -256,9 +256,75 @@ DOCSTRINGS: dict[str, str] = {
     "The equations that did not hold, if any did not.":
         "Las ecuaciones que no se cumplieron, si alguna no lo hizo.",
 
+    # ----- core/equations.py -----
+    "Something in the text of an equation cannot be read.":
+        "Hay algo en el texto de una ecuacion que no se puede leer.",
+    "The text does not hold exactly one `=`.":
+        "El texto no tiene exactamente un =.",
+    "A fragment of a side is not a term. `text` is the fragment itself.":
+        "Un trozo de un lado no es un termino. text es el trozo en cuestion.",
+    "One equation, tidied: `terms = constant`, with nothing left on the right.":
+        "Una ecuacion ya ordenada: terminos = constante, sin nada suelto a la derecha.",
+    "Read one written equation.\n"
+    "\n"
+    "Whatever is on the right moves left and whatever is constant moves right, so\n"
+    "`2x = 3y + 1` and `2x - 3y = 1` come back identical. A coefficient that\n"
+    "cancels to zero is dropped: after `x + y = x + 2` the system does not mention\n"
+    "x at all, and pretending otherwise would invent a column.":
+        "Lee una ecuacion escrita.\n"
+        "\n"
+        "Lo que esta a la derecha pasa a la izquierda y lo que es constante pasa a\n"
+        "la derecha, de modo que 2x = 3y + 1 y 2x - 3y = 1 salen identicas. Un\n"
+        "coeficiente que se cancela a cero se descarta: despues de x + y = x + 2 el\n"
+        "sistema no menciona x, y fingir lo contrario seria inventarse una columna.",
+    "Every unknown the equations mention, in the order they become columns.\n"
+    "\n"
+    "Alphabetical, with trailing digits compared as numbers so that x2 comes\n"
+    "before x10. Alphabetical and not order of appearance, because `2y + 3x = 5`\n"
+    "should still put x in the first column: that is where a reader looks for it.":
+        "Todas las incognitas que mencionan las ecuaciones, en el orden en que van a\n"
+        "ser columnas.\n"
+        "\n"
+        "Por orden alfabetico, con los digitos finales comparados como numeros para\n"
+        "que x2 vaya antes que x10. Alfabetico y no por orden de aparicion, porque\n"
+        "2y + 3x = 5 tiene que seguir poniendo x en la primera columna: ahi es donde\n"
+        "la busca quien lo lee.",
+    "Lay the equations out as [A | b] against those names.\n"
+    "\n"
+    "An unknown that an equation never mentions is a zero in that row, which is\n"
+    "what lets somebody write `x + z = 1` and `y = 2` and still get a system of\n"
+    "three columns out of it.":
+        "Coloca las ecuaciones como [A | b] frente a esos nombres.\n"
+        "\n"
+        "Una incognita que una ecuacion no menciona es un cero en esa fila, que es\n"
+        "lo que permite escribir x + z = 1 e y = 2 y obtener aun asi un sistema de\n"
+        "tres columnas.",
+    "Read one side into its coefficients and its constant.\n"
+    "\n"
+    "Whitespace goes first, so `2 x` and `2x` are the same thing, and the text is\n"
+    "lowercased, so `X` and `x` are the same unknown. Then terms are taken left to\n"
+    "right until the side is used up; anything the pattern cannot consume is\n"
+    "reported with the fragment that stopped it.":
+        "Lee un lado y lo separa en sus coeficientes y su constante.\n"
+        "\n"
+        "Primero se quitan los espacios, para que 2 x y 2x sean lo mismo, y se pasa\n"
+        "todo a minusculas, para que X y x sean la misma incognita. Despues se van\n"
+        "tomando terminos de izquierda a derecha hasta agotar el lado; lo que el\n"
+        "patron no consigue leer se informa junto al trozo que lo detuvo.",
+    "Letters first, then trailing digits as a number: x, x1, x2, x10, y.":
+        "Primero las letras, y luego los digitos finales como numero: x, x1, x2, x10, y.",
+
     # ----- ui/presentation.py -----
-    "The name of the unknown sitting in a 1-based column: x, y, z, w, x5...":
-        "El nombre de la incognita de esa columna, contando desde 1: x, y, z, w, x5...",
+    "The name of the unknown sitting in a 1-based column.\n"
+    "\n"
+    "Whatever the person called it, when they wrote the system out as equations\n"
+    "and there is a name to use. Otherwise the blackboard default: x, y, z, w,\n"
+    "and x5 upwards once those run out.":
+        "El nombre de la incognita que ocupa esa columna, contando desde 1.\n"
+        "\n"
+        "El que le haya puesto quien escribio el sistema, cuando lo escribio como\n"
+        "ecuaciones y hay un nombre que usar. Si no, los del pizarron de siempre:\n"
+        "x, y, z, w, y de ahi en adelante x5, x6...",
     "The augmented matrix with the bar between A and b: `[ 1  -2   1 |  0 ]`.\n"
     "\n"
     "The bar is drawn here and not in `Matrix.__str__` because only a system\n"
@@ -320,6 +386,41 @@ DOCSTRINGS: dict[str, str] = {
         "Solo si hay alguien mirando. Con la entrada redirigida no hay quien pulse\n"
         "nada, asi que el programa corre de largo en vez de quedarse esperando una\n"
         "tecla que nunca va a llegar.",
+    "Ask how the system is going to be written down, and read it that way.\n"
+    "\n"
+    "Comes back with [A | b] and the names of the unknowns in column order. The\n"
+    "names are empty when the coefficients were given one by one, because then\n"
+    "nobody ever said what the unknowns are called.":
+        "Pregunta como se va a escribir el sistema, y lo lee de esa manera.\n"
+        "\n"
+        "Devuelve [A | b] y los nombres de las incognitas en el orden de las\n"
+        "columnas. Los nombres vienen vacios cuando los coeficientes se dieron uno\n"
+        "a uno, porque entonces nadie llego a decir como se llaman las incognitas.",
+    "Read the system as equations, one per line, until a blank line ends it.\n"
+    "\n"
+    "The unknowns are whatever the equations turn out to mention, so nobody has\n"
+    "to say up front how many there are. What was understood is read back before\n"
+    "anything is done with it: a typo in an equation is much easier to catch as a\n"
+    "list of unknowns than as a wrong answer three sections later.":
+        "Lee el sistema como ecuaciones, una por linea, hasta que una linea en\n"
+        "blanco lo da por terminado.\n"
+        "\n"
+        "Las incognitas son las que resulten mencionar las ecuaciones, asi que\n"
+        "nadie tiene que decir de antemano cuantas hay. Lo que se entendio se\n"
+        "devuelve por pantalla antes de hacer nada con ello: una errata en una\n"
+        "ecuacion se pilla mucho mejor viendo la lista de incognitas que viendo un\n"
+        "resultado equivocado tres secciones mas adelante.",
+    "Take equations until a blank line, explaining in Spanish whatever fails.\n"
+    "\n"
+    "The parser raises one exception per kind of mistake and says nothing to\n"
+    "anybody; the sentence a person reads is decided here, like every other\n"
+    "sentence in the program.":
+        "Va tomando ecuaciones hasta una linea en blanco, explicando en castellano\n"
+        "lo que falle.\n"
+        "\n"
+        "El analizador lanza una excepcion por cada tipo de error y no le dice nada\n"
+        "a nadie; la frase que lee una persona se decide aqui, como todas las demas\n"
+        "frases del programa.",
     "Ask for the size and then every coefficient, and build [A | b] out of them.\n"
     "\n"
     "The questions go equation by equation, ending each one with its constant\n"
@@ -384,6 +485,24 @@ COMMENTS: dict[str, str] = {
         "# Un pivote cayo en la columna de terminos independientes: alguna fila dice 0 = k.",
     "# Fewer pivots than unknowns: the ones left over are free.":
         "# Menos pivotes que incognitas: las que sobran son libres.",
+
+    # ----- core/equations.py -----
+    "# One term: an optional sign, an optional coefficient written plainly or inside":
+        "# Un termino: un signo opcional, un coeficiente opcional escrito tal cual o entre",
+    "# parentheses, an optional `*`, and an optional name. Everything is optional":
+        "# parentesis, un * opcional y un nombre opcional. Todo es opcional porque",
+    "# because `x`, `2`, `-3y` and `(1/2)z` are all terms; a match with neither a":
+        "# x, 2, -3y y (1/2)z son todos terminos; una coincidencia que no tiene ni",
+    "# number nor a name is the one combination that means nothing.":
+        "# numero ni nombre es la unica combinacion que no significa nada.",
+    "# A name split into its letters and its trailing digits, for sorting.":
+        "# Un nombre partido en sus letras y sus digitos finales, para poder ordenarlo.",
+    "# A lone sign. What went wrong is whatever comes after it.":
+        "# Un signo suelto. Lo que esta mal es lo que venga detras de el.",
+    "# A written coefficient is read by `to_scalar`, so `1/3`, `2.5` and":
+        "# Un coeficiente escrito lo lee to_scalar, asi que 1/3, 2.5 y 2,5",
+    "# `2,5` mean here exactly what they mean everywhere else.":
+        "# significan aqui exactamente lo mismo que en todo lo demas.",
 
     # ----- ui/presentation.py -----
     "# Named after the blackboard for the sizes that fit on it; x5, x6... beyond.":

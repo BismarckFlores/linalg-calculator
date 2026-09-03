@@ -102,6 +102,15 @@ BLOCKS: list[Block] = [
         "hubo redondeo en ningún momento.",
     ),
     (
+        "core/equations.py",
+        "LA LECTURA DE UNA ECUACIÓN ESCRITA",
+        "Convierte una ecuación escrita como se escribe, 2x + 3y - z = 5, en la\n"
+        "fila de la matriz aumentada que le corresponde. Pasa las incógnitas a la\n"
+        "izquierda y las constantes a la derecha, y las incógnitas del sistema\n"
+        "son las que resulten mencionar las ecuaciones: nadie tiene que decir de\n"
+        "antemano cuántas hay ni cómo se llaman.",
+    ),
+    (
         "ui/presentation.py",
         "EL TEXTO QUE SE MUESTRA",
         "Convierte los objetos anteriores en las frases que lee una persona.\n"
@@ -112,10 +121,11 @@ BLOCKS: list[Block] = [
     (
         "ui/prompts.py",
         "LA LECTURA DE DATOS POR TECLADO",
-        "Pide el número de ecuaciones m, el número de variables n, y después\n"
-        "cada coeficiente por su nombre: a_11, a_12, ..., b_1. Si la respuesta\n"
-        "no sirve, vuelve a preguntar; ninguna entrada equivocada corta el\n"
-        "programa.",
+        "Dos maneras de entrar el sistema. O se escriben las ecuaciones tal como\n"
+        "se leen, una por línea, y de ahí salen los coeficientes; o se pide el\n"
+        "número de ecuaciones m, el número de variables n, y después cada\n"
+        "coeficiente por su nombre: a_11, a_12, ..., b_1. Si la respuesta no\n"
+        "sirve, vuelve a preguntar; ninguna entrada equivocada corta el programa.",
     ),
     (
         "deliverables/program1.py",

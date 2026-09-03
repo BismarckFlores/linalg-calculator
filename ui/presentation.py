@@ -26,8 +26,16 @@ CLASSIFICATIONS = {
     SystemKind.INCONSISTENT: "Sistema Inconsistente: Sin Solución.",
 }
 
-def unknown_name(column: int) -> str:
-    """The name of the unknown sitting in a 1-based column: x, y, z, w, x5..."""
+def unknown_name(column: int, names: Sequence[str] = ()) -> str:
+    """
+    The name of the unknown sitting in a 1-based column.
+
+    Whatever the person called it, when they wrote the system out as equations
+    and there is a name to use. Otherwise the blackboard default: x, y, z, w,
+    and x5 upwards once those run out.
+    """
+    if column <= len(names):
+        return names[column - 1]
     if column <= len(UNKNOWN_NAMES):
         return UNKNOWN_NAMES[column - 1]
     return f"x{column}"
@@ -67,7 +75,7 @@ def describe(solution: Solution) -> str:
     """The classification, in the exact words the assignment asks for."""
     return CLASSIFICATIONS[solution.kind]
 
-def render_values(solution: Solution) -> str:
+def render_values(solution: Solution, names: Sequence[str] = ()) -> str:
     """The value of each unknown, or the free ones when there are infinitely many."""
     if solution.kind is SystemKind.INCONSISTENT:
         row = _contradictory_row(solution)
@@ -78,7 +86,7 @@ def render_values(solution: Solution) -> str:
         )
 
     if solution.kind is SystemKind.INFINITE:
-        free = ", ".join(unknown_name(col) for col in solution.free_columns)
+        free = ", ".join(unknown_name(col, names) for col in solution.free_columns)
         count = len(solution.free_columns)
         return (
             f"El sistema tiene {_plural(solution.unknowns, 'incógnita', 'incógnitas')} "
@@ -88,13 +96,13 @@ def render_values(solution: Solution) -> str:
             "Cada valor que se les dé produce una solución distinta del sistema."
         )
 
-    lines = [f"  {unknown_name(i + 1)} = {format_scalar(value)}"
+    lines = [f"  {unknown_name(i + 1, names)} = {format_scalar(value)}"
              for i, value in enumerate(solution.values)]
     if solution.homogeneous:
         lines.append("\nEl sistema es homogéneo, y esta es su solución trivial.")
     return "\n".join(lines)
 
-def render_equations(solution: Solution) -> str:
+def render_equations(solution: Solution, names: Sequence[str] = ()) -> str:
     """The echelon matrix written back as the system of equations it stands for."""
     echelon = solution.result
     constants = solution.unknowns + 1
@@ -102,7 +110,7 @@ def render_equations(solution: Solution) -> str:
 
     for row in range(1, echelon.rows + 1):
         pieces = [
-            _term(echelon.elem(row, col), unknown_name(col))
+            _term(echelon.elem(row, col), unknown_name(col, names))
             for col in range(1, constants)
             if echelon.elem(row, col) != 0
         ]
@@ -113,12 +121,12 @@ def render_equations(solution: Solution) -> str:
     lines = [f"  {tag}:  {left:>{width}} = {constant}" for tag, left, constant in rows]
     return "\n".join(lines)
 
-def render_substitutions(solution: Solution) -> str:
+def render_substitutions(solution: Solution, names: Sequence[str] = ()) -> str:
     """The clearing, written out line by line the way it is done on paper."""
     lines: list[str] = []
 
     for step in solution.substitutions:
-        name = unknown_name(step.column)
+        name = unknown_name(step.column, names)
         constant = format_scalar(step.constant)
         head = f"  f_{step.row}:  "
         indent = " " * len(head)
@@ -129,7 +137,8 @@ def render_substitutions(solution: Solution) -> str:
 
         values = [solution.values[col - 1] for _coefficient, col in step.terms]
         symbolic = " ".join(
-            _term(coefficient, unknown_name(col)) for coefficient, col in step.terms
+            _term(coefficient, unknown_name(col, names))
+            for coefficient, col in step.terms
         )
         replaced = " ".join(
             _term(coefficient, format_factor(value))

@@ -47,7 +47,7 @@ def banner(text: str, wait: bool = True) -> None:
 def solve_one_system() -> None:
     """Read a system, reduce it, classify it, solve it and check the answer."""
     banner("1. ENTRADA DE DATOS", wait=False)
-    augmented = ask_system()
+    augmented, names = ask_system()
     solution = solve(augmented)
     unknowns = solution.unknowns
 
@@ -60,7 +60,7 @@ def solve_one_system() -> None:
     banner("4. SISTEMA EQUIVALENTE")
     print("La matriz escalonada, leída otra vez como ecuaciones:")
     print()
-    print(render_equations(solution))
+    print(render_equations(solution, names))
 
     banner("5. CLASIFICACIÓN DEL SISTEMA")
     print(f"rango(A) = {solution.coefficient_rank}")
@@ -72,9 +72,9 @@ def solve_one_system() -> None:
     banner("6. SOLUCIÓN")
     if solution.substitutions:
         print("Despeje, de la última incógnita a la primera:")
-        print(render_substitutions(solution))
+        print(render_substitutions(solution, names))
         print()
-    print(render_values(solution))
+    print(render_values(solution, names))
 
     banner("7. COMPROBACIÓN")
     if solution.kind is SystemKind.UNIQUE:

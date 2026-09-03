@@ -144,3 +144,22 @@ addressed to whoever is writing the code. When the mistake belongs to the person
 using the program, the interface catches it and says so in Spanish before
 calling the engine. That is why the interface checks dimensions the engine also
 checks: two different audiences, not duplication.
+
+## The parser raises one exception per kind of mistake
+
+A typed equation is the first place where the mistake is genuinely the reader's,
+so the wording matters and none of it can live in `core/`. `core/equations.py`
+raises instead: `MissingEquals` when there is no `=` to split on, and
+`UnreadableTerm` carrying the exact fragment that stopped it. Both descend from
+`EquationError`, so `ui/prompts.py` can name the two it has a sentence for and
+still catch anything added later without going silent.
+
+The fragment is what makes the difference. "No pude leer esa ecuación" sends
+somebody hunting through a line they already believe is correct; "No entiendo la
+parte '&'" points at the character. That is worth an attribute on an exception.
+
+The unknowns are read out of the equations rather than declared first. It is not
+only shorter to type: the list that comes back is a proof of what was
+understood. `Incógnitas encontradas (3): x, y, z` catches `2x + 3x = 5` written
+where `2x + 3y = 5` was meant, at the moment it was typed, instead of three
+sections later as a system that classifies wrong for no visible reason.

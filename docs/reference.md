@@ -20,21 +20,26 @@ worksheet     matrix + record, where an operation happens and is written down
 elimination   drives a worksheet down to the echelon form, reduced or not
    │
 systems       classifies what came out, and clears the unknowns
-   │                                      verification   checks it independently
-   ├──────────────────────────────────────────┘
+   │                    verification   checks it independently
+   │                    equations      turns `2x + 3y = 5` into a row
+   ├────────────────────────┴──────────────┘
 presentation  turns all of the above into Spanish
-prompts       reads a system from the keyboard
+prompts       reads a system from the keyboard, either way round
    │
 program1      orders the seven sections
 ```
 
-`verification` hangs off to the side deliberately: it imports `matrix` and
-`scalar` only, so it cannot accidentally check the elimination against itself.
+Two modules hang off to the side deliberately. `verification` imports `matrix`
+and `scalar` only, so it cannot accidentally check the elimination against
+itself; `equations` imports the same two, because reading text into a matrix
+has nothing to do with what is later done to that matrix.
 
 ## What flows through it
 
 ```
-keyboard ──prompts.ask_system()──> Matrix [A | b]
+keyboard ──prompts.ask_system()──> Matrix [A | b], names
+                                      │            │
+                                      │            └──> every presentation.render_*
                                       │
                                       └──systems.solve()──> Solution
                                                               ├─ .log          → presentation.render_steps
@@ -153,32 +158,32 @@ operation that does nothing would be noise in the step by step.
 | Name | Meaning |
 | --- | --- |
 | `to_ref(matrix, title="") -> Elimination` | Reduces to row echelon form, recording every operation. |
+| `to_rref(matrix, title="") -> Elimination` | Keeps going to the reduced form: Gauss-Jordan. |
 | `rank(matrix) -> int` | How many pivots that form has. |
+
+`to_rref` is `to_ref` plus a second pass, not a second algorithm: the walk down
+finds the pivots and normalizes them, the walk back up clears the entries above
+each one, rightmost pivot first. Going back up never moves a pivot.
 
 **`Elimination`** — frozen. Fields `original`, `result`, `log`, `pivots`
 (a tuple of `(row, col)`, 1-based, ordered by row) and `reduced`, which says
 which of the two forms `result` is in.
 
-| `to_rref(matrix, title="") -> Elimination` | Keeps going to the reduced form: Gauss-Jordan. |
 | Member | Meaning |
 | --- | --- |
-`to_rref` is `to_ref` plus a second pass, not a second algorithm: the walk down
-finds the pivots and normalizes them, the walk back up clears the entries above
-each one, rightmost pivot first. Going back up never moves a pivot.
-
 | `rank` | Number of pivots. |
 | `pivot_columns()` | The columns holding one. |
 | `free_columns()` | The columns without one. |
 | `zero_rows()` | Rows that ended up entirely zero. |
 
 After `to_ref`, every pivot is exactly 1 and everything below it is 0.
+After `to_rref`, everything above it is 0 as well, so a pivot is the only
+non-zero entry in its column.
 
 ## `core/systems.py`
 
 | Name | Meaning |
 | --- | --- |
-After `to_rref`, everything above it is 0 as well, so a pivot is the only
-non-zero entry in its column.
 | `solve(augmented) -> Solution` | The whole thing. Raises `ValueError` if the matrix has fewer than one equation or two columns. |
 | `SystemKind` | `UNIQUE`, `INFINITE`, `INCONSISTENT`. |
 
@@ -202,6 +207,29 @@ non-zero entry in its column.
 | `rank`, `coefficient_rank` | `rank(A\|b)` and `rank(A)`. Comparing them is the classification. |
 | `reduction` | The `Elimination` underneath, if the pivots are needed. |
 
+## `core/equations.py`
+
+Reading a system the way it is written down. Imports `matrix` and `scalar`
+only, and says nothing to anybody: the Spanish for a mistake is decided in
+`ui/prompts.py`.
+
+| Name | Meaning |
+| --- | --- |
+| `parse_equation(text) -> Equation` | Reads one line. Moves unknowns left and constants right, so what comes back is always `terms = constant`. |
+| `unknown_names(equations) -> list[str]` | Every name mentioned, in column order: alphabetical, with digits compared as numbers so `x2` sorts before `x10`. |
+| `to_augmented(equations, names) -> Matrix` | Lays the equations out as `[A \| b]` against those names. An unknown an equation never mentions gets a 0. |
+
+**`Equation`** — frozen. `terms` (the non-zero coefficient of each unknown),
+`constant`, and `text` as it was typed.
+
+**Errors** — all of them subclass `EquationError`, which subclasses
+`ValueError`.
+
+| Raised | When |
+| --- | --- |
+| `MissingEquals` | The line does not hold exactly one `=`. |
+| `UnreadableTerm` | A fragment is not a term. `.text` is the fragment, for pointing at it. |
+
 ## `core/verification.py`
 
 | Name | Meaning |
@@ -222,17 +250,21 @@ nothing.
 
 | Function | Produces |
 | --- | --- |
-| `unknown_name(col)` | `x`, `y`, `z`, `w`, then `x5` and up. |
+| `unknown_name(col, names=())` | The name that was typed, when there is one; otherwise `x`, `y`, `z`, `w`, then `x5` and up. |
 | `render_augmented(matrix, unknowns)` | `[  1  -2   1 \|  0 ]`, with the bar. |
 | `render_steps(log, unknowns)` | Every operation, numbered, with the matrix after it. |
 | `describe(solution)` | The classification, in the assignment's exact words. |
-| `render_values(solution)` | The values, or the free variables, or the contradictory row — whichever applies to the kind. |
-| `render_equations(solution)` | The echelon form read back as equations. |
-| `render_substitutions(solution)` | The clearing, four lines per unknown. |
+| `render_values(solution, names=())` | The values, or the free variables, or the contradictory row — whichever applies to the kind. |
+| `render_equations(solution, names=())` | The echelon form read back as equations. |
+| `render_substitutions(solution, names=())` | The clearing, four lines per unknown. |
 | `render_verification(verification)` | Each equation substituted, and the verdict. |
 
 `CLASSIFICATIONS` is the dict holding the three required sentences. Change the
 wording there and it changes everywhere.
+
+`names` is the list of unknowns in column order, straight from `ask_system`.
+Leaving it out falls back to `x`, `y`, `z`, `w`, which is what the coefficient
+by coefficient route produces, since nothing there ever names anything.
 
 ## `ui/prompts.py`
 
@@ -244,10 +276,15 @@ types can end the program. End of input travels up to the caller.
 | `ask_int(question, minimum=1, maximum=10)` | A whole number in range. |
 | `ask_scalar(question)` | One number: integer, decimal or fraction. |
 | `ask_yes_no(question)` | `s` or `n`. |
-| `ask_system()` | `m`, `n`, and every coefficient by name. Returns `[A \| b]`. |
+| `ask_system()` | Which of the two ways, then reads it. Returns `[A \| b]` and the names. |
+| `ask_equations()` | The equations, one per line, until a blank one. Returns `[A \| b]` and the names. |
+| `ask_coefficients()` | `m`, `n`, and every coefficient by name. Returns `[A \| b]`. |
 | `pause(message)` | Enter — but only when `stdin` is a terminal. |
 
-`SIZE_LIMIT = 10` caps `m` and `n`.
+`ask_system` returns an empty name list for the coefficient route: nothing
+there ever says what the unknowns are called.
+
+`SIZE_LIMIT = 10` caps `m`, `n`, and the number of equations that can be typed.
 
 ## `deliverables/program1.py`
 

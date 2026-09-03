@@ -2,12 +2,13 @@
 Smoke test for the engine. Run it from the repository root: python check.py
 
 It is not a test suite, it is a transcription check: if every line prints what
-it says it should, the seven modules of `core/` are wired together correctly.
+it says it should, the modules of `core/` are wired together correctly.
 """
 
 from fractions import Fraction
 
 from core.elimination import to_ref, to_rref
+from core.equations import parse_equation, to_augmented, unknown_names
 from core.matrix import Matrix
 from core.scalar import format_scalar
 from core.systems import SystemKind, solve
@@ -82,6 +83,22 @@ check("the walk down is the same walk",
       [step.label for step in echelon.log])
 check("a free variable keeps its column", to_rref(Matrix([[1, 1, 5], [2, 2, 10]])).result,
       Matrix([[1, 1, 5], [0, 0, 0]]))
+
+print("reading an equation the way it is written")
+check("coefficients", parse_equation("2x + 3y - z = 5").terms, {"x": 2, "y": 3, "z": -1})
+check("constant", parse_equation("2x + 3y - z = 5").constant, 5)
+check("an implicit 1", parse_equation("x - y = 0").terms, {"x": 1, "y": -1})
+check("a fraction", parse_equation("(1/3)x = 2").terms, {"x": Fraction(1, 3)})
+check("a comma is a decimal point", parse_equation("2,5x = 1").terms, {"x": Fraction(5, 2)})
+check("the right side moves left", parse_equation("2x = 3y + 1").terms, {"x": 2, "y": -3})
+check("and its constant moves right", parse_equation("2x = 3y + 1").constant, 1)
+check("a constant on the left moves too", parse_equation("2x + 3 = 5").constant, 2)
+check("an unknown that cancels is gone", parse_equation("x + y = x + 2").terms, {"y": 1})
+system = [parse_equation("x + z = 1"), parse_equation("y = 2")]
+check("x10 sorts after x2", unknown_names([parse_equation("x10 + x2 = 1")]), ["x2", "x10"])
+check("the unknowns are whatever was written", unknown_names(system), ["x", "y", "z"])
+check("an unmentioned unknown is a zero", to_augmented(system, unknown_names(system)),
+      Matrix([[1, 0, 1, 1], [0, 1, 0, 2]]))
 
 print("the three cases the assignment asks for")
 check("unique", solve(Matrix([[1, 1, 5], [1, -1, 1]])).kind, SystemKind.UNIQUE)

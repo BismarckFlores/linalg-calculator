@@ -18,10 +18,11 @@ linalg-calculator/
 │   ├── worksheet.py      # matrix + record: the blackboard operations happen on
 │   ├── elimination.py    # row elimination, to the echelon form and the reduced one
 │   ├── systems.py        # classification and solution of a linear system
-│   └── verification.py   # putting a solution back into the original system
+│   ├── verification.py   # putting a solution back into the original system
+│   └── equations.py      # `2x + 3y = 5` read into a row of the augmented matrix
 ├── ui/                   # everything a person reads, in Spanish
 │   ├── presentation.py   # engine objects → the words that go on screen
-│   └── prompts.py        # reading a system from the keyboard, one number at a time
+│   └── prompts.py        # reading a system from the keyboard, two ways in
 ├── deliverables/         # the scripts handed in to the course
 │   ├── program1.py       # Programa 1: systems by row elimination
 │   └── out/              # generated single files, not versioned
@@ -119,11 +120,15 @@ while the words stay the same everywhere.
 It also owns the two pieces of formatting that need to know what a matrix
 *means*: the bar between A and b in `[ 1  -2   1 | 0 ]`, which `Matrix.__str__`
 cannot draw because only a system knows its last column is different, and the
-names of the unknowns (`x`, `y`, `z`, `w`, then `x5` and up).
+names of the unknowns — whatever the person called them when they wrote the
+system out, and otherwise `x`, `y`, `z`, `w`, then `x5` and up.
 
 `ui/prompts.py` is the other half: the only module in the project that calls
-`input`. It asks for the size and then for every coefficient by name — `a_11`,
-`a_12`, `b_1` — and a wrong answer just asks again, so nothing a person types
-can end the program. It hands back the augmented matrix and decides nothing
-else. End of input (Ctrl+D) is left to travel up to whoever started the
-program, which is the only place that knows whether stopping is an error.
+`input`. It offers two ways in. Either the equations go in as they are written,
+`2x + 3y - z = 5`, one per line until a blank one, and `core/equations.py` reads
+the coefficients out of them; or the size comes first and then every coefficient
+by name — `a_11`, `a_12`, `b_1`. A wrong answer just asks again, so nothing a
+person types can end the program. It hands back the augmented matrix and the
+names of the unknowns, and decides nothing else. End of input (Ctrl+D) is left
+to travel up to whoever started the program, which is the only place that knows
+whether stopping is an error.

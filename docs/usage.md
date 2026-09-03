@@ -11,8 +11,53 @@ python build.py                     # write the file that gets handed in
 
 ## Solving a system
 
-`python -m deliverables.program1` asks for the size of the system, then for
-every coefficient by name, and then walks the whole solution in seven sections.
+`python -m deliverables.program1` offers two ways to hand it a system, and then
+walks the whole solution in seven sections.
+
+```
+  1) Escribir las ecuaciones tal como se leen
+  2) Dar los coeficientes uno por uno
+```
+
+### Typing the equations
+
+The first way takes the system as it is written on paper, one equation per
+line, ending on a blank line:
+
+```
+  Ecuación 1: x - 2y + z = 0
+  Ecuación 2: 2y - 8z = 8
+  Ecuación 3: -4x + 5y + 9z = -9
+  Ecuación 4:
+
+Incógnitas encontradas (3): x, y, z
+```
+
+Nobody says how many unknowns there are: they are whatever the equations turn
+out to mention, sorted into column order, and read back so a typo shows up as
+a wrong matrix rather than as a wrong answer three sections later. The names
+are the ones that were typed, so a system written in `a` and `b` is solved and
+printed in `a` and `b`.
+
+What the parser accepts:
+
+| Written | Read as |
+| --- | --- |
+| `2x + 3y - z = 5` | the plain case, spaces optional |
+| `x + y = 2` | a missing coefficient is 1 |
+| `2*x + 3*y = 1` | `*` is allowed between number and unknown |
+| `2.5x`, `2,5x`, `1/3x`, `(1/3)x` | integers, decimals and fractions |
+| `2x = 3y + 1` | unknowns on the right move left |
+| `2x + 3 = 5` | constants on the left move right |
+| `x + x = 4` | the same unknown twice adds up |
+| `x1`, `x_2`, `X` | names are letters, digits and `_`, and case is ignored |
+
+`1/3x` is read as `(1/3)x`, never as `1/(3x)`.
+
+### Giving the coefficients one at a time
+
+The second way asks for the size first and then every number by name, which is
+the order the assignment sheet asks for:
 
 ```
 Número de ecuaciones (m): 3
@@ -29,20 +74,29 @@ Ecuación 1:
 ```
 
 `a_ij` is the coefficient in equation `i` of variable `j`; `b_i` is what
-equation `i` equals. Numbers can be written as integers (`-4`), decimals (`2.5`
-or `2,5`) or fractions (`1/3`), and they are kept exactly as written — a third
-stays a third all the way to the answer.
+equation `i` equals. Nothing here names the unknowns, so they come out as the
+blackboard default: `x`, `y`, `z`, `w`, then `x5` upwards.
 
-A number that cannot be read does not end anything. The same question comes
-back:
+Either way the numbers are kept exactly as written — a third stays a third all
+the way to the answer.
+
+### When something cannot be read
+
+Nothing a person types ends the program. The same question comes back, saying
+what it could not make sense of:
 
 ```
   a_11 = uno
   'uno' no es un número. Prueba con 3, -2.5 o 1/3.
-  a_11 =
+
+  Ecuación 1: 2x + 3y
+  Falta el '='. Una ecuación se escribe como  2x + 3y = 5
+
+  Ecuación 1: 2x + & = 3
+  No entiendo la parte '&'. Revísala.
 ```
 
-The size is capped at 10 equations and 10 variables. That is not a limit of the
+The size is capped at 10 equations and 10 unknowns. That is not a limit of the
 method; it is there so a typo of `100` does not turn into ten thousand
 questions in the middle of a demonstration.
 
@@ -96,7 +150,7 @@ the way:
 
 ```
 Escrito: deliverables/out/Programa 1_Grupo5.py
-  1173 lineas, 10 bloques, sin dependencias
+  1465 lineas, 11 bloques, sin dependencias
   Todo el texto del archivo esta en castellano.
 ```
 
