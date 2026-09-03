@@ -85,7 +85,7 @@ of Programa 1, in the order the assignment numbers them:
 | 2. Matriz aumentada inicial | The first step of **Paso a paso** — `[ A \| b ]` before anything was done to it. |
 | 3. Eliminación por filas | **Paso a paso**: every elementary operation, one at a time, with the matrix it produced. `Anterior` / `Siguiente` walk it and the dots jump straight to one. The labels are the ones `core/steps.py` records, in typographic notation: `f₃ → f₃ + 4 · f₁`. |
 | 4. Sistema equivalente | **Sistema equivalente**: the matrix the walk ended on, read back as equations. |
-| 5. Clasificación | **Resultado**: `rango(A)`, `rango(A\|b)`, the number of unknowns, and the classification in the words the assignment demands. |
+| 5. Clasificación | **Resultado**: `rango(A)`, `rango(A\|b)`, the number of unknowns, which columns hold a pivot and which are free, and the classification in the words the assignment demands. |
 | 6. Solución | **Resultado** carries the values; **Despeje por sustitución hacia atrás** carries the clearing, four lines per unknown, exactly as the terminal prints it. |
 | 7. Comprobación | **Comprobación en el sistema original**: the values put back into the equations that were typed, never into the echelon ones. |
 
@@ -110,6 +110,13 @@ The classification and the values are the same either way. They come from
 counting pivots and from an exact arithmetic, so the road taken cannot change
 them; what changes is where the walk stops, which is what the step by step and
 the equivalent system show.
+
+The pivot columns are named either way too — `columnas pivote: 1, 2` and
+`columnas libres: 3` — because identifying them is what the second assignment
+asks for, and because the free columns are exactly the free variables under
+another name. Only the columns of A are counted: a pivot can also land on the
+constants column, and that one is not a column of the system but the reason an
+inconsistent system is inconsistent, which the classification already says.
 
 ### What it does not do yet
 
@@ -151,7 +158,7 @@ own is its own chrome — `Calcular`, `Filas`, `Matriz A` — the same way
 `ui/prompts.py` owns the wording of its menu.
 
 **The window is handed in as one file, like everything else.** `build.py`
-assembles `deliverables/out/Programa 1_Grupo5.py` out of `core/`,
+assembles `deliverables/out/Programa 2_Grupo5.py` out of `core/`,
 `ui/presentation.py` and this package, with every docstring and comment in
 Spanish, and its first lines tell whoever opens it to make a `.venv` and
 `pip install customtkinter` — the only thing any deliverable of this repository
@@ -159,8 +166,8 @@ has ever needed installed, and only to draw. `requirements-gui.txt` says the
 same thing for anyone working in the repository: nothing else here requires
 anything.
 
-The terminal program is still built too, as `Programa 1_Grupo5_consola.py`, and
-it is still standard library from end to end.
+The terminal program is still built too, as `Programa 1_Grupo5.py`, and it is
+still standard library from end to end.
 
 `ui/` is not the window's home, either. `ui/prompts.py` calls `input`, which
 makes that package the terminal's. `ui/presentation.py` is shared by both

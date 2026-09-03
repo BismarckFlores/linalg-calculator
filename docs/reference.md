@@ -325,7 +325,7 @@ are empty for the coefficient route because nothing there ever says what the
 unknowns are called.
 
 Nothing in `gui/` calculates. `build.py` assembles it into
-`Programa 1_Grupo5.py`, the deliverable that opens a window.
+`Programa 2_Grupo5.py`, the deliverable that opens a window.
 
 ## Outside the packages
 

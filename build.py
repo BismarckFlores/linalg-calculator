@@ -28,9 +28,6 @@ from translations import COMMENTS, DOCSTRINGS
 
 GROUP_NUMBER = "5"
 
-PROGRAM_NUMBER = 1
-PROGRAM_TITLE = "Solución de Sistemas de Ecuaciones Lineales por Eliminación por Filas"
-
 # ---------------------------------------------------------------------
 # The blocks, in the order they have to appear, each with the Spanish
 # heading that documents it in the handed-in file.
@@ -55,15 +52,20 @@ class Block:
 
 @dataclass(frozen=True)
 class Program:
-    """One thing that can be handed in: a name, a preamble and its blocks."""
+    """
+    One assignment of the course, and the single file it is handed in as.
 
-    suffix: str
-    subtitle: str
+    The number and the title are the assignment's, not this repository's: the
+    file is named the way the submission has to be named, `Programa N_GrupoX.py`.
+    """
+
+    number: int
+    title: str
     preamble: str
     blocks: list[Block] = field(default_factory=list)
 
     def filename(self) -> str:
-        return f"Programa {PROGRAM_NUMBER}_Grupo{GROUP_NUMBER}{self.suffix}.py"
+        return f"Programa {self.number}_Grupo{GROUP_NUMBER}.py"
 
 ENGINE: list[Block] = [
     Block(
@@ -230,8 +232,21 @@ WINDOW_BLOCKS: list[Block] = [
 
 PROGRAMS: list[Program] = [
     Program(
-        suffix="",
-        subtitle="Interfaz grafica",
+        number=1,
+        title="Solucion de Sistemas de Ecuaciones Lineales por Eliminacion por Filas",
+        preamble="""COMO EJECUTARLO
+---------------
+    python "{filename}"
+
+No hace falta instalar nada: el programa se construye utilizando unicamente
+Python estandar, con listas anidadas, condicionales, bucles y funciones. No
+emplea NumPy, SciPy ni las funciones de algebra lineal de math.""",
+        blocks=[*ENGINE, *CONSOLE_BLOCKS],
+    ),
+    Program(
+        number=2,
+        title="Reduccion a la Forma Escalonada Reducida (Gauss-Jordan)\n"
+        "e Identificacion de Columnas Pivote",
         preamble="""COMO EJECUTARLO
 ---------------
 Este programa abre una ventana, y para dibujarla usa CustomTkinter, que no
@@ -263,18 +278,6 @@ condicionales, bucles y funciones. No emplea NumPy, SciPy ni las funciones de
 algebra lineal de math.""",
         blocks=[*ENGINE, *WINDOW_BLOCKS],
     ),
-    Program(
-        suffix="_consola",
-        subtitle="Version de terminal",
-        preamble="""COMO EJECUTARLO
----------------
-    python "{filename}"
-
-No hace falta instalar nada: el programa se construye utilizando unicamente
-Python estandar, con listas anidadas, condicionales, bucles y funciones. No
-emplea NumPy, SciPy ni las funciones de algebra lineal de math.""",
-        blocks=[*ENGINE, *CONSOLE_BLOCKS],
-    ),
 ]
 
 RULE = "# " + "=" * 70
@@ -290,9 +293,8 @@ def header(program: Program) -> str:
     about.
     """
     return f'''r"""
-PROGRAMA {PROGRAM_NUMBER} - Grupo {GROUP_NUMBER}
-{PROGRAM_TITLE}
-{program.subtitle}
+PROGRAMA {program.number} - Grupo {GROUP_NUMBER}
+{program.title}
 
 Asignatura: Algebra Lineal (MTM0120)
 

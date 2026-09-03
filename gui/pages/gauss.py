@@ -489,13 +489,22 @@ class GaussPage(ctk.CTkFrame):
         SectionTitle(inside, "Resultado").pack(fill="x", pady=(0, 14))
 
         ranks = ctk.CTkFrame(inside, fg_color="transparent")
-        ranks.pack(anchor="w", pady=(0, 14))
+        ranks.pack(anchor="w", pady=(0, 10))
         for text in (
             f"rango(A) = {solution.coefficient_rank}",
             f"rango(A|b) = {solution.rank}",
             f"incógnitas = {solution.unknowns}",
         ):
             Chip(ranks, text, theme.MUTED).pack(side="left", padx=(0, 8))
+
+        columns = ctk.CTkFrame(inside, fg_color="transparent")
+        columns.pack(anchor="w", pady=(0, 14))
+        Chip(columns, f"columnas pivote: {self._pivot_columns(solution)}").pack(
+            side="left", padx=(0, 8)
+        )
+        if solution.free_columns:
+            free = ", ".join(str(column) for column in solution.free_columns)
+            Chip(columns, f"columnas libres: {free}", theme.MUTED).pack(side="left")
 
         headline = ctk.CTkFrame(inside, fg_color="transparent")
         headline.pack(anchor="w")
@@ -537,9 +546,11 @@ class GaussPage(ctk.CTkFrame):
                     wraplength=560,
                 ).pack(anchor="w", pady=(12, 0))
         else:
+            # Prose, not a block lined up in columns: pretty_label can write
+            # the row name in full here without pushing anything out of line.
             ctk.CTkLabel(
                 inside,
-                text=_typographic(render_values(solution, self._names)),
+                text=pretty_label(render_values(solution, self._names)),
                 font=theme.font("body"),
                 text_color=theme.MUTED,
                 justify="left",
@@ -558,6 +569,23 @@ class GaussPage(ctk.CTkFrame):
                 justify="left",
                 wraplength=560,
             ).pack(anchor="w", pady=(12, 0))
+
+    def _pivot_columns(self, solution: Solution) -> str:
+        """
+        The columns of A that hold a pivot, which is what Gauss-Jordan is read
+        off.
+
+        Only the columns of A: a pivot can also land on the constants column,
+        and that one is not a column of the system but the reason an
+        inconsistent system is inconsistent. The classification already says so.
+        """
+        assert self._elimination is not None
+        held = [
+            column
+            for _row, column in self._elimination.pivots
+            if column <= solution.unknowns
+        ]
+        return ", ".join(str(column) for column in held) if held else "ninguna"
 
     def _draw_substitutions(self, solution: Solution) -> None:
         card = self._add_card()

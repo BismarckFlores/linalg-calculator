@@ -615,6 +615,17 @@ DOCSTRINGS: dict[str, str] = {
         "y en Gauss-Jordan esa no es la matriz que recorrio solve. Pasarle una copia\n"
         "de la solucion apuntando a la eliminacion de esta pagina es lo que hace que\n"
         "las ecuaciones y el paso a paso ensenen lo mismo.",
+    "The columns of A that hold a pivot, which is what Gauss-Jordan is read\n"
+    "off.\n"
+    "\n"
+    "Only the columns of A: a pivot can also land on the constants column,\n"
+    "and that one is not a column of the system but the reason an\n"
+    "inconsistent system is inconsistent. The classification already says so.":
+        "Las columnas de A que tienen pivote, que es lo que se lee de Gauss-Jordan.\n"
+        "\n"
+        "Solo las columnas de A: un pivote puede caer tambien en la columna de los\n"
+        "terminos independientes, y esa no es una columna del sistema sino la razon\n"
+        "de que un sistema incompatible lo sea. Eso ya lo dice la clasificacion.",
     "Everything below the input card stops being true as soon as it changes.":
         "Todo lo que hay debajo de la tarjeta de entrada deja de ser cierto en cuanto\n"
         "esa entrada cambia.",
@@ -784,6 +795,10 @@ COMMENTS: dict[str, str] = {
         "# ----- El paso a paso -----",
     "# ----- The answer -----":
         "# ----- La respuesta -----",
+    "# Prose, not a block lined up in columns: pretty_label can write":
+        "# Es prosa, no un bloque alineado en columnas: pretty_label puede escribir",
+    "# the row name in full here without pushing anything out of line.":
+        "# aqui el nombre de la fila entero sin descuadrar nada.",
     "# Requirement 7 still has an answer when there is nothing to check:":
         "# El requisito 7 tiene respuesta aunque no haya nada que comprobar:",
     "# saying so beats a card that quietly fails to appear.":

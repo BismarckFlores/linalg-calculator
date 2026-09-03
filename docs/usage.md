@@ -154,37 +154,34 @@ expected. Run it after touching anything in `core/`.
 
 `python build.py` assembles the modules into single self-contained scripts under
 `deliverables/out/`, translating every docstring and comment into Spanish on
-the way. There are two, because the same engine has two front ends:
+the way. One file per assignment:
 
 ```
 Escrito: deliverables/out/Programa 1_Grupo5.py
-  2819 lineas, 16 bloques
+  1484 lineas, 11 bloques
   Todo el texto del archivo esta en castellano.
-Escrito: deliverables/out/Programa 1_Grupo5_consola.py
-  1485 lineas, 11 bloques
+Escrito: deliverables/out/Programa 2_Grupo5.py
+  2846 lineas, 16 bloques
   Todo el texto del archivo esta en castellano.
 ```
 
-**`Programa 1_Grupo5.py` is the window**, and it is the one being handed in. Its
-first lines are the instructions for running it: make a `.venv`,
-`pip install customtkinter`, run the file. That is the only thing it needs
-installed, and only to draw — the mathematics inside it is standard library.
+**`Programa 1_Grupo5.py`** is the terminal program: the seven sections of the
+first assignment, standard library from end to end, nothing to install.
 
-**`Programa 1_Grupo5_consola.py` is the terminal version**, the same seven
-sections without a window and without anything to install. It is built too
-because it is the same engine and costs nothing to keep.
+**`Programa 2_Grupo5.py`** is the window: the reduced row echelon form
+(Gauss-Jordan) and the pivot columns, which is what the second assignment asks
+for. Its first lines are the instructions for running it: make a `.venv`,
+`pip install customtkinter`, run the file. That is the only thing any
+deliverable here needs installed, and only to draw — the mathematics inside it
+is standard library too.
 
-Two settings at the top of `build.py` control the naming:
+`GROUP_NUMBER` at the top of `build.py` names the group; each `Program` in
+`PROGRAMS` carries its own number, title, preamble and blocks, and is written as
+`Programa N_GrupoX.py`, the name the submission has to have.
 
-```python
-GROUP_NUMBER = "5"      # becomes the file name and the header
-PROGRAM_NUMBER = 1
-```
-
-Under them, `PROGRAMS` lists what gets built: each entry is a preamble and a
-list of blocks. `ENGINE` is the part both share, and `WINDOW_BLOCKS` and
-`CONSOLE_BLOCKS` are what each adds — which is why the window's file does not
-carry the keyboard prompts, and the terminal's does not carry a single widget.
+`ENGINE` is the part every deliverable shares, and `WINDOW_BLOCKS` and
+`CONSOLE_BLOCKS` are what each front end adds — which is why the window's file
+does not carry the keyboard prompts, and the terminal's does not carry a widget.
 
 Almost every block is a module of this repository. The one exception is the
 window's `EL TEMA COMO ESPACIO DE NOMBRES`: `gui/` writes `theme.INK` and
@@ -199,7 +196,7 @@ followed by another build.
 ### When the build refuses
 
 ```
-No se puede construir Programa 1_Grupo5.py:
+No se puede construir Programa 2_Grupo5.py:
 falta traducir esto en translations.py
 
   Rows become columns.
@@ -214,8 +211,9 @@ keeps English out of the file handed in.
 
 1. Set `GROUP_NUMBER` in `build.py`.
 2. `python build.py`.
-3. Hand in `deliverables/out/Programa 1_Grupo5.py` — the window. It carries its
-   own instructions at the top, so whoever opens it does not need this file.
+3. Hand in the file for the assignment being handed in — `Programa 2_Grupo5.py`
+   for the window. It carries its own instructions at the top, so whoever opens
+   it does not need this file.
 4. Run it and screenshot three cases: one with a unique solution, one with
    infinitely many, one with none. The systems in `docs/how-it-works.md` produce
    one of each.
