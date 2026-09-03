@@ -150,11 +150,17 @@ the values, the clearing and the verification are written by
 own is its own chrome — `Calcular`, `Filas`, `Matriz A` — the same way
 `ui/prompts.py` owns the wording of its menu.
 
-**`gui/` is never built into the file handed in.** `build.py` does not know the
-package exists. The course wants one self-contained script with no dependencies;
-CustomTkinter is a dependency, so the window stays out of it. That is also why
-`requirements-gui.txt` is named the way it is: nothing else in the repository
-requires anything.
+**The window is handed in as one file, like everything else.** `build.py`
+assembles `deliverables/out/Programa 1_Grupo5.py` out of `core/`,
+`ui/presentation.py` and this package, with every docstring and comment in
+Spanish, and its first lines tell whoever opens it to make a `.venv` and
+`pip install customtkinter` — the only thing any deliverable of this repository
+has ever needed installed, and only to draw. `requirements-gui.txt` says the
+same thing for anyone working in the repository: nothing else here requires
+anything.
+
+The terminal program is still built too, as `Programa 1_Grupo5_consola.py`, and
+it is still standard library from end to end.
 
 `ui/` is not the window's home, either. `ui/prompts.py` calls `input`, which
 makes that package the terminal's. `ui/presentation.py` is shared by both

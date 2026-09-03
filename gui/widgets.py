@@ -19,6 +19,7 @@ from core.matrix import Matrix
 from core.scalar import format_scalar, to_scalar
 
 from . import theme
+from .theme import Color
 
 # Ten rows and ten columns: the same ceiling the terminal asks for.
 SIZE_LIMIT = 10
@@ -102,7 +103,7 @@ class Bracket(ctk.CTkCanvas):
         self,
         master: Any,
         side: Literal["left", "right"],
-        background: theme.Color = theme.CARD,
+        background: Color = theme.CARD,
     ) -> None:
         super().__init__(master, width=9, height=10, highlightthickness=0, borderwidth=0)
         self._side = side
@@ -212,7 +213,7 @@ class MatrixEntryGrid(ctk.CTkFrame):
         resizable_cols: bool = True,
         on_change: Callable[[], None] | None = None,
         on_resize: Callable[[int, int], None] | None = None,
-        background: theme.Color = theme.CARD,
+        background: Color = theme.CARD,
     ) -> None:
         super().__init__(master, fg_color="transparent")
         self.title = title
@@ -364,7 +365,7 @@ class MatrixDisplay(ctk.CTkFrame):
         master: Any,
         matrix: Matrix,
         bar_after: int | None = None,
-        background: theme.Color = theme.CARD,
+        background: Color = theme.CARD,
     ) -> None:
         super().__init__(master, fg_color="transparent")
         Bracket(self, "left", background).grid(row=0, column=0, sticky="ns")
@@ -486,8 +487,8 @@ class Chip(ctk.CTkLabel):
         self,
         master: Any,
         text: str,
-        color: theme.Color = theme.INK,
-        background: theme.Color = theme.FIELD,
+        color: Color = theme.INK,
+        background: Color = theme.FIELD,
     ) -> None:
         super().__init__(
             master,

@@ -23,7 +23,7 @@ linalg-calculator/
 ├── ui/                   # everything a person reads, in Spanish
 │   ├── presentation.py   # engine objects → the words that go on screen
 │   └── prompts.py        # reading a system from the keyboard, two ways in
-├── gui/                  # the window: a third front end, never built in
+├── gui/                  # the window: a third front end over the same engine
 │   ├── theme.py          # colours, fonts, the light/dark switch
 │   ├── widgets.py        # the shapes CustomTkinter does not have
 │   ├── app.py            # the window, the sidebar, which page is open
@@ -45,7 +45,7 @@ linalg-calculator/
 ```bash
 python -m deliverables.program1     # run Programa 1
 python -m gui                       # the same engine in a window
-python build.py                     # write deliverables/out/Programa 1_GrupoN.py
+python build.py                     # write both files in deliverables/out/
 python check.py                     # smoke test the engine
 ```
 
@@ -73,9 +73,11 @@ end says exactly the same thing.
 **Standard library only.** No NumPy, no SciPy, no linear algebra helpers from
 `math`: the assignments require the algorithms to be built from lists,
 conditionals, loops and functions. `fractions`, `dataclasses`, `enum` and
-`tkinter` are standard and are allowed. `gui/` is the one exception and pays for
-itself: CustomTkinter is only ever imported there, `build.py` does not know the
-package exists, and nothing that gets handed in imports anything.
+`tkinter` are standard and are allowed. `gui/` is the one exception: it imports
+CustomTkinter, which draws and does nothing else. No mathematics anywhere in
+this repository depends on it — the engine, the terminal program and the
+terminal deliverable import nothing at all — and the window's deliverable says
+so at the top of its own first page, next to the two commands that install it.
 
 **Deliverables are generated, not written.** Each file handed in is a single
 self-contained script produced out of the modules in this repository. The
@@ -139,8 +141,8 @@ built on `core/` and `ui/presentation.py` needed no change to either. It is a
 CustomTkinter application with the matrix arithmetic on the first tab and the
 elimination on the second — the system typed as coefficients or as equations,
 and Gauss or Gauss-Jordan chosen inside it, since they are two settings of one
-method. It is deliberately outside `build.py` so that what gets handed in stays
-standard library only. See
+method. It is handed in the same way as everything else, as one generated file,
+which is the only deliverable here that asks for anything to be installed. See
 [docs/gui.md](docs/gui.md).
 
 `ui/prompts.py` is the other half: the only module in the project that calls

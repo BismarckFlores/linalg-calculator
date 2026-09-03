@@ -324,14 +324,15 @@ and the names of the unknowns, exactly like `prompts.ask_system`, and the names
 are empty for the coefficient route because nothing there ever says what the
 unknowns are called.
 
-Nothing in `gui/` calculates. It is not in `build.py` and never will be.
+Nothing in `gui/` calculates. `build.py` assembles it into
+`Programa 1_Grupo5.py`, the deliverable that opens a window.
 
 ## Outside the packages
 
 | File | Does |
 | --- | --- |
 | `check.py` | Runs the engine end to end and prints one line per claim. Run it after touching `core/`. |
-| `build.py` | Assembles the handed-in file. `BLOCKS` lists the modules in order with their Spanish headings; `GROUP_NUMBER` and `PROGRAM_NUMBER` name the output. |
+| `build.py` | Assembles the handed-in files. `PROGRAMS` lists what gets built, each with a preamble and its blocks; `ENGINE` is what they share, `WINDOW_BLOCKS` and `CONSOLE_BLOCKS` what each adds. `GROUP_NUMBER` and `PROGRAM_NUMBER` name the output. |
 | `translations.py` | `DOCSTRINGS` and `COMMENTS`, keyed by the exact English text. A missing entry stops the build. |
 | `requirements-gui.txt` | CustomTkinter. Needed by `gui/` and by nothing else. |
 

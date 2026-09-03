@@ -459,6 +459,187 @@ DOCSTRINGS: dict[str, str] = {
         "Lee un sistema, lo reduce, lo clasifica, lo resuelve y comprueba la respuesta.",
     "Run the program, and offer to solve another system before leaving.":
         "Ejecuta el programa, y ofrece resolver otro sistema antes de salir.",
+
+    # ----- gui/theme.py -----
+    "Build every font once, which can only happen after a window exists.":
+        "Construye todas las tipografias una sola vez, cosa que solo se puede hacer\n"
+        "cuando ya existe una ventana.",
+    "One of the fonts `load_fonts` built.":
+        "Una de las tipografias que construyo load_fonts.",
+    "Switch the whole window over, and let the hand-drawn parts know.":
+        "Cambia el modo de toda la ventana, y avisa a las partes que se dibujan a mano.",
+    "The half of a (light, dark) pair that is showing right now.":
+        "La mitad de la pareja (claro, oscuro) que se esta viendo ahora mismo.",
+    "Call this back whenever the theme is switched.":
+        "Vuelve a llamar a esto cada vez que se cambie de tema.",
+    "Stop calling a listener back, once the widget it repainted is gone.":
+        "Deja de avisar a un oyente, cuando el elemento que repintaba ya no existe.",
+    "The first family the system actually has, or the last one as a fallback.":
+        "La primera familia que el sistema tenga de verdad, o la ultima como respaldo.",
+
+    # ----- gui/widgets.py -----
+    "A cell of a typed matrix does not hold a number. The message is Spanish.":
+        "Una casilla de una matriz escrita no tiene un numero. El mensaje va en castellano.",
+    "The rounded white panel every section of a page sits inside.":
+        "El panel blanco redondeado dentro del que va cada seccion de una pagina.",
+    "The title of a page and the line underneath explaining what it does.":
+        "El titulo de una pagina y la linea de debajo que explica lo que hace.",
+    "The heading of a card, with an optional grey pill on the right.":
+        "El encabezado de una tarjeta, con una etiqueta gris opcional a la derecha.",
+    "One half of the `[ ]` a matrix is written inside.\n"
+    "\n"
+    "Three straight lines on a canvas, which is the one thing in this package\n"
+    "that has to be repainted by hand when the theme changes: a canvas holds a\n"
+    "colour, not a pair of them.":
+        "Una de las dos mitades de los corchetes [ ] dentro de los que va una matriz.\n"
+        "\n"
+        "Son tres lineas rectas sobre un lienzo, y es lo unico de este paquete que hay\n"
+        "que repintar a mano al cambiar de tema: un lienzo guarda un color, no una\n"
+        "pareja de ellos.",
+    "`\u2212  3  +`: how many rows or columns a matrix has.":
+        "\u2212  3  +: cuantas filas o cuantas columnas tiene una matriz.",
+    "A matrix somebody types into, with the steppers that resize it.\n"
+    "\n"
+    "The text of the cells outlives the widgets: growing from 2x2 to 3x3 and back\n"
+    "finds the four original numbers still there, because what was typed is kept\n"
+    "in a dictionary and the entries are rebuilt around it.":
+        "Una matriz que alguien escribe, con los contadores que la redimensionan.\n"
+        "\n"
+        "El texto de las casillas sobrevive a los propios recuadros: crecer de 2x2 a\n"
+        "3x3 y volver encuentra los cuatro numeros originales donde estaban, porque lo\n"
+        "escrito se guarda en un diccionario y los recuadros se rehacen alrededor.",
+    "A matrix the program wrote, in brackets, with an optional bar down it.":
+        "Una matriz escrita por el programa, entre corchetes y con una barra opcional.",
+    "The pill of choices at the top of a page: an operation, or a method.":
+        "La fila de opciones de la parte de arriba de una pagina: una operacion, o un metodo.",
+    "The blue button that starts the calculation.":
+        "El boton azul que lanza el calculo.",
+    "The red line that appears when what was typed cannot be used.":
+        "La linea roja que aparece cuando lo que se escribio no sirve.",
+    "A small rounded box for one short fact: `x = 29`, `Dimensi\u00f3n: 2 \u00d7 3`.":
+        "Una cajita redondeada para un solo dato corto: x = 29, Dimension: 2 x 3.",
+    "A block of text the presentation layer already laid out, kept as it is.":
+        "Un bloque de texto que la capa de presentacion ya coloco, tal cual viene.",
+    "Explain something else under the same title: one page, two methods.":
+        "Explicar otra cosa bajo el mismo titulo: una pagina, dos metodos.",
+    "Move the readout without calling back: for a size that followed another.":
+        "Mueve el numero sin avisar a nadie: para un tamano que siguio a otro.",
+    "What was typed, as a `Matrix`. Raises `CellError` naming a bad cell.":
+        "Lo escrito, como Matrix. Lanza CellError nombrando la casilla que falla.",
+    "Resize from outside, for the matrix whose shape follows another one.":
+        "Redimensiona desde fuera, para la matriz cuya forma sigue a la de otra.",
+    "Any keystroke undoes the result: it was computed from other numbers.":
+        "Cualquier tecla deshace el resultado: se calculo con otros numeros.",
+    "Remember what is in the entries before they are thrown away.":
+        "Recuerda lo que hay en los recuadros antes de tirarlos.",
+    "Where the banner belongs once it has something to say.":
+        "Donde va el aviso una vez que tiene algo que decir.",
+
+    # ----- gui/pages/operations.py -----
+    "The page of basic matrix arithmetic.":
+        "La pagina de aritmetica basica con matrices.",
+    "B follows A: the same size to add, as many rows as A has columns to multiply.":
+        "B sigue a A: el mismo tamano para sumar, tantas filas como columnas tenga A\n"
+        "para multiplicar.",
+    "The chosen operation, or a Spanish complaint about the sizes.":
+        "La operacion elegida, o una queja en castellano sobre los tamanos.",
+    "A result stops being true the moment anything is retyped.":
+        "Un resultado deja de ser cierto en cuanto se reescribe cualquier cosa.",
+
+    # ----- gui/pages/gauss.py -----
+    "`f_2:` written `f\u2082:` without moving anything that was lined up under it.\n"
+    "\n"
+    "`ui/presentation.py` lays these blocks out in columns, counting characters,\n"
+    "and a subscript costs one character less than `f_2` does. The space the\n"
+    "underscore used to take is put back after the colon, so the lines that were\n"
+    "indented to match still match.":
+        "f_2: escrito f\u2082: sin mover nada de lo que estaba alineado debajo.\n"
+        "\n"
+        "presentation.py coloca estos bloques en columnas contando caracteres, y un\n"
+        "subindice ocupa un caracter menos que f_2. El hueco que dejaba el guion bajo\n"
+        "se devuelve despues de los dos puntos, para que las lineas que estaban\n"
+        "sangradas para cuadrar sigan cuadrando.",
+    "The page that solves a system and walks through how it was solved.":
+        "La pagina que resuelve un sistema y recorre como se resolvio.",
+    "The coefficients typed one cell at a time: A beside b.":
+        "Los coeficientes escritos casilla a casilla: A al lado de b.",
+    "The system written out, one equation per line, the way it is on paper.":
+        "El sistema escrito entero, una ecuacion por linea, como se escribe en papel.",
+    "Swap the grids for the text box, or back. Each keeps what was typed.":
+        "Cambia las cuadriculas por el cuadro de texto, o al reves. Cada uno conserva\n"
+        "lo que se habia escrito en el.",
+    "A changed equation invalidates the unknowns that were read from it.":
+        "Cambiar una ecuacion invalida las incognitas que se habian leido de ella.",
+    "One equation is one row of A and one entry of b: they cannot drift.":
+        "Una ecuacion es una fila de A y una entrada de b: no pueden descuadrarse.",
+    "The augmented matrix, and the names of the unknowns when there are any.\n"
+    "\n"
+    "Only the typed equations know what the unknowns are called. Coefficients\n"
+    "in a grid never say, so that route hands back an empty list and\n"
+    "`ui/presentation.py` falls back to x, y, z, w.":
+        "La matriz aumentada, y los nombres de las incognitas cuando los hay.\n"
+        "\n"
+        "Solo las ecuaciones escritas saben como se llaman las incognitas. Unos\n"
+        "coeficientes en una cuadricula no lo dicen nunca, asi que por ese camino la\n"
+        "lista vuelve vacia y presentation.py recurre a x, y, z, w.",
+    "Every non-blank line parsed, or a Spanish sentence about the first that\n"
+    "was not.\n"
+    "\n"
+    "`core/equations.py` raises one exception per kind of mistake and says\n"
+    "nothing to anybody; the wording is decided here, exactly as\n"
+    "`ui/prompts.py` decides it for the terminal. What the window has to add\n"
+    "is the number of the line, because every equation is on screen at once\n"
+    "and nothing else would say which one is meant.":
+        "Todas las lineas no vacias leidas, o una frase en castellano sobre la primera\n"
+        "que no se pudo leer.\n"
+        "\n"
+        "equations.py lanza una excepcion por cada tipo de error y no le dice nada a\n"
+        "nadie; la frase se decide aqui, igual que prompts.py la decide para la\n"
+        "terminal. Lo que la ventana tiene que anadir es el numero de la linea, porque\n"
+        "todas las ecuaciones estan a la vista a la vez y nada mas diria de cual se\n"
+        "esta hablando.",
+    "The starting matrix counts as a step: it is what the operations act on.":
+        "La matriz inicial cuenta como paso: es sobre la que actuan las operaciones.",
+    "One dot per step, while there are few enough for it to help.":
+        "Un punto por paso, mientras sean pocos y eso ayude.",
+    "The matrix the walk ended on, read back as the system it stands for.\n"
+    "\n"
+    "`render_equations` reads whichever matrix the solution's reduction ended\n"
+    "on, and in Gauss-Jordan that is not the matrix `solve` walked to. Handing\n"
+    "it a copy of the solution pointed at this page's own elimination is what\n"
+    "keeps the equations and the step by step showing the same thing.":
+        "La matriz en la que termino el recorrido, leida otra vez como el sistema que\n"
+        "representa.\n"
+        "\n"
+        "render_equations lee la matriz en la que termino la reduccion de la solucion,\n"
+        "y en Gauss-Jordan esa no es la matriz que recorrio solve. Pasarle una copia\n"
+        "de la solucion apuntando a la eliminacion de esta pagina es lo que hace que\n"
+        "las ecuaciones y el paso a paso ensenen lo mismo.",
+    "Everything below the input card stops being true as soon as it changes.":
+        "Todo lo que hay debajo de la tarjeta de entrada deja de ser cierto en cuanto\n"
+        "esa entrada cambia.",
+
+    # ----- gui/app.py -----
+    "One row of the sidebar.":
+        "Una fila del menu de la izquierda.",
+    "One clickable row of the sidebar.\n"
+    "\n"
+    "A button would have been shorter, but a button holds one label and this row\n"
+    "holds two, the glyph and the name, which have to change colour apart. So it\n"
+    "is a frame that listens for a click on itself and on every child, because a\n"
+    "click landing on the text is still a click on the row.":
+        "Una fila del menu sobre la que se puede pulsar.\n"
+        "\n"
+        "Un boton habria sido mas corto, pero un boton lleva una sola etiqueta y esta\n"
+        "fila lleva dos, el simbolo y el nombre, que tienen que cambiar de color por\n"
+        "separado. Asi que es un marco que escucha la pulsacion sobre si mismo y sobre\n"
+        "cada hijo, porque una pulsacion sobre el texto sigue siendo sobre la fila.",
+    "The window: a sidebar, a scrolling page, and one theme switch.":
+        "La ventana: un menu, una pagina que se desplaza y un interruptor de tema.",
+    "Show the page of one module, building it the first time it is asked for.":
+        "Muestra la pagina de un modulo, construyendola la primera vez que se pide.",
+    "Open the window and hand control over to it.":
+        "Abre la ventana y le cede el control.",
 }
 
 COMMENTS: dict[str, str] = {
@@ -529,4 +710,96 @@ COMMENTS: dict[str, str] = {
     # ----- deliverables/program1.py -----
     "# Ctrl+D or Ctrl+C: leave without a traceback, the run was cut short.":
         "# Ctrl+D o Ctrl+C: se sale sin traza de error, la ejecucion se corto.",
+
+    # ----- gui/theme.py -----
+    "# ----- Colours, each one (light, dark) -----":
+        "# ----- Colores, cada uno (claro, oscuro) -----",
+    "# ----- Shapes -----":
+        "# ----- Formas -----",
+    "# The first family that is actually installed wins; the last is the fallback.":
+        "# Gana la primera familia que este instalada de verdad; la ultima es el respaldo.",
+
+    # ----- gui/widgets.py -----
+    "# Ten rows and ten columns: the same ceiling the terminal asks for.":
+        "# Diez filas y diez columnas: el mismo tope que pide la version de terminal.",
+    "# The header is packed above the body rather than spanning its columns:":
+        "# El encabezado va encima del cuerpo en vez de ocupar sus columnas:",
+    "# a header wider than the matrix would otherwise stretch the cells and":
+        "# un encabezado mas ancho que la matriz estiraria las casillas y dejaria",
+    "# leave the brackets standing away from them.":
+        "# los corchetes separados de los numeros.",
+    "# ----- Resizing -----":
+        "# ----- Redimensionado -----",
+    "# ----- Drawing -----":
+        "# ----- Dibujo -----",
+    "# The bar between A and b is one line down the whole matrix, not one per":
+        "# La barra entre A y b es una sola linea de arriba abajo, no un trozo por",
+    "# row: a piece of it in every row would set the height of every row. Two":
+        "# fila: un trozo en cada fila fijaria la altura de todas. Dos pixeles de",
+    "# pixels wide because CustomTkinter draws nothing at all for one.":
+        "# ancho porque con uno CustomTkinter no dibuja absolutamente nada.",
+
+    # ----- gui/pages/operations.py -----
+    "# Every operation: the pill it is chosen by, and the line under the pills.":
+        "# Cada operacion: el boton con el que se elige, y la linea que va debajo.",
+    "# ----- Choosing an operation -----":
+        "# ----- Eleccion de la operacion -----",
+    "# ----- Calculating -----":
+        "# ----- Calculo -----",
+    "# ----- Showing the result -----":
+        "# ----- Presentacion del resultado -----",
+
+    # ----- gui/pages/gauss.py -----
+    "# The two ways a system can be handed over, the same two the terminal offers.":
+        "# Las dos maneras de entregar un sistema, las mismas dos de la terminal.",
+    "# One page and one title; only the line underneath changes with the method,":
+        "# Una pagina y un titulo; solo cambia la linea de debajo segun el metodo,",
+    "# because where the walk stops is the whole difference between the two.":
+        "# porque donde se detiene el recorrido es toda la diferencia entre los dos.",
+    "# A colour per classification, so the answer is legible before it is read.":
+        "# Un color por clasificacion, para ver la respuesta antes de leerla.",
+    "# A row named at the start of a line, inside a block already lined up in columns.":
+        "# Una fila nombrada al principio de una linea, en un bloque ya alineado.",
+    "# CTkTextbox annotates text_color as a single colour while accepting":
+        "# CTkTextbox declara text_color como un solo color aunque acepta la misma",
+    "# the same (light, dark) pair as everything else, and honouring it.":
+        "# pareja (claro, oscuro) que todo lo demas, y la respeta.",
+    "# type: ignore[arg-type]":
+        "# type: ignore[arg-type]",
+    "# Filled in once the equations have been read, never before: the list of":
+        "# Se rellena cuando las ecuaciones ya se leyeron, nunca antes: la lista de",
+    "# unknowns is a proof of what was understood, so it has to be earned.":
+        "# incognitas es una prueba de lo que se entendio, asi que hay que ganarsela.",
+    "# ----- The two methods, the two ways in, and the sizes that follow -----":
+        "# ----- Los dos metodos, las dos entradas y los tamanos que se siguen -----",
+    "# ----- Solving -----":
+        "# ----- Resolucion -----",
+    "# The same order the assignment numbers its requirements in: the walk,":
+        "# El mismo orden en el que el enunciado numera sus requisitos: el recorrido,",
+    "# the equivalent system, the classification, the solution, the check.":
+        "# el sistema equivalente, la clasificacion, la solucion y la comprobacion.",
+    "# ----- Reading the system, whichever way it was written -----":
+        "# ----- Lectura del sistema, se haya escrito como se haya escrito -----",
+    "# ----- The step by step -----":
+        "# ----- El paso a paso -----",
+    "# ----- The answer -----":
+        "# ----- La respuesta -----",
+    "# Requirement 7 still has an answer when there is nothing to check:":
+        "# El requisito 7 tiene respuesta aunque no haya nada que comprobar:",
+    "# saying so beats a card that quietly fails to appear.":
+        "# decirlo es mejor que una tarjeta que simplemente no aparece.",
+    "# ----- Housekeeping -----":
+        "# ----- Mantenimiento -----",
+
+    # ----- gui/app.py -----
+    "# The arithmetic comes first because everything else is written in terms of it.":
+        "# La aritmetica va primero porque todo lo demas se escribe en terminos de ella.",
+    "# Gauss and Gauss-Jordan share one row: they are two settings of one method, and":
+        "# Gauss y Gauss-Jordan comparten fila: son dos ajustes de un mismo metodo, y",
+    "# the choice between them belongs inside the page, not in the menu.":
+        "# la eleccion entre ellos va dentro de la pagina, no en el menu.",
+    "# ----- The sidebar -----":
+        "# ----- El menu de la izquierda -----",
+    "# ----- Opening a page -----":
+        "# ----- Apertura de una pagina -----",
 }

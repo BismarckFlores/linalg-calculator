@@ -16,6 +16,7 @@ import ast
 import io
 import sys
 import tokenize
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from translations import COMMENTS, DOCSTRINGS
@@ -35,10 +36,37 @@ PROGRAM_TITLE = "Solución de Sistemas de Ecuaciones Lineales por Eliminación p
 # heading that documents it in the handed-in file.
 # ---------------------------------------------------------------------
 
-Block = tuple[str, str, str]
+@dataclass(frozen=True)
+class Block:
+    """
+    One section of the file handed in, and where its code comes from.
 
-BLOCKS: list[Block] = [
-    (
+    Almost always a module of this repository. The exception is the handful of
+    lines nobody writes in the repository because nothing there needs them:
+    joining separate modules into one namespace makes a statement true that was
+    not, and a block like that carries its own `code` and its own `imports`.
+    """
+
+    source: str = ""
+    title: str = ""
+    description: str = ""
+    code: str = ""
+    imports: tuple[str, ...] = ()
+
+@dataclass(frozen=True)
+class Program:
+    """One thing that can be handed in: a name, a preamble and its blocks."""
+
+    suffix: str
+    subtitle: str
+    preamble: str
+    blocks: list[Block] = field(default_factory=list)
+
+    def filename(self) -> str:
+        return f"Programa {PROGRAM_NUMBER}_Grupo{GROUP_NUMBER}{self.suffix}.py"
+
+ENGINE: list[Block] = [
+    Block(
         "core/scalar.py",
         "EL NÚMERO EXACTO",
         "Cada entrada de una matriz se guarda como una fracción exacta, no como\n"
@@ -46,7 +74,7 @@ BLOCKS: list[Block] = [
         "0.3333333333333333, y por eso la eliminación no acumula error de\n"
         "redondeo: el resultado coincide con el hecho a mano.",
     ),
-    (
+    Block(
         "core/matrix.py",
         "LA MATRIZ",
         "Un rectángulo de números exactos y las operaciones que no necesitan\n"
@@ -55,14 +83,14 @@ BLOCKS: list[Block] = [
         "de otra fila). Los índices se cuentan desde 1, como en el pizarrón:\n"
         "a_23 es elem(2, 3).",
     ),
-    (
+    Block(
         "core/steps.py",
         "EL REGISTRO DEL PASO A PASO",
         "Guarda la matriz inicial y, por cada operación elemental, la matriz de\n"
         "antes, la etiqueta de lo que se hizo (f_2 -> f_2 + 3*f_1) y la matriz\n"
         "de después. Es lo que permite imprimir la matriz en cada paso.",
     ),
-    (
+    Block(
         "core/worksheet.py",
         "LA PIZARRA",
         "Junta una matriz con su registro. Es el único sitio donde una operación\n"
@@ -70,7 +98,7 @@ BLOCKS: list[Block] = [
         "tiene que acordarse de ir dejando constancia. Las operaciones que no\n"
         "cambian nada no se apuntan, para que el paso a paso no tenga relleno.",
     ),
-    (
+    Block(
         "core/elimination.py",
         "LA ELIMINACIÓN POR FILAS",
         "El método de Gauss: busca un pivote en cada columna, lo lleva a 1 y hace\n"
@@ -79,10 +107,10 @@ BLOCKS: list[Block] = [
         "quede irregular cuando hay variables libres.\n"
         "\n"
         "La forma escalonada reducida (Gauss-Jordan) es el mismo recorrido con\n"
-        "una segunda pasada de vuelta hacia arriba, y vive aquí al lado por eso\n"
-        "mismo. Este programa no la usa: le basta con la forma escalonada.",
+        "una segunda pasada de vuelta hacia arriba, y por eso vive aquí al lado\n"
+        "y no en otro sitio.",
     ),
-    (
+    Block(
         "core/systems.py",
         "LA CLASIFICACIÓN Y LA SOLUCIÓN DEL SISTEMA",
         "Clasifica el sistema comparando rangos (Rouché-Frobenius):\n"
@@ -92,7 +120,7 @@ BLOCKS: list[Block] = [
         "Cuando la solución es única, despeja las incógnitas hacia atrás, de la\n"
         "última a la primera, guardando cada paso del despeje.",
     ),
-    (
+    Block(
         "core/verification.py",
         "LA COMPROBACIÓN DE LA SOLUCIÓN",
         "Sustituye los valores hallados en el sistema ORIGINAL y compara los dos\n"
@@ -101,7 +129,7 @@ BLOCKS: list[Block] = [
         "contra sí mismo. La comparación es exacta, sin tolerancia, porque no\n"
         "hubo redondeo en ningún momento.",
     ),
-    (
+    Block(
         "core/equations.py",
         "LA LECTURA DE UNA ECUACIÓN ESCRITA",
         "Convierte una ecuación escrita como se escribe, 2x + 3y - z = 5, en la\n"
@@ -110,7 +138,7 @@ BLOCKS: list[Block] = [
         "son las que resulten mencionar las ecuaciones: nadie tiene que decir de\n"
         "antemano cuántas hay ni cómo se llaman.",
     ),
-    (
+    Block(
         "ui/presentation.py",
         "EL TEXTO QUE SE MUESTRA",
         "Convierte los objetos anteriores en las frases que lee una persona.\n"
@@ -118,7 +146,12 @@ BLOCKS: list[Block] = [
         "el enunciado, la barra que separa A de b en la matriz aumentada, y los\n"
         "nombres de las incógnitas.",
     ),
-    (
+]
+
+# ----- What each of the two programs adds on top of the engine -----
+
+CONSOLE_BLOCKS: list[Block] = [
+    Block(
         "ui/prompts.py",
         "LA LECTURA DE DATOS POR TECLADO",
         "Dos maneras de entrar el sistema. O se escriben las ecuaciones tal como\n"
@@ -127,7 +160,7 @@ BLOCKS: list[Block] = [
         "coeficiente por su nombre: a_11, a_12, ..., b_1. Si la respuesta no\n"
         "sirve, vuelve a preguntar; ninguna entrada equivocada corta el programa.",
     ),
-    (
+    Block(
         "deliverables/program1.py",
         "EL PROGRAMA PRINCIPAL",
         "Ordena el trabajo en siete secciones numeradas igual que los requisitos\n"
@@ -136,23 +169,134 @@ BLOCKS: list[Block] = [
     ),
 ]
 
-RULE = "# " + "=" * 70
-LOCAL_PACKAGES = ("core", "ui", "deliverables")
+WINDOW_BLOCKS: list[Block] = [
+    Block(
+        "gui/theme.py",
+        "EL ASPECTO DE LA VENTANA",
+        "Los colores, las tipografías y el interruptor entre modo claro y modo\n"
+        "oscuro. Cada color es una pareja (claro, oscuro), que es justo lo que\n"
+        "lee CustomTkinter: por eso cambiar de modo es una sola llamada y no hay\n"
+        "que reconstruir ningún elemento de la ventana.",
+    ),
+    Block(
+        title="EL TEMA COMO ESPACIO DE NOMBRES",
+        description="En el repositorio esto es un módulo aparte, y el resto del código lo\n"
+        "usa escribiendo theme.INK o theme.font(...). Al juntar todos los\n"
+        "módulos en un solo archivo esos nombres pasan a estar aquí mismo, así\n"
+        "que basta con que theme apunte a este archivo para que todas esas\n"
+        "referencias sigan encontrando lo que buscan, sin cambiar ni una línea\n"
+        "del código original.",
+        imports=("sys",),
+        code="theme = sys.modules[__name__]",
+    ),
+    Block(
+        "gui/widgets.py",
+        "LAS PIEZAS DE LA VENTANA",
+        "CustomTkinter trae botones y cajas de texto, pero no trae matrices. Aquí\n"
+        "están las formas que hacen falta y la librería no da: la tarjeta, el\n"
+        "contador de filas y columnas, la matriz que se escribe, la matriz ya\n"
+        "calculada y los corchetes que las rodean. Ninguna de ellas calcula nada.",
+    ),
+    Block(
+        "gui/pages/operations.py",
+        "LA PESTAÑA DE OPERACIONES CON MATRICES",
+        "Suma, resta, producto de matrices, producto por un escalar y traspuesta.\n"
+        "Cada operación es una llamada a la matriz; lo único que se decide aquí\n"
+        "es qué tamaños pueden encontrarse, y eso se comprueba antes de llamar\n"
+        "para poder explicarlo en castellano.",
+    ),
+    Block(
+        "gui/pages/gauss.py",
+        "LA PESTAÑA DE ELIMINACIÓN GAUSSIANA",
+        "Resuelve A x = b y enseña las mismas siete secciones que pide el\n"
+        "enunciado: la matriz aumentada, la eliminación paso a paso, el sistema\n"
+        "equivalente, la clasificación, el despeje y la comprobación. El sistema\n"
+        "se entra como coeficientes o escribiendo las ecuaciones, y el método se\n"
+        "elige entre Gauss y Gauss-Jordan dentro de la misma pestaña.",
+    ),
+    Block(
+        "gui/app.py",
+        "LA VENTANA",
+        "El menú de la izquierda, la página abierta a la derecha y el cambio de\n"
+        "tema. Una página se construye la primera vez que se abre y se conserva,\n"
+        "así que volver a ella encuentra la matriz que se había escrito.",
+    ),
+    Block(
+        "gui/__main__.py",
+        "EL ARRANQUE",
+        "Abre la ventana y le cede el control.",
+    ),
+]
 
-def header() -> str:
+PROGRAMS: list[Program] = [
+    Program(
+        suffix="",
+        subtitle="Interfaz grafica",
+        preamble="""COMO EJECUTARLO
+---------------
+Este programa abre una ventana, y para dibujarla usa CustomTkinter, que no
+viene incluida con Python. Se instala dentro de un entorno virtual propio
+(un .venv), que es una carpeta con su propia copia de las librerias, para
+no tocar la instalacion de Python del sistema.
+
+En Windows, desde PowerShell o CMD, en la carpeta donde este este archivo:
+
+    py -m venv .venv
+    .venv\\Scripts\\activate
+    pip install customtkinter
+    python "{filename}"
+
+En Linux o macOS, desde la terminal:
+
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install customtkinter
+    python3 "{filename}"
+
+Hace falta Python 3.12 o posterior. El comando deactivate cierra el entorno
+virtual al terminar, y borrar la carpeta .venv lo deshace todo.
+
+CustomTkinter solo dibuja. Toda la matematica de este archivo (la aritmetica
+exacta, la eliminacion por filas, la clasificacion, el despeje y la
+comprobacion) esta escrita con Python estandar: listas anidadas,
+condicionales, bucles y funciones. No emplea NumPy, SciPy ni las funciones de
+algebra lineal de math.""",
+        blocks=[*ENGINE, *WINDOW_BLOCKS],
+    ),
+    Program(
+        suffix="_consola",
+        subtitle="Version de terminal",
+        preamble="""COMO EJECUTARLO
+---------------
+    python "{filename}"
+
+No hace falta instalar nada: el programa se construye utilizando unicamente
+Python estandar, con listas anidadas, condicionales, bucles y funciones. No
+emplea NumPy, SciPy ni las funciones de algebra lineal de math.""",
+        blocks=[*ENGINE, *CONSOLE_BLOCKS],
+    ),
+]
+
+RULE = "# " + "=" * 70
+LOCAL_PACKAGES = ("core", "ui", "gui", "deliverables")
+
+def header(program: Program) -> str:
     """
-    What the file says about itself. The cover page is a separate document,
-    so this only identifies the program and states the restriction it obeys.
+    What the file says about itself: which program it is and how to run it.
+
+    The cover page is a separate document, so nothing here names anybody. It is
+    a raw docstring because the Windows instructions carry a path, and a
+    backslash inside an ordinary string is an escape sequence Python complains
+    about.
     """
-    return f'''"""
+    return f'''r"""
 PROGRAMA {PROGRAM_NUMBER} - Grupo {GROUP_NUMBER}
 {PROGRAM_TITLE}
+{program.subtitle}
 
 Asignatura: Algebra Lineal (MTM0120)
 
-El programa se construye utilizando unicamente Python estandar: listas
-anidadas, condicionales, bucles y funciones. No emplea NumPy, SciPy ni las
-funciones de algebra lineal de math.
+{program.preamble.format(filename=program.filename())}
 """'''
 
 def is_local_import(node: ast.stmt) -> bool:
@@ -321,26 +465,34 @@ def block_heading(title: str, description: str) -> str:
     lines.append(RULE)
     return "\n".join(lines)
 
-def build() -> tuple[str, list[str]]:
-    """Assemble the whole file, and report anything left untranslated."""
+def build(program: Program) -> tuple[str, list[str]]:
+    """Assemble one whole file, and report anything left untranslated."""
     plain: set[str] = set()
     grouped: dict[str, set[str]] = {}
     blocks: list[str] = []
     missing: list[str] = []
 
-    for filename, title, description in BLOCKS:
-        body = split_module(Path(filename), plain, grouped, missing)
-        blocks.append(f"{block_heading(title, description)}\n\n{body}")
+    for block in program.blocks:
+        plain.update(block.imports)
+        body = (
+            block.code
+            if block.code
+            else split_module(Path(block.source), plain, grouped, missing)
+        )
+        blocks.append(f"{block_heading(block.title, block.description)}\n\n{body}")
 
-    text = "\n\n\n".join([header(), render_imports(plain, grouped), *blocks]) + "\n"
+    text = "\n\n\n".join(
+        [header(program), render_imports(plain, grouped), *blocks]
+    ) + "\n"
     return text, missing
 
-def main() -> None:
-    """Build the file, check that it compiles, and say where it landed."""
-    text, missing = build()
+def write(program: Program) -> None:
+    """Build one program, check that it compiles, and say where it landed."""
+    text, missing = build(program)
 
     if missing:
-        print("No se puede construir: falta traducir esto en translations.py\n")
+        print(f"No se puede construir {program.filename()}:")
+        print("falta traducir esto en translations.py\n")
         for text_in_english in missing:
             print(f"  {text_in_english}")
         sys.exit(1)
@@ -353,13 +505,17 @@ def main() -> None:
 
     out = Path("deliverables/out")
     out.mkdir(parents=True, exist_ok=True)
-    target = out / f"Programa {PROGRAM_NUMBER}_Grupo{GROUP_NUMBER}.py"
+    target = out / program.filename()
     target.write_text(text, encoding="utf-8")
 
     print(f"Escrito: {target}")
-    print(f"  {len(text.splitlines())} lineas, {len(BLOCKS)} bloques, sin dependencias")
-    print(f"  Todo el texto del archivo esta en castellano.")
-    print(f"  Se ejecuta con:  python '{target.name}'")
+    print(f"  {len(text.splitlines())} lineas, {len(program.blocks)} bloques")
+    print("  Todo el texto del archivo esta en castellano.")
+
+def main() -> None:
+    """Build every program that can be handed in."""
+    for program in PROGRAMS:
+        write(program)
 
 if __name__ == "__main__":
     main()

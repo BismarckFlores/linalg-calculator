@@ -110,11 +110,12 @@ That is what the layering was for, and it is the first time it has been tested:
 a window landed without a line of `core/` changing, and it says exactly what the
 terminal says because both ask `ui/presentation.py` for the words.
 
-It is deliberately outside `build.py`. The course wants one self-contained
-script with no dependencies, and CustomTkinter is a dependency — so the file
-handed in cannot contain the window, and the repository does not pretend
-otherwise. `requirements-gui.txt` is named for the same reason: it is the
-requirements of one package, not of the project.
+It is handed in the same way as everything else: one generated self-contained
+file. The difference is that this one is not standard library — CustomTkinter
+draws it — so its first page says how to make a `.venv` and install that, and
+says in as many words that the mathematics below does not depend on it.
+`requirements-gui.txt` says the same thing to anyone working in the repository:
+it is the requirements of one package, not of the project.
 
 `ui/` was not the place for it either. `ui/prompts.py` calls `input`, which
 makes that package the terminal's; `ui/presentation.py` only builds strings,
@@ -130,6 +131,23 @@ puts a Spanish heading in front of each block explaining what it does.
 
 The generated file is never edited — a change goes into the module and the file
 is built again.
+
+There is more than one such file, so the list of blocks belongs to a program and
+not to `build.py`. `ENGINE` is what every deliverable carries; `WINDOW_BLOCKS`
+and `CONSOLE_BLOCKS` are what each front end adds. That is what stops the
+window's file from carrying the keyboard prompts nobody there will call, and the
+terminal's from carrying a widget.
+
+A program also owns the preamble of its own file. The window's says how to make
+a `.venv` and install CustomTkinter, because it is the one deliverable that
+needs anything installed and the person opening it has only that file.
+
+One block is not a module. `gui/` writes `theme.INK` and `theme.font(...)`,
+qualified, and flattening the modules into one namespace puts those names in the
+file itself — so the window's build inserts a generated line pointing `theme`
+back at the file. Rewriting `gui/` to import the names directly would have made
+the repository worse to read in order to make the build simpler; one generated
+line, with a heading explaining it, is the cheaper side of that trade.
 
 ## The translation is keyed by text, and missing one stops the build
 

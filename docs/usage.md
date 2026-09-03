@@ -150,33 +150,57 @@ Everything above says ok: the engine is wired correctly.
 It stops at the first line that is wrong, printing what it got and what it
 expected. Run it after touching anything in `core/`.
 
-## Building the file to hand in
+## Building the files to hand in
 
-`python build.py` assembles the modules into one self-contained script under
+`python build.py` assembles the modules into single self-contained scripts under
 `deliverables/out/`, translating every docstring and comment into Spanish on
-the way:
+the way. There are two, because the same engine has two front ends:
 
 ```
 Escrito: deliverables/out/Programa 1_Grupo5.py
-  1480 lineas, 11 bloques, sin dependencias
+  2819 lineas, 16 bloques
+  Todo el texto del archivo esta en castellano.
+Escrito: deliverables/out/Programa 1_Grupo5_consola.py
+  1485 lineas, 11 bloques
   Todo el texto del archivo esta en castellano.
 ```
 
-Two settings at the top of `build.py` control the result:
+**`Programa 1_Grupo5.py` is the window**, and it is the one being handed in. Its
+first lines are the instructions for running it: make a `.venv`,
+`pip install customtkinter`, run the file. That is the only thing it needs
+installed, and only to draw — the mathematics inside it is standard library.
+
+**`Programa 1_Grupo5_consola.py` is the terminal version**, the same seven
+sections without a window and without anything to install. It is built too
+because it is the same engine and costs nothing to keep.
+
+Two settings at the top of `build.py` control the naming:
 
 ```python
 GROUP_NUMBER = "5"      # becomes the file name and the header
 PROGRAM_NUMBER = 1
 ```
 
-The output directory is ignored by git. The generated file is a build artefact,
-not source: **never edit it**. A change belongs in the module it came from,
+Under them, `PROGRAMS` lists what gets built: each entry is a preamble and a
+list of blocks. `ENGINE` is the part both share, and `WINDOW_BLOCKS` and
+`CONSOLE_BLOCKS` are what each adds — which is why the window's file does not
+carry the keyboard prompts, and the terminal's does not carry a single widget.
+
+Almost every block is a module of this repository. The one exception is the
+window's `EL TEMA COMO ESPACIO DE NOMBRES`: `gui/` writes `theme.INK` and
+`theme.font(...)`, and once every module lands in one namespace those names are
+in the file itself, so one generated line points `theme` back at it. That is the
+only code in a deliverable that no module of this repository contains.
+
+The output directory is ignored by git. The generated files are build artefacts,
+not source: **never edit them**. A change belongs in the module it came from,
 followed by another build.
 
 ### When the build refuses
 
 ```
-No se puede construir: falta traducir esto en translations.py
+No se puede construir Programa 1_Grupo5.py:
+falta traducir esto en translations.py
 
   Rows become columns.
 ```
@@ -190,9 +214,15 @@ keeps English out of the file handed in.
 
 1. Set `GROUP_NUMBER` in `build.py`.
 2. `python build.py`.
-3. Run the generated file and screenshot three cases: one with a unique
-   solution, one with infinitely many, one with none. The systems in
-   `docs/how-it-works.md` produce one of each.
-4. Put the screenshots and the official cover page in the submission document.
+3. Hand in `deliverables/out/Programa 1_Grupo5.py` — the window. It carries its
+   own instructions at the top, so whoever opens it does not need this file.
+4. Run it and screenshot three cases: one with a unique solution, one with
+   infinitely many, one with none. The systems in `docs/how-it-works.md` produce
+   one of each.
+5. Put the screenshots and the official cover page in the submission document.
    The cover is a separate document, which is why `build.py` does not know the
    names of the members or the teacher.
+
+Before handing the window in, run it once from a fresh `.venv` following its own
+instructions. It is the only deliverable that needs anything installed, and the
+instructions being right is part of it working.
