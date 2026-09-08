@@ -112,11 +112,20 @@ an answer wants to scroll past the lot. Neither is the right default for the
 other, so the step by step does both and the choice is one click. Both pages
 that walk an elimination get it, because both get it from the same widget.
 
-Every matrix on screen writes its fractions the way they are written by hand,
-one number over another with a rule between them. A column of `22/15` and
-`-17/15` is much harder to read slashed onto one line, and the window has the
-room the terminal does not. Whole numbers stay on one line, and the rows of a
-matrix line up on their middles.
+Every fraction in the window is written the way one is written by hand, one
+number over another with a rule between them — in the matrices, in the labels of
+the steps, in the values of the solution, and inside the blocks of working: the
+equivalent system, the clearing, the check and the general solution. A column of
+`22/15` and `-17/15` is much harder to read slashed onto one line, and the
+window has the room the terminal does not. The file handed in still prints the
+plain form, because a transcript has one line per line.
+
+Those blocks were lined up by counting characters, which stops being true the
+moment a fraction takes two lines instead of one, so `MathBlock` lays them out
+again in a grid. It is told which of the two alignments the text meant: a system
+of equations is written with its left sides pushed right so the equals signs
+fall under each other, and a clearing is written with its lines starting at the
+same place. Both were true before, and both still are.
 
 Changing any number removes every card below the input. A result that was
 computed from other numbers is not a result any more.

@@ -39,7 +39,9 @@ from ..widgets import (
     Card,
     Chip,
     ErrorBanner,
-    MonoBlock,
+    MathBlock,
+    MathChip,
+    MathLine,
     PageHeader,
     PrimaryButton,
     SectionTitle,
@@ -204,7 +206,7 @@ class GaussPage(ctk.CTkFrame):
         ).pack(fill="x", pady=(0, 12))
 
         walked = replace(solution, reduction=self._elimination)
-        MonoBlock(inside, _typographic(render_equations(walked, self._names))).pack(anchor="w")
+        MathBlock(inside, _typographic(render_equations(walked, self._names))).pack(anchor="w")
 
     def _draw_result(self, solution: Solution) -> None:
         card = self._add_card()
@@ -247,7 +249,7 @@ class GaussPage(ctk.CTkFrame):
             values = ctk.CTkFrame(inside, fg_color="transparent")
             values.pack(anchor="w", pady=(14, 0))
             for column, value in enumerate(solution.values, start=1):
-                Chip(
+                MathChip(
                     values,
                     f"✓  {unknown_name(column, self._names)} = {format_scalar(value)}",
                 ).pack(side="left", padx=(0, 8))
@@ -347,12 +349,14 @@ class GaussPage(ctk.CTkFrame):
         Chip(variables, f"variables básicas: {basic}").pack(side="left", padx=(0, 8))
         Chip(variables, f"variables libres: {free}", theme.MUTED).pack(side="left")
 
-        MonoBlock(inside, self._general_lines(family)).pack(anchor="w")
+        MathBlock(inside, self._general_lines(family)).pack(anchor="w")
 
     def _general_lines(self, family: General) -> str:
         """`x = 1 + 4*z`, one line per variable, the names lined up on the equals."""
-        columns = [item.column for item in family.basic] + list(family.free)
-        width = max((len(unknown_name(column, self._names)) for column in columns), default=1)
+        width = max(
+            (len(unknown_name(item.column, self._names)) for item in family.basic),
+            default=1,
+        )
 
         lines = []
         for item in family.basic:
@@ -365,8 +369,6 @@ class GaussPage(ctk.CTkFrame):
             name = unknown_name(item.column, self._names)
             lines.append(f"  {name:>{width}} = {format_scalar(item.constant)}{terms}")
 
-        for column in family.free:
-            lines.append(f"  {unknown_name(column, self._names):>{width}} es libre")
         return "\n".join(lines)
 
     def _draw_substitutions(self, solution: Solution) -> None:
@@ -374,7 +376,9 @@ class GaussPage(ctk.CTkFrame):
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
         SectionTitle(inside, "Despeje por sustitución hacia atrás").pack(fill="x", pady=(0, 14))
-        MonoBlock(inside, _typographic(render_substitutions(solution, self._names))).pack(anchor="w")
+        MathBlock(
+            inside, _typographic(render_substitutions(solution, self._names)), "left"
+        ).pack(anchor="w")
 
     def _draw_verification(self, solution: Solution) -> None:
         card = self._add_card()
@@ -382,7 +386,7 @@ class GaussPage(ctk.CTkFrame):
         inside.pack(fill="x", padx=24, pady=22)
         SectionTitle(inside, "Comprobación en el sistema original").pack(fill="x", pady=(0, 14))
         checked = verify(solution.coefficients, solution.constants, solution.values)
-        MonoBlock(inside, render_verification(checked)).pack(anchor="w")
+        MathBlock(inside, render_verification(checked), "left").pack(anchor="w")
 
     # ----- Housekeeping -----
 

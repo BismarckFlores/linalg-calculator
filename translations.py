@@ -895,6 +895,48 @@ DOCSTRINGS: dict[str, str] = {
         "Una muesca: baja la pagina, salvo que algo bajo el puntero la quiera.",
     "Whether the thing under the pointer has scrolling of its own to do.":
         "Si lo que hay bajo el puntero tiene desplazamiento propio que hacer.",
+    "The line broken into runs of plain text and the fractions between them.":
+        "La linea partida en tramos de texto llano y las fracciones que hay entre ellos.",
+    "One line of text with every fraction in it stacked instead of slashed.\n"
+    "\n"
+    "The text comes from `ui/presentation.py` already written; this only sets it,\n"
+    "breaking it where a fraction appears and standing a `FractionCell` in the\n"
+    "gap. Everything between the fractions stays in the monospaced font it was\n"
+    "laid out in, so what was lined up inside a run stays lined up.":
+        "Una linea de texto con todas sus fracciones apiladas en vez de con barra.\n"
+        "\n"
+        "El texto viene ya escrito de presentation.py; aqui solo se compone, partiendolo\n"
+        "donde aparece una fraccion y poniendo un FractionCell en el hueco. Todo lo que\n"
+        "hay entre fracciones se queda en la tipografia de ancho fijo en la que se\n"
+        "coloco, asi que lo que estaba cuadrado dentro de un tramo sigue cuadrado.",
+    "A block of lines the presentation layer laid out, set with its fractions\n"
+    "stacked.\n"
+    "\n"
+    "Those blocks are lined up by counting characters, which stops being true the\n"
+    "moment a fraction takes two lines instead of one. So the alignment is done\n"
+    "again here, in a grid: the row name keeps a column of its own and the equals\n"
+    "signs keep another.\n"
+    "\n"
+    "`align` is the one thing the grid cannot work out for itself. A system of\n"
+    "equations is written with its left sides pushed right, so the equals signs\n"
+    "fall under each other; a clearing is written with its lines starting at the\n"
+    "same place. Both were true of the text before it got here, and the caller\n"
+    "knows which it handed over.":
+        "Un bloque de lineas que coloco la capa de presentacion, compuesto con sus\n"
+        "fracciones apiladas.\n"
+        "\n"
+        "Esos bloques estan cuadrados contando caracteres, y eso deja de ser cierto en\n"
+        "cuanto una fraccion ocupa dos lineas en vez de una. Asi que aqui se cuadran\n"
+        "otra vez, con una rejilla: el nombre de la fila se queda en su columna y los\n"
+        "signos igual en otra.\n"
+        "\n"
+        "align es lo unico que la rejilla no puede deducir sola. Un sistema de\n"
+        "ecuaciones se escribe con los lados izquierdos empujados a la derecha, para\n"
+        "que los iguales queden uno debajo de otro; un despeje se escribe con sus\n"
+        "lineas empezando en el mismo sitio. Las dos cosas eran ciertas del texto\n"
+        "antes de llegar aqui, y quien lo entrega sabe cual de las dos es.",
+    "A chip whose one fact may be a fraction: `x = 1/3`.":
+        "Una etiqueta cuyo unico dato puede ser una fraccion: x = 1/3.",
     "How many matrices there are to walk, the starting one included.":
         "Cuantas matrices hay que recorrer, contando la inicial.",
     "Jump straight to one of them.":
@@ -1138,6 +1180,16 @@ COMMENTS: dict[str, str] = {
         "# ----- Los pivotes, que viven en la forma reducida -----",
 
     # ----- gui/entry.py -----
+    "# Written the way it was written: one flow, its own spacing kept.":
+        "# Escrito como estaba escrito: de corrido, conservando sus espacios.",
+    "# A fraction as `format_scalar` writes one: the only place a slash appears":
+        "# Una fraccion tal como la escribe format_scalar: el unico sitio donde",
+    "# between digits in anything the presentation layer produces.":
+        "# aparece una barra entre digitos en lo que produce la presentacion.",
+    "# What starts a line and has to stay in its own column: `f_2:`, `Ecuación 1:`.":
+        "# Lo que abre una linea y va en su propia columna: f_2:, Ecuacion 1:.",
+    "# Bounded on purpose, so a sentence that happens to contain a colon is prose.":
+        "# Acotado a proposito, para que una frase con dos puntos siga siendo prosa.",
     "# The two ways of reading a step by step: one at a time, or all of it at once.":
         "# Las dos maneras de leer un paso a paso: de uno en uno, o todo de una vez.",
     "# Everything is put back in front of the row of controls, which never":

@@ -10,6 +10,7 @@ No arithmetic lives here. `MatrixEntryGrid.matrix()` hands back a `Matrix` and
 `MatrixDisplay` takes one; what happens in between is `core`'s business.
 """
 
+import re
 from collections.abc import Callable, Sequence
 from typing import Any, Literal
 
@@ -403,6 +404,120 @@ class FractionCell(ctk.CTkFrame):
             text_color=color,
         ).pack(padx=7, pady=(0, 2))
 
+# A fraction as `format_scalar` writes one: the only place a slash appears
+# between digits in anything the presentation layer produces.
+_FRACTION = re.compile(r"(-?\d+)/(\d+)")
+
+# What starts a line and has to stay in its own column: `f_2:`, `Ecuación 1:`.
+# Bounded on purpose, so a sentence that happens to contain a colon is prose.
+_TAG = re.compile(r"^(\s{0,4}\S[^=]{0,12}?:)\s")
+
+def _pieces(text: str) -> list[tuple[str, Scalar | None]]:
+    """The line broken into runs of plain text and the fractions between them."""
+    runs: list[tuple[str, Scalar | None]] = []
+    position = 0
+    for match in _FRACTION.finditer(text):
+        runs.append((text[position:match.start()], None))
+        runs.append(("", Scalar(int(match[1]), int(match[2]))))
+        position = match.end()
+    runs.append((text[position:], None))
+    return runs
+
+class MathLine(ctk.CTkFrame):
+    """
+    One line of text with every fraction in it stacked instead of slashed.
+
+    The text comes from `ui/presentation.py` already written; this only sets it,
+    breaking it where a fraction appears and standing a `FractionCell` in the
+    gap. Everything between the fractions stays in the monospaced font it was
+    laid out in, so what was lined up inside a run stays lined up.
+    """
+
+    def __init__(
+        self,
+        master: Any,
+        text: str,
+        font: str = "mono",
+        color: Color = theme.INK,
+    ) -> None:
+        super().__init__(master, fg_color="transparent")
+        for run, fraction in _pieces(text):
+            if fraction is not None:
+                FractionCell(self, fraction, color).pack(side="left", padx=1)
+            elif run:
+                ctk.CTkLabel(
+                    self, text=run, font=theme.font(font), text_color=color
+                ).pack(side="left")
+
+class MathBlock(ctk.CTkFrame):
+    """
+    A block of lines the presentation layer laid out, set with its fractions
+    stacked.
+
+    Those blocks are lined up by counting characters, which stops being true the
+    moment a fraction takes two lines instead of one. So the alignment is done
+    again here, in a grid: the row name keeps a column of its own and the equals
+    signs keep another.
+
+    `align` is the one thing the grid cannot work out for itself. A system of
+    equations is written with its left sides pushed right, so the equals signs
+    fall under each other; a clearing is written with its lines starting at the
+    same place. Both were true of the text before it got here, and the caller
+    knows which it handed over.
+    """
+
+    def __init__(
+        self,
+        master: Any,
+        text: str,
+        align: Literal["left", "right"] = "right",
+        font: str = "mono_small",
+        color: Color = theme.INK,
+    ) -> None:
+        super().__init__(master, fg_color="transparent")
+        for row, line in enumerate(text.splitlines()):
+            if not line.strip():
+                ctk.CTkFrame(self, width=1, height=10, fg_color="transparent").grid(
+                    row=row, column=0
+                )
+                continue
+
+            tag = ""
+            match = _TAG.match(line)
+            if match:
+                tag, line = match[1], line[match.end() - 1:]
+            if tag:
+                MathLine(self, tag, font, color).grid(row=row, column=0, sticky="w")
+
+            left, equals, right = line.partition("=")
+            if align == "left" or not equals:
+                # Written the way it was written: one flow, its own spacing kept.
+                MathLine(self, line.strip(), font, color).grid(
+                    row=row, column=1, columnspan=3, sticky="w", padx=(10, 0)
+                )
+                continue
+
+            MathLine(self, left.strip(), font, color).grid(
+                row=row, column=1, sticky="e", padx=(10, 0)
+            )
+            ctk.CTkLabel(
+                self, text="=", font=theme.font(font), text_color=color
+            ).grid(row=row, column=2, padx=6)
+            MathLine(self, right.strip(), font, color).grid(row=row, column=3, sticky="w")
+
+class MathChip(ctk.CTkFrame):
+    """A chip whose one fact may be a fraction: `x = 1/3`."""
+
+    def __init__(
+        self,
+        master: Any,
+        text: str,
+        color: Color = theme.INK,
+        background: Color = theme.FIELD,
+    ) -> None:
+        super().__init__(master, fg_color=background, corner_radius=12)
+        MathLine(self, text, "mono", color).pack(padx=14, pady=6)
+
 class MatrixDisplay(ctk.CTkFrame):
     """A matrix the program wrote, in brackets, with an optional bar down it."""
 
@@ -560,19 +675,6 @@ class Chip(ctk.CTkLabel):
             pady=8,
         )
 
-class MonoBlock(ctk.CTkLabel):
-    """A block of text the presentation layer already laid out, kept as it is."""
-
-    def __init__(self, master: Any, text: str) -> None:
-        super().__init__(
-            master,
-            text=text,
-            font=theme.font("mono_small"),
-            text_color=theme.INK,
-            justify="left",
-            anchor="w",
-        )
-
 class StepWalker(ctk.CTkFrame):
     """
     One elimination, walked one operation at a time.
@@ -600,18 +702,9 @@ class StepWalker(ctk.CTkFrame):
         self._on_step = on_step
         self._index = 0
 
-        self._operation = ctk.CTkLabel(
-            self,
-            text="",
-            font=theme.font("mono"),
-            text_color=theme.INK,
-            fg_color=theme.FIELD,
-            corner_radius=12,
-            anchor="w",
-            padx=16,
-            pady=12,
-        )
+        self._operation = ctk.CTkFrame(self, fg_color=theme.FIELD, corner_radius=12)
         self._operation.pack(fill="x")
+        self._caption = ""
 
         self._holder = ctk.CTkFrame(self, fg_color="transparent")
         self._holder.pack(anchor="w", pady=(14, 0))
@@ -683,19 +776,14 @@ class StepWalker(ctk.CTkFrame):
         for index in range(self.total()):
             block = ctk.CTkFrame(self._list, fg_color="transparent")
             block.pack(fill="x", pady=(0, 16))
-            ctk.CTkLabel(
-                block,
-                text=self._first_caption
+            caption = ctk.CTkFrame(block, fg_color=theme.FIELD, corner_radius=12)
+            caption.pack(fill="x")
+            MathLine(
+                caption,
+                self._first_caption
                 if index == 0
                 else f"Paso {index}:   {pretty_label(self._log[index - 1].label)}",
-                font=theme.font("mono"),
-                text_color=theme.INK,
-                fg_color=theme.FIELD,
-                corner_radius=12,
-                anchor="w",
-                padx=16,
-                pady=10,
-            ).pack(fill="x")
+            ).pack(anchor="w", padx=16, pady=10)
             MatrixDisplay(
                 block, self._log.snapshot(index), bar_after=self._bar_after
             ).pack(anchor="w", pady=(10, 0))
@@ -714,15 +802,18 @@ class StepWalker(ctk.CTkFrame):
 
     def caption(self) -> str:
         """What the operation box says right now."""
-        return self._operation.cget("text")
+        return self._caption
 
     def show(self) -> None:
         """Draw the step the walk stands on."""
-        self._operation.configure(
-            text=self._first_caption
+        self._caption = (
+            self._first_caption
             if self._index == 0
             else pretty_label(self._log[self._index - 1].label)
         )
+        for widget in self._operation.winfo_children():
+            widget.destroy()
+        MathLine(self._operation, self._caption).pack(anchor="w", padx=16, pady=10)
 
         for widget in self._holder.winfo_children():
             widget.destroy()
