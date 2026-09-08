@@ -173,6 +173,32 @@ CONSOLE_BLOCKS: list[Block] = [
 
 WINDOW_BLOCKS: list[Block] = [
     Block(
+        "core/echelon.py",
+        "LAS FORMAS ESCALONADAS Y LOS PIVOTES",
+        "Lee la forma de una matriz, en vez de ponerla en una. Comprueba las cinco\n"
+        "propiedades numeradas de la definición, una por una, y señala la entrada\n"
+        "que rompe la que falle:\n"
+        "  1. Las filas no nulas están arriba de las filas de ceros.\n"
+        "  2. Cada entrada principal está a la derecha de la de la fila superior.\n"
+        "  3. Debajo de una entrada principal, su columna es toda ceros.\n"
+        "  4. Cada entrada principal es 1.\n"
+        "  5. Cada entrada principal 1 es la única distinta de cero en su columna.\n"
+        "Las tres primeras definen la forma escalonada; las cinco, la reducida.\n"
+        "\n"
+        "Una posición pivote no se lee de la matriz tal como está, sino del lugar\n"
+        "que ocupa una entrada principal en su forma escalonada reducida, así que\n"
+        "para localizarlas hay que reducir primero.",
+    ),
+    Block(
+        "core/parametric.py",
+        "LA SOLUCIÓN GENERAL",
+        "Cuando hay infinitas soluciones, escribe la familia entera: cada variable\n"
+        "básica (la de una columna pivote) en función de las libres. Se lee de la\n"
+        "forma escalonada reducida, donde cada pivote es 1 y está solo en su\n"
+        "columna, así que la fila ya es el despeje y no hace falta sustituir hacia\n"
+        "atrás.",
+    ),
+    Block(
         "gui/theme.py",
         "EL ASPECTO DE LA VENTANA",
         "Los colores, las tipografías y el interruptor entre modo claro y modo\n"
@@ -206,6 +232,15 @@ WINDOW_BLOCKS: list[Block] = [
         "Cada operación es una llamada a la matriz; lo único que se decide aquí\n"
         "es qué tamaños pueden encontrarse, y eso se comprueba antes de llamar\n"
         "para poder explicarlo en castellano.",
+    ),
+    Block(
+        "gui/pages/echelon.py",
+        "LA PESTAÑA DE FORMAS ESCALONADAS",
+        "Toma una matriz tal como está y responde las preguntas de la definición:\n"
+        "si está en forma escalonada, si está en la reducida, cuáles son sus\n"
+        "entradas principales y dónde quedan sus posiciones y columnas pivote.\n"
+        "Cuando una propiedad no se cumple, dice cuál y señala la entrada que la\n"
+        "rompe, que es lo que sirve para aprenderla.",
     ),
     Block(
         "gui/pages/gauss.py",

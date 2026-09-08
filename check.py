@@ -7,9 +7,11 @@ it says it should, the modules of `core/` are wired together correctly.
 
 from fractions import Fraction
 
+from core.echelon import analyse, free_columns, leading_entries, pivot_columns
 from core.elimination import to_ref, to_rref
 from core.equations import parse_equation, to_augmented, unknown_names
 from core.matrix import Matrix
+from core.parametric import general_solution
 from core.scalar import format_scalar
 from core.systems import SystemKind, solve
 from core.verification import verify
@@ -123,6 +125,40 @@ check("rows checked", len(good.checks), 3)
 check("both sides of every row", [check_.left for check_ in good.checks], [0, 8, -9])
 wrong = verify(solution.coefficients, solution.constants, (0, 0, 0))
 check("catches a wrong answer", wrong.holds, False)
+
+print("the five properties that define the two echelon forms")
+staircase = analyse(Matrix([[2, -3, 2, 1], [0, 1, -4, 8], [0, 0, 0, 5]]))
+check("echelon", staircase.is_echelon, True)
+check("but not reduced, its leading entries are not 1", staircase.is_reduced, False)
+check("property 4 names the row that breaks it", staircase.condition(4).row, 1)
+check("leading entries", staircase.leading, ((1, 1), (2, 2), (3, 4)))
+
+reduced = analyse(Matrix([[1, 0, -5, 1], [0, 1, 1, 4], [0, 0, 0, 0]]))
+check("reduced", reduced.is_reduced, True)
+check("a zero row at the bottom is allowed", reduced.condition(1).holds, True)
+
+upside_down = analyse(Matrix([[0, 0, 0], [1, 2, 3], [0, 4, 5]]))
+check("a zero row above a full one breaks property 1", upside_down.condition(1).row, 2)
+check("and the matrix is not echelon", upside_down.is_echelon, False)
+check("all zeros passes every property", analyse(Matrix.zero(2, 3)).is_reduced, True)
+
+print("pivot positions live in the reduced form, not in the matrix as it stands")
+lay = Matrix([[0, -3, -6, 4, 9], [-1, -2, -1, 3, 1], [-2, -3, 0, 3, -1], [1, 4, 5, -9, -7]])
+check("pivot columns", pivot_columns(lay), (1, 2, 4))
+check("the rest", free_columns(lay), (3, 5))
+check("nothing leads a row of zeros", leading_entries(Matrix.zero(2, 2)), ())
+
+print("the general solution of a system with infinitely many")
+family = general_solution(to_rref(Matrix([[1, 1, 1, 6], [1, 2, 3, 14], [2, 3, 4, 20]])), 3)
+check("one free variable", family.free, (3,))
+check("two basic ones", [item.column for item in family.basic], [1, 2])
+check("x = -2 + z", (family.basic[0].constant, family.basic[0].terms),
+      (Fraction(-2), ((Fraction(1), 3),)))
+check("y = 8 - 2z", (family.basic[1].constant, family.basic[1].terms),
+      (Fraction(8), ((Fraction(-2), 3),)))
+free_at = Fraction(5)
+check("and it solves the system for any z", 
+      [(-2 + free_at) + (8 - 2 * free_at) + free_at], [Fraction(6)])
 
 print("exact arithmetic, end to end")
 third = solve(Matrix([[3, 1]]))

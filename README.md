@@ -19,7 +19,9 @@ linalg-calculator/
 │   ├── elimination.py    # row elimination, to the echelon form and the reduced one
 │   ├── systems.py        # classification and solution of a linear system
 │   ├── verification.py   # putting a solution back into the original system
-│   └── equations.py      # `2x + 3y = 5` read into a row of the augmented matrix
+│   ├── equations.py      # `2x + 3y = 5` read into a row of the augmented matrix
+│   ├── echelon.py        # the five properties, the leading entries, the pivots
+│   └── parametric.py     # the general solution, when there are infinitely many
 ├── ui/                   # everything a person reads, in Spanish
 │   ├── presentation.py   # engine objects → the words that go on screen
 │   └── prompts.py        # reading a system from the keyboard, two ways in
@@ -27,7 +29,7 @@ linalg-calculator/
 │   ├── theme.py          # colours, fonts, the light/dark switch
 │   ├── widgets.py        # the shapes CustomTkinter does not have
 │   ├── app.py            # the window, the sidebar, which page is open
-│   └── pages/            # one module per page
+│   └── pages/            # operations, echelon forms, elimination
 ├── deliverables/         # the scripts handed in to the course
 │   ├── program1.py       # Programa 1: systems by row elimination
 │   └── out/              # generated single files, not versioned
@@ -118,6 +120,18 @@ exactly one. In that last case it clears the unknowns by back substitution, from
 the last to the first, and keeps every one of those steps: seeing the echelon
 matrix and then the clearing is the point of the method.
 
+`analyse` asks the opposite question to the elimination: the matrix as it
+stands, is it in echelon form? It checks the five numbered properties of the
+definition one at a time and reports the entry that breaks the ones that fail,
+because a bare yes or no teaches nobody the definition. `pivot_positions` then
+reduces, since a pivot position is defined as a place holding a leading entry in
+the *reduced* form, not in the matrix as it was handed over.
+
+`general_solution` writes out the family when there are infinitely many: every
+basic variable — the one holding a pivot — in terms of the free ones. It reads
+the reduced form, where a pivot is 1 and alone in its column, so the row is
+already the answer.
+
 `verify` is the independent check: hand it A, b and the values found and it
 evaluates every equation of the original system, comparing both sides exactly.
 It trusts nothing the elimination did, which is the only way the check is worth
@@ -125,8 +139,8 @@ anything.
 
 ## The wording
 
-`ui/presentation.py` turns those objects into the text a person reads, and it is
-the only file in the project that writes Spanish. It builds strings and returns
+`ui/presentation.py` turns those objects into the text a person reads, and it
+holds every sentence more than one front end says. It builds strings and returns
 them — no `print`, no widgets — so whatever displays them decides where they go
 while the words stay the same everywhere.
 

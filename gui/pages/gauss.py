@@ -28,7 +28,8 @@ from core.equations import (
     unknown_names,
 )
 from core.matrix import Matrix
-from core.scalar import format_scalar
+from core.parametric import General, general_solution
+from core.scalar import format_factor, format_scalar
 from core.systems import Solution, SystemKind, solve
 from core.verification import verify
 from ui.presentation import (
@@ -263,6 +264,8 @@ class GaussPage(ctk.CTkFrame):
         self._draw_steps()
         self._draw_equivalent(solution)
         self._draw_result(solution)
+        if solution.kind is SystemKind.INFINITE:
+            self._draw_general(solution)
         if solution.kind is SystemKind.UNIQUE:
             if self._method == GAUSS:
                 self._draw_substitutions(solution)
@@ -586,6 +589,63 @@ class GaussPage(ctk.CTkFrame):
             if column <= solution.unknowns
         ]
         return ", ".join(str(column) for column in held) if held else "ninguna"
+
+    def _draw_general(self, solution: Solution) -> None:
+        """
+        The family of solutions, written out: every basic variable in terms of
+        the free ones.
+
+        It is read from the reduced form even when the method chosen was Gauss,
+        because that is where a pivot is alone in its column and the row is
+        already the answer. The family is the same either way — the road taken
+        cannot change which values solve a system — so nothing is smuggled in by
+        reducing a second time behind the scenes.
+        """
+        family = general_solution(to_rref(solution.augmented), solution.unknowns)
+        card = self._add_card()
+        inside = ctk.CTkFrame(card, fg_color="transparent")
+        inside.pack(fill="x", padx=24, pady=22)
+
+        SectionTitle(inside, "Solución general").pack(fill="x", pady=(0, 6))
+        ctk.CTkLabel(
+            inside,
+            text=(
+                "Las variables de las columnas pivote son las variables básicas; las\n"
+                "demás son libres. Cada valor que se dé a las libres produce una solución."
+            ),
+            font=theme.font("small"),
+            text_color=theme.MUTED,
+            justify="left",
+        ).pack(anchor="w", pady=(0, 12))
+
+        variables = ctk.CTkFrame(inside, fg_color="transparent")
+        variables.pack(anchor="w", pady=(0, 14))
+        basic = ", ".join(unknown_name(item.column, self._names) for item in family.basic)
+        free = ", ".join(unknown_name(column, self._names) for column in family.free)
+        Chip(variables, f"variables básicas: {basic}").pack(side="left", padx=(0, 8))
+        Chip(variables, f"variables libres: {free}", theme.MUTED).pack(side="left")
+
+        MonoBlock(inside, self._general_lines(family)).pack(anchor="w")
+
+    def _general_lines(self, family: General) -> str:
+        """`x = 1 + 4*z`, one line per variable, the names lined up on the equals."""
+        columns = [item.column for item in family.basic] + list(family.free)
+        width = max((len(unknown_name(column, self._names)) for column in columns), default=1)
+
+        lines = []
+        for item in family.basic:
+            terms = ""
+            for coefficient, column in item.terms:
+                sign = "-" if coefficient < 0 else "+"
+                size = -coefficient if coefficient < 0 else coefficient
+                factor = "" if size == 1 else f"{format_factor(size)}*"
+                terms += f" {sign} {factor}{unknown_name(column, self._names)}"
+            name = unknown_name(item.column, self._names)
+            lines.append(f"  {name:>{width}} = {format_scalar(item.constant)}{terms}")
+
+        for column in family.free:
+            lines.append(f"  {unknown_name(column, self._names):>{width}} es libre")
+        return "\n".join(lines)
 
     def _draw_substitutions(self, solution: Solution) -> None:
         card = self._add_card()

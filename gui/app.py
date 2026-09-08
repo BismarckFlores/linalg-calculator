@@ -19,6 +19,7 @@ from typing import Any
 import customtkinter as ctk
 
 from . import theme
+from .pages.echelon import EchelonPage
 from .pages.gauss import GaussPage
 from .pages.operations import OperationsPage
 from .widgets import Card
@@ -31,11 +32,13 @@ class Module:
     glyph: str
     name: str
 
-# The arithmetic comes first because everything else is written in terms of it.
-# Gauss and Gauss-Jordan share one row: they are two settings of one method, and
-# the choice between them belongs inside the page, not in the menu.
+# In the order the course builds them up: the arithmetic everything else is
+# written in terms of, then the definitions of the echelon forms, then the
+# elimination that puts a matrix into one. Gauss and Gauss-Jordan share a row:
+# they are two settings of one method, and the choice belongs inside the page.
 MODULES = (
     Module("operations", "⊞", "Operaciones Matriciales"),
+    Module("echelon", "▧", "Formas Escalonadas"),
     Module("gauss", "▦", "Eliminación Gaussiana"),
 )
 
@@ -187,6 +190,8 @@ class Application(ctk.CTk):
     def _build_page(self, key: str) -> ctk.CTkFrame:
         if key == "operations":
             return OperationsPage(self._container)
+        if key == "echelon":
+            return EchelonPage(self._container)
         if key == "gauss":
             return GaussPage(self._container)
         raise KeyError(f"No page is registered for {key!r}.")

@@ -366,6 +366,7 @@ class MatrixDisplay(ctk.CTkFrame):
         matrix: Matrix,
         bar_after: int | None = None,
         background: Color = theme.CARD,
+        highlight: Sequence[tuple[int, int]] = (),
     ) -> None:
         super().__init__(master, fg_color="transparent")
         Bracket(self, "left", background).grid(row=0, column=0, sticky="ns")
@@ -385,15 +386,20 @@ class MatrixDisplay(ctk.CTkFrame):
             places[j] = column
             column += 1
 
+        marked = set(highlight)
         for i in range(1, matrix.rows + 1):
             for j in range(1, matrix.cols + 1):
+                inside = (i, j) in marked
                 ctk.CTkLabel(
                     cells,
                     text=format_scalar(matrix.elem(i, j)),
                     font=theme.font("mono"),
-                    text_color=theme.INK,
+                    text_color=theme.ACCENT if inside else theme.INK,
+                    fg_color=theme.ACCENT_SOFT if inside else "transparent",
+                    corner_radius=7,
+                    padx=6,
                     anchor="e",
-                ).grid(row=i - 1, column=places[j], sticky="e", padx=9, pady=1)
+                ).grid(row=i - 1, column=places[j], sticky="e", padx=4, pady=1)
 
         if bar is not None:
             ctk.CTkFrame(cells, width=2, height=1, corner_radius=0, fg_color=theme.RULE).grid(

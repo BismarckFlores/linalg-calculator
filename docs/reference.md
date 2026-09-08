@@ -22,6 +22,8 @@ elimination   drives a worksheet down to the echelon form, reduced or not
 systems       classifies what came out, and clears the unknowns
    │                    verification   checks it independently
    │                    equations      turns `2x + 3y = 5` into a row
+   │                    echelon        reads the form of a matrix, and its pivots
+   │                    parametric     the family, when there are infinitely many
    ├────────────────────────┴──────────────┘
 presentation  turns all of the above into Spanish
 prompts       reads a system from the keyboard, either way round
@@ -32,10 +34,13 @@ program1      orders the seven sections
 `gui/` hangs off `presentation` as a second reader of it, next to `prompts`.
 It imports `core/` and `ui/presentation.py`, and nothing imports it.
 
-Two modules hang off to the side deliberately. `verification` imports `matrix`
+Some modules hang off to the side deliberately. `verification` imports `matrix`
 and `scalar` only, so it cannot accidentally check the elimination against
-itself; `equations` imports the same two, because reading text into a matrix
-has nothing to do with what is later done to that matrix.
+itself; `equations` imports the same two, because reading text into a matrix has
+nothing to do with what is later done to that matrix. `echelon` and `parametric`
+hang off `elimination` rather than off `systems`, because they are about a
+matrix and not about a system: one reads the form of any matrix, the other reads
+a family off a reduced one.
 
 ## What flows through it
 
@@ -233,6 +238,51 @@ only, and says nothing to anybody: the Spanish for a mistake is decided in
 | `MissingEquals` | The line does not hold exactly one `=`. |
 | `UnreadableTerm` | A fragment is not a term. `.text` is the fragment, for pointing at it. |
 
+## `core/echelon.py`
+
+The definitions themselves: what form a matrix is in, and where its pivots are.
+Nothing here reduces anything except `pivot_positions`, which has to.
+
+| Name | Meaning |
+| --- | --- |
+| `leading_column(matrix, row)` | The column of the leading entry of a row, or `None` for a row of zeros. |
+| `leading_entries(matrix)` | `((row, col), ...)` for every row that has one, in row order. |
+| `analyse(matrix) -> Form` | Checks the five numbered properties. |
+| `pivot_positions(matrix)` | Where the leading entries of the **reduced** form are. Reduces to find out. |
+| `pivot_columns(matrix)`, `free_columns(matrix)` | The columns that hold one, and the ones that do not. |
+| `ECHELON`, `REDUCED` | `(1, 2, 3)` and `(4, 5)`: which properties define which form. |
+
+**`Condition`** — frozen. `number`, `holds`, and `row`/`column`, 1-based, saying
+where the property broke. They mean nothing when `holds` is true. Property 1
+fails at a whole row, so its `column` stays 0.
+
+**`Form`** — frozen. `matrix`, `conditions`, `leading`.
+
+| Member | Meaning |
+| --- | --- |
+| `condition(n)` | The verdict on property `n`. Raises for a number that is not 1..5. |
+| `is_echelon` | Properties 1, 2 and 3 all hold. |
+| `is_reduced` | All five do. |
+
+A matrix of zeros satisfies all five: every property is a claim about the rows
+that are not zero, and it has none.
+
+## `core/parametric.py`
+
+The general solution, for a system with infinitely many.
+
+| Name | Meaning |
+| --- | --- |
+| `general_solution(reduction, unknowns) -> General` | Reads the family off a **reduced** elimination. Raises `ValueError` if handed an unreduced one. |
+
+**`Basic`** — frozen. One basic variable: `column`, `constant`, and `terms` as
+`((coefficient, free column), ...)`, so `x = constant + sum(coefficient * free)`.
+
+**`General`** — frozen. `basic` and `free`, both in column order.
+
+Only the columns of A count. A pivot on the constants column means there is no
+solution at all and no family to write, so the caller classifies first.
+
 ## `core/verification.py`
 
 | Name | Meaning |
@@ -311,6 +361,7 @@ The window. `python -m gui`, from the repository root. Full notes in
 | `gui/widgets.py` | `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `MonoBlock`. |
 | `gui/app.py` | `MODULES` — the sidebar, in order — plus `NavRow`, `Application` and `main()`. |
 | `gui/pages/operations.py` | `OperationsPage`: the five matrix operations. |
+| `gui/pages/echelon.py` | `EchelonPage`: the five properties, the leading entries and the pivots. Owns their Spanish, since no other front end says it. |
 | `gui/pages/gauss.py` | `GaussPage`: `A x = b` by either method, from coefficients or from written equations, with the step by step. |
 
 `MODULES` holds only what works. A row is added when its page is; a program with

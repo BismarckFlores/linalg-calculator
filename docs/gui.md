@@ -15,11 +15,13 @@ when the root is the directory Python started from.
 
 ## What is on it
 
-The sidebar lists what works, and nothing else. Two rows:
+The sidebar lists what works, and nothing else, in the order the course builds
+it up:
 
 | Row | What it does |
 | --- | --- |
 | **Operaciones Matriciales** | `A + B`, `A − B`, `A × B`, `k · A`, `Aᵀ`. Each matrix is resized with its own steppers, and B follows A wherever the shapes have to agree. |
+| **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one, which are its leading entries, where are its pivot positions and pivot columns. |
 | **Eliminación Gaussiana** | Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
 
 The arithmetic tab comes first deliberately. Everything else in the course is
@@ -111,6 +113,14 @@ counting pivots and from an exact arithmetic, so the road taken cannot change
 them; what changes is where the walk stops, which is what the step by step and
 the equivalent system show.
 
+When the system has infinitely many solutions, a **Solución general** card
+writes the family out: every basic variable — the one holding a pivot — in terms
+of the free ones, `x = -2 + z` and `y = 8 - 2*z` with `z es libre`. It is read
+from the reduced form even when the method chosen was Gauss, because that is
+where a pivot is alone in its column and the row is already the answer. The
+family is the same either way, so reducing a second time behind the scenes
+smuggles nothing in.
+
 The pivot columns are named either way too — `columnas pivote: 1, 2` and
 `columnas libres: 3` — because identifying them is what the second assignment
 asks for, and because the free columns are exactly the free variables under
@@ -120,9 +130,6 @@ inconsistent system is inconsistent, which the classification already says.
 
 ### What it does not do yet
 
-- An indeterminate system reports its free variables and stops there. Writing
-  the family out in terms of parameters needs `core/parametric.py`, which does
-  not exist in any front end.
 - Determinant, inverse and everything from Programa 3 onwards do not exist at
   all — not in the engine and, therefore, not in the sidebar either.
 
@@ -136,6 +143,7 @@ gui/
 ├── __main__.py    python -m gui
 └── pages/
     ├── operations.py   matrix arithmetic
+    ├── echelon.py      the five properties, and where the pivots are
     └── gauss.py        A x = b, both methods
 ```
 
@@ -151,7 +159,12 @@ pages read matrices out of their cells, call `solve`, `to_rref`, `verify` or a
 `Matrix` operator, and arrange what comes back. If a calculation ever appears in
 this package it is in the wrong place.
 
-**No wording in `gui/` that another front end also needs.** The classification,
+**No wording in `gui/` that another front end also needs.** The five properties
+of the echelon forms are the exception that proves it: only this window says
+them, so `gui/pages/echelon.py` owns those sentences the way `ui/prompts.py`
+owns its menu. The day the terminal needs them they move to
+`ui/presentation.py`, which is where the classification went.
+ The classification,
 the values, the clearing and the verification are written by
 `ui/presentation.py`, exactly as the terminal writes them. What the window does
 own is its own chrome — `Calcular`, `Filas`, `Matriz A` — the same way

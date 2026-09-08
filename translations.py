@@ -651,6 +651,130 @@ DOCSTRINGS: dict[str, str] = {
         "Muestra la pagina de un modulo, construyendola la primera vez que se pide.",
     "Open the window and hand control over to it.":
         "Abre la ventana y le cede el control.",
+
+    # ----- core/echelon.py -----
+    "One numbered property, and the entry that breaks it when one does.\n"
+    "\n"
+    "`row` and `column` are 1-based and only meaningful when `holds` is false.\n"
+    "Property 1 is the exception: it fails at a whole row, so `column` stays 0.":
+        "Una de las propiedades numeradas, y la entrada que la rompe cuando alguna\n"
+        "la rompe.\n"
+        "\n"
+        "row y column se cuentan desde 1 y solo significan algo cuando holds es falso.\n"
+        "La propiedad 1 es la excepcion: falla en una fila entera, asi que column\n"
+        "se queda en 0.",
+    "What form a matrix is in, property by property.":
+        "En que forma esta una matriz, propiedad por propiedad.",
+    "The column of the leading entry of a row: its leftmost entry that is not\n"
+    "zero.\n"
+    "\n"
+    "A row of zeros has none, which is what `None` says. Every property below is\n"
+    "written in terms of these, exactly as the definition is.":
+        "La columna de la entrada principal de una fila: la entrada distinta de cero\n"
+        "que esta mas a la izquierda.\n"
+        "\n"
+        "Una fila de ceros no tiene ninguna, que es lo que dice None. Todas las\n"
+        "propiedades de abajo estan escritas en terminos de estas entradas, igual que\n"
+        "la definicion.",
+    "The position of every leading entry, in row order.":
+        "La posicion de cada entrada principal, en orden de fila.",
+    "Check the five properties against a matrix exactly as they are written.\n"
+    "\n"
+    "A matrix of zeros passes all five: every property is a claim about the rows\n"
+    "that are not zero, and it has none. That is not a special case handled here,\n"
+    "it is what the loops do when there is nothing to loop over.":
+        "Comprueba las cinco propiedades sobre una matriz tal como estan escritas.\n"
+        "\n"
+        "Una matriz de ceros las cumple las cinco: cada propiedad afirma algo sobre\n"
+        "las filas que no son nulas, y no tiene ninguna. Eso no es un caso especial\n"
+        "tratado aparte, es lo que hacen los bucles cuando no hay nada que recorrer.",
+    "The pivot positions of a matrix: where the leading entries of its reduced\n"
+    "form are.\n"
+    "\n"
+    "The definition is not about the matrix as it stands. A pivot position of A\n"
+    "is a place in A holding a leading entry once A is in reduced echelon form,\n"
+    "so this reduces first and reports the positions it found on the way.":
+        "Las posiciones pivote de una matriz: donde quedan las entradas principales\n"
+        "de su forma escalonada reducida.\n"
+        "\n"
+        "La definicion no habla de la matriz tal como esta. Una posicion pivote de A\n"
+        "es un lugar de A que lleva una entrada principal una vez que A esta en forma\n"
+        "escalonada reducida, asi que aqui se reduce primero y se informan las\n"
+        "posiciones encontradas por el camino.",
+    "The columns holding a pivot position.":
+        "Las columnas que tienen una posicion pivote.",
+    "The columns that hold none.":
+        "Las columnas que no tienen ninguna.",
+    "Property 1: no row of zeros sits above a row that is not zeros.":
+        "Propiedad 1: ninguna fila de ceros esta por encima de una que no lo es.",
+    "Property 2: each leading entry stands to the right of the one above.":
+        "Propiedad 2: cada entrada principal queda a la derecha de la de arriba.",
+    "Property 3: under a leading entry, the rest of its column is zeros.":
+        "Propiedad 3: debajo de una entrada principal, su columna es toda ceros.",
+    "Property 4: every leading entry is a 1.":
+        "Propiedad 4: cada entrada principal es un 1.",
+    "Property 5: a leading entry is the only entry of its column that is not zero.":
+        "Propiedad 5: una entrada principal es la unica de su columna que no es cero.",
+    "The verdict on one numbered property.":
+        "El veredicto sobre una de las propiedades numeradas.",
+    "Whether the first three properties all hold.":
+        "Si se cumplen las tres primeras propiedades.",
+    "Whether all five do.":
+        "Si se cumplen las cinco.",
+
+    # ----- core/parametric.py -----
+    "One basic variable, written in terms of the free ones.":
+        "Una variable basica, escrita en funcion de las libres.",
+    "The whole family: the basic variables, and the free ones they lean on.":
+        "La familia entera: las variables basicas y las libres de las que dependen.",
+    "Read the family off the reduced form: every basic variable in terms of the\n"
+    "free ones.\n"
+    "\n"
+    "Only the columns of A count as variables; a pivot on the constants column\n"
+    "means the system has no solution at all, and there is no family to write.\n"
+    "The caller classifies first and only asks when there is something to ask\n"
+    "for.":
+        "Lee la familia de la forma escalonada reducida: cada variable basica en\n"
+        "funcion de las libres.\n"
+        "\n"
+        "Solo las columnas de A cuentan como variables; un pivote en la columna de\n"
+        "los terminos independientes significa que el sistema no tiene solucion\n"
+        "ninguna, y entonces no hay familia que escribir. Quien llama clasifica\n"
+        "primero y solo pregunta cuando hay algo que preguntar.",
+
+    # ----- gui/pages/echelon.py -----
+    "The page that reads the form of a matrix instead of putting it in one.":
+        "La pagina que lee la forma de una matriz en vez de ponerla en una.",
+    "`1, 3, 5`, or the word for none of them.":
+        "1, 3, 5, o la palabra para ninguna de ellas.",
+    "One of the two answers, coloured by itself so it reads at a glance.":
+        "Una de las dos respuestas, con su propio color para leerla de un vistazo.",
+    "One numbered property: whether it holds, and where it broke if not.":
+        "Una propiedad numerada: si se cumple, y donde se rompio si no.",
+    "One matrix with the pivot positions picked out, under its own caption.":
+        "Una matriz con sus posiciones pivote resaltadas, bajo su propio titulo.",
+    "A verdict about a matrix stops meaning anything once it is retyped.":
+        "Un veredicto sobre una matriz deja de significar nada al reescribirla.",
+
+    # ----- gui/pages/gauss.py, the general solution -----
+    "The family of solutions, written out: every basic variable in terms of\n"
+    "the free ones.\n"
+    "\n"
+    "It is read from the reduced form even when the method chosen was Gauss,\n"
+    "because that is where a pivot is alone in its column and the row is\n"
+    "already the answer. The family is the same either way \u2014 the road taken\n"
+    "cannot change which values solve a system \u2014 so nothing is smuggled in by\n"
+    "reducing a second time behind the scenes.":
+        "La familia de soluciones, escrita entera: cada variable basica en funcion\n"
+        "de las libres.\n"
+        "\n"
+        "Se lee de la forma escalonada reducida aunque el metodo elegido sea Gauss,\n"
+        "porque es ahi donde un pivote esta solo en su columna y la fila ya es el\n"
+        "despeje. La familia es la misma por los dos caminos (el camino no cambia\n"
+        "que valores resuelven un sistema), asi que reducir otra vez por detras no\n"
+        "mete nada de contrabando.",
+    "`x = 1 + 4*z`, one line per variable, the names lined up on the equals.":
+        "x = 1 + 4*z, una linea por variable, con los nombres cuadrados en el igual.",
 }
 
 COMMENTS: dict[str, str] = {
@@ -807,14 +931,36 @@ COMMENTS: dict[str, str] = {
         "# ----- Mantenimiento -----",
 
     # ----- gui/app.py -----
-    "# The arithmetic comes first because everything else is written in terms of it.":
-        "# La aritmetica va primero porque todo lo demas se escribe en terminos de ella.",
-    "# Gauss and Gauss-Jordan share one row: they are two settings of one method, and":
-        "# Gauss y Gauss-Jordan comparten fila: son dos ajustes de un mismo metodo, y",
-    "# the choice between them belongs inside the page, not in the menu.":
-        "# la eleccion entre ellos va dentro de la pagina, no en el menu.",
+    "# In the order the course builds them up: the arithmetic everything else is":
+        "# En el orden en que las construye el curso: la aritmetica en terminos de la",
+    "# written in terms of, then the definitions of the echelon forms, then the":
+        "# cual se escribe todo lo demas, despues las definiciones de las formas",
+    "# elimination that puts a matrix into one. Gauss and Gauss-Jordan share a row:":
+        "# escalonadas, y despues la eliminacion que lleva una matriz a una de ellas.",
+    "# they are two settings of one method, and the choice belongs inside the page.":
+        "# Gauss y Gauss-Jordan comparten fila: son dos ajustes de un mismo metodo.",
     "# ----- The sidebar -----":
         "# ----- El menu de la izquierda -----",
     "# ----- Opening a page -----":
         "# ----- Apertura de una pagina -----",
+
+    # ----- core/echelon.py -----
+    "# The five properties, numbered the way the course numbers them: the first":
+        "# Las cinco propiedades, numeradas como las numera el curso: las tres",
+    "# three define the echelon form, and the last two the reduced one.":
+        "# primeras definen la forma escalonada, y las dos ultimas la reducida.",
+
+    # ----- gui/pages/echelon.py -----
+    "# The five properties, worded as the course words them and numbered as it":
+        "# Las cinco propiedades, dichas como las dice el curso y numeradas como",
+    "# numbers them: the first three make an echelon form, the last two a reduced one.":
+        "# las numera: las tres primeras dan la forma escalonada, las dos la reducida.",
+    "# Why a property failed, said by pointing at the entry that breaks it.":
+        "# Por que fallo una propiedad, senalando la entrada que la rompe.",
+    "# ----- Reading the matrix -----":
+        "# ----- Lectura de la matriz -----",
+    "# ----- The five properties -----":
+        "# ----- Las cinco propiedades -----",
+    "# ----- The pivots, which live in the reduced form -----":
+        "# ----- Los pivotes, que viven en la forma reducida -----",
 }
