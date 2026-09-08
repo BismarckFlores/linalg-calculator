@@ -32,14 +32,15 @@ class Module:
     glyph: str
     name: str
 
-# In the order the course builds them up: the arithmetic everything else is
-# written in terms of, then the definitions of the echelon forms, then the
-# elimination that puts a matrix into one. Gauss and Gauss-Jordan share a row:
-# they are two settings of one method, and the choice belongs inside the page.
+# The order of the menu, and the first row is the page that opens. The two that
+# solve something come first, in the order they are used; reading the form of a
+# matrix is a check somebody reaches for after one of those, so it sits at the
+# end. Gauss and Gauss-Jordan share a row: they are two settings of one method,
+# and the choice between them belongs inside the page.
 MODULES = (
     Module("operations", "⊞", "Operaciones Matriciales"),
-    Module("echelon", "▧", "Formas Escalonadas"),
     Module("gauss", "▦", "Eliminación Gaussiana"),
+    Module("echelon", "▧", "Formas Escalonadas"),
 )
 
 SIDEBAR_WIDTH = 268

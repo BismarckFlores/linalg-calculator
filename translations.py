@@ -931,14 +931,16 @@ COMMENTS: dict[str, str] = {
         "# ----- Mantenimiento -----",
 
     # ----- gui/app.py -----
-    "# In the order the course builds them up: the arithmetic everything else is":
-        "# En el orden en que las construye el curso: la aritmetica en terminos de la",
-    "# written in terms of, then the definitions of the echelon forms, then the":
-        "# cual se escribe todo lo demas, despues las definiciones de las formas",
-    "# elimination that puts a matrix into one. Gauss and Gauss-Jordan share a row:":
-        "# escalonadas, y despues la eliminacion que lleva una matriz a una de ellas.",
-    "# they are two settings of one method, and the choice belongs inside the page.":
-        "# Gauss y Gauss-Jordan comparten fila: son dos ajustes de un mismo metodo.",
+    "# The order of the menu, and the first row is the page that opens. The two that":
+        "# El orden del menu, y la primera fila es la pagina que se abre. Las dos que",
+    "# solve something come first, in the order they are used; reading the form of a":
+        "# resuelven algo van primero, en el orden en que se usan; leer la forma de una",
+    "# matrix is a check somebody reaches for after one of those, so it sits at the":
+        "# matriz es una comprobacion que se hace despues de una de ellas, asi que va",
+    "# end. Gauss and Gauss-Jordan share a row: they are two settings of one method,":
+        "# al final. Gauss y Gauss-Jordan comparten fila: son dos ajustes de un mismo",
+    "# and the choice between them belongs inside the page.":
+        "# metodo, y la eleccion entre ellos va dentro de la pagina.",
     "# ----- The sidebar -----":
         "# ----- El menu de la izquierda -----",
     "# ----- Opening a page -----":

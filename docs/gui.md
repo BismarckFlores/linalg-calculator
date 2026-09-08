@@ -15,17 +15,21 @@ when the root is the directory Python started from.
 
 ## What is on it
 
-The sidebar lists what works, and nothing else, in the order the course builds
-it up:
+The sidebar lists what works, and nothing else:
 
 | Row | What it does |
 | --- | --- |
 | **Operaciones Matriciales** | `A + B`, `A − B`, `A × B`, `k · A`, `Aᵀ`. Each matrix is resized with its own steppers, and B follows A wherever the shapes have to agree. |
-| **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one, which are its leading entries, where are its pivot positions and pivot columns. |
 | **Eliminación Gaussiana** | Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
+| **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one, which are its leading entries, where are its pivot positions and pivot columns. |
 
-The arithmetic tab comes first deliberately. Everything else in the course is
-written in terms of those five operations.
+The two that solve something come first, and the arithmetic before the
+elimination because the elimination is written in terms of it. Reading the form
+of a matrix is a check somebody reaches for after one of those, so it sits at
+the end.
+
+The order is one tuple, `MODULES` in `gui/app.py`, and nothing else depends on
+it: the rows are drawn by walking it, and the first row is the page that opens.
 
 Gauss and Gauss-Jordan share one row because they share the walk — one stops at
 the staircase and the other keeps going — so the choice is a setting of one
