@@ -380,6 +380,11 @@ class FractionCell(ctk.CTkFrame):
     Nothing is padded on one side only: the rule has to land on the middle of
     the cell, because that is where a whole number in the same row sits and the
     two have to read as being on the same line.
+
+    A minus sign belongs to the whole fraction and not to the number on top of
+    it, so it stands to the left of both, on the rule. `-1/4` is one number
+    divided by another and then negated, which is what it looks like this way
+    and does not when the sign is stacked with the numerator.
     """
 
     def __init__(
@@ -391,17 +396,28 @@ class FractionCell(ctk.CTkFrame):
         font: str = "mono_small",
     ) -> None:
         super().__init__(master, fg_color=background, corner_radius=7)
+        stack = ctk.CTkFrame(self, fg_color="transparent")
+
+        if value < 0:
+            ctk.CTkLabel(
+                self, text="-", font=theme.font(font), text_color=color
+            ).pack(side="left", padx=(7, 1))
+            stack.pack(side="left", padx=(0, 7))
+        else:
+            stack.pack(side="left", padx=7)
+
         ctk.CTkLabel(
-            self, text=str(value.numerator), font=theme.font(font), text_color=color
-        ).pack(padx=7)
+            stack, text=str(abs(value.numerator)), font=theme.font(font),
+            text_color=color,
+        ).pack(padx=2)
         # width=1 because a CTkFrame asks for 200 pixels when nobody says
         # otherwise, and `fill="x"` would then set the width of the whole cell.
-        ctk.CTkFrame(self, width=1, height=2, fg_color=color, corner_radius=0).pack(
-            fill="x", padx=7
+        ctk.CTkFrame(stack, width=1, height=2, fg_color=color, corner_radius=0).pack(
+            fill="x", padx=2
         )
         ctk.CTkLabel(
-            self, text=str(value.denominator), font=theme.font(font), text_color=color
-        ).pack(padx=7)
+            stack, text=str(value.denominator), font=theme.font(font), text_color=color
+        ).pack(padx=2)
 
 # A fraction is set one size down from the line it stands in, the way it is in
 # print: two digits stacked at full size tower over their own line.

@@ -553,7 +553,12 @@ DOCSTRINGS: dict[str, str] = {
     "\n"
     "Nothing is padded on one side only: the rule has to land on the middle of\n"
     "the cell, because that is where a whole number in the same row sits and the\n"
-    "two have to read as being on the same line.":
+    "two have to read as being on the same line.\n"
+    "\n"
+    "A minus sign belongs to the whole fraction and not to the number on top of\n"
+    "it, so it stands to the left of both, on the rule. `-1/4` is one number\n"
+    "divided by another and then negated, which is what it looks like this way\n"
+    "and does not when the sign is stacked with the numerator.":
         "Una entrada escrita como se escribe una fraccion a mano: un numero encima\n"
         "del otro, con una raya en medio.\n"
         "\n"
@@ -567,7 +572,12 @@ DOCSTRINGS: dict[str, str] = {
         "\n"
         "Nada lleva relleno de un solo lado: la raya tiene que caer en el centro de la\n"
         "casilla, porque ahi es donde va un numero entero de la misma fila y las dos\n"
-        "cosas tienen que leerse como si estuvieran en la misma linea.",
+        "cosas tienen que leerse como si estuvieran en la misma linea.\n"
+        "\n"
+        "El signo menos es de la fraccion entera y no del numero de arriba, asi que va\n"
+        "a la izquierda de los dos, sobre la raya. -1/4 es un numero dividido entre\n"
+        "otro y luego cambiado de signo, que es lo que parece asi y no lo que parece\n"
+        "cuando el signo va apilado con el numerador.",
     "A matrix the program wrote, in brackets, with an optional bar down it.":
         "Una matriz escrita por el programa, entre corchetes y con una barra opcional.",
     "The pill of choices at the top of a page: an operation, or a method.":

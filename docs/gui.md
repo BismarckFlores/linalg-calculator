@@ -120,6 +120,11 @@ equivalent system, the clearing, the check and the general solution. A column of
 window has the room the terminal does not. The file handed in still prints the
 plain form, because a transcript has one line per line.
 
+A minus sign belongs to the whole fraction, so it stands to the left of the
+stack and on the rule: `-1/4` is one number over another and then negated, which
+is what it looks like that way and not when the sign is stacked with the
+numerator.
+
 A product is written by putting the two things next to each other, the way it
 is written by hand: `2y`, not `2*y`; `1(29)`, not `1*(29)`. That is
 `ui/presentation.py`, so the terminal and the file handed in read the same way.
