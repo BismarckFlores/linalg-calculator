@@ -120,6 +120,13 @@ equivalent system, the clearing, the check and the general solution. A column of
 window has the room the terminal does not. The file handed in still prints the
 plain form, because a transcript has one line per line.
 
+A product is written by putting the two things next to each other, the way it
+is written by hand: `2y`, not `2*y`; `1(29)`, not `1*(29)`. That is
+`ui/presentation.py`, so the terminal and the file handed in read the same way.
+The sign of a negative term comes out in front of it — `3x - 4(12)` rather than
+`3x + (-4)(12)` — and closes up against the number when it opens the sum:
+`-4(29) + 5(16)`.
+
 Those blocks were lined up by counting characters, which stops being true the
 moment a fraction takes two lines instead of one, so `MathBlock` lays them out
 again in a grid. It is told which of the two alignments the text meant: a system

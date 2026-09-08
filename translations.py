@@ -375,10 +375,42 @@ DOCSTRINGS: dict[str, str] = {
         "se le ensena al lector por su nombre en vez de decirle que hay una.",
     "'1 pivote' or '3 pivotes', so nothing ever reads as '1 pivote(s)'.":
         "'1 pivote' o '3 pivotes', para que nunca se lea '1 pivote(s)'.",
-    "One equation with every unknown replaced by its value: `1*(29) + (-2)*(16)`.":
-        "Una ecuacion con cada incognita sustituida por su valor: 1*(29) + (-2)*(16).",
-    "One term with its sign in front: '+ y', '- 3*z', '+ (1/3)*x'.":
-        "Un termino con su signo delante: '+ y', '- 3*z', '+ (1/3)*x'.",
+    "One equation with every unknown replaced by its value: `1(29) - 2(16)`.\n"
+    "\n"
+    "The coefficient is kept even when it is 1, because the point of the line is\n"
+    "to show the original equation with numbers standing where the unknowns were.\n"
+    "The sign comes out in front instead of staying inside the coefficient, so\n"
+    "the row reads as a sum the way it would be written by hand.":
+        "Una ecuacion con cada incognita sustituida por su valor: 1(29) - 2(16).\n"
+        "\n"
+        "El coeficiente se mantiene aunque valga 1, porque lo que ensena la linea es\n"
+        "la ecuacion original con numeros donde estaban las incognitas. El signo sale\n"
+        "delante en vez de quedarse dentro del coeficiente, para que la fila se lea\n"
+        "como una suma, igual que se escribiria a mano.",
+    "The terms of a sum joined up, with the sign of the first one tidied away.\n"
+    "\n"
+    "Every term is written with its sign in front so that they can be joined in\n"
+    "any order, which leaves the first one carrying a sign nothing precedes: a\n"
+    "leading `+ ` goes, and a leading `- ` closes up against its number.":
+        "Los terminos de una suma unidos, con el signo del primero arreglado.\n"
+        "\n"
+        "Cada termino se escribe con su signo delante para poder unirlos en cualquier\n"
+        "orden, lo que deja al primero con un signo que no precede a nada: un + inicial\n"
+        "se quita, y un - inicial se pega a su numero.",
+    "One term with its sign in front: `+ y`, `- 3z`, `+ (1/3)x`, `- 2(16)`.\n"
+    "\n"
+    "The multiplication is written by putting the two things next to each other,\n"
+    "which is how it is written by hand. That only reads correctly when what\n"
+    "follows is a name or a bracket: against a bare number the coefficient would\n"
+    "run into it and `2*16` would come out as `216`. Every caller that passes a\n"
+    "number passes it in brackets for that reason.":
+        "Un termino con su signo delante: + y, - 3z, + (1/3)x, - 2(16).\n"
+        "\n"
+        "La multiplicacion se escribe poniendo las dos cosas juntas, que es como se\n"
+        "escribe a mano. Eso solo se lee bien cuando lo que sigue es un nombre o un\n"
+        "parentesis: contra un numero suelto el coeficiente se pegaria a el y 2*16\n"
+        "saldria como 216. Por eso todo el que pasa un numero lo pasa entre\n"
+        "parentesis.",
 
     # ----- ui/prompts.py -----
     "Ask for a whole number inside a range, insisting until one arrives.":
@@ -517,7 +549,11 @@ DOCSTRINGS: dict[str, str] = {
     "\n"
     "The rule is a two-pixel frame rather than a line on a canvas: it takes the\n"
     "same (light, dark) colour pair as everything else and follows the theme\n"
-    "without anybody repainting it. One pixel would draw nothing at all.":
+    "without anybody repainting it. One pixel would draw nothing at all.\n"
+    "\n"
+    "Nothing is padded on one side only: the rule has to land on the middle of\n"
+    "the cell, because that is where a whole number in the same row sits and the\n"
+    "two have to read as being on the same line.":
         "Una entrada escrita como se escribe una fraccion a mano: un numero encima\n"
         "del otro, con una raya en medio.\n"
         "\n"
@@ -527,7 +563,11 @@ DOCSTRINGS: dict[str, str] = {
         "\n"
         "La raya es un marco de dos pixeles y no una linea sobre un lienzo: asi toma\n"
         "la misma pareja de colores (claro, oscuro) que todo lo demas y sigue al tema\n"
-        "sin que nadie la repinte. Con un pixel no se dibujaria nada.",
+        "sin que nadie la repinte. Con un pixel no se dibujaria nada.\n"
+        "\n"
+        "Nada lleva relleno de un solo lado: la raya tiene que caer en el centro de la\n"
+        "casilla, porque ahi es donde va un numero entero de la misma fila y las dos\n"
+        "cosas tienen que leerse como si estuvieran en la misma linea.",
     "A matrix the program wrote, in brackets, with an optional bar down it.":
         "Una matriz escrita por el programa, entre corchetes y con una barra opcional.",
     "The pill of choices at the top of a page: an operation, or a method.":
@@ -1182,6 +1222,10 @@ COMMENTS: dict[str, str] = {
     # ----- gui/entry.py -----
     "# Written the way it was written: one flow, its own spacing kept.":
         "# Escrito como estaba escrito: de corrido, conservando sus espacios.",
+    "# A fraction is set one size down from the line it stands in, the way it is in":
+        "# Una fraccion se compone un cuerpo menor que la linea en la que va, como en",
+    "# print: two digits stacked at full size tower over their own line.":
+        "# imprenta: dos digitos apilados a tamano completo descuellan sobre su linea.",
     "# A fraction as `format_scalar` writes one: the only place a slash appears":
         "# Una fraccion tal como la escribe format_scalar: el unico sitio donde",
     "# between digits in anything the presentation layer produces.":

@@ -73,9 +73,9 @@ than the one above, and the first non-zero entry of a row — its **pivot** — 
 ## 3. The staircase is read back as equations
 
 ```
-  f_1:  x - 2*y + z = 0
-  f_2:      y - 4*z = 4
-  f_3:            z = 3
+  f_1:  x - 2y + z = 0
+  f_2:      y - 4z = 4
+  f_3:           z = 3
 ```
 
 Same solutions as the system at the top, but now the last equation has one
@@ -112,14 +112,14 @@ above gives the next, and so on. `core/systems.py` keeps every line of it:
 ```
   f_3:  z = 3
 
-  f_2:  y - 4*z = 4
-        y - 4*3 = 4
-        y = 4 + 4*3
+  f_2:  y - 4z = 4
+        y - 4(3) = 4
+        y = 4 + 4(3)
         y = 16
 
-  f_1:  x - 2*y + z = 0
-        x - 2*16 + 3 = 0
-        x = 0 + 2*16 - 3
+  f_1:  x - 2y + z = 0
+        x - 2(16) + (3) = 0
+        x = 0 + 2(16) - (3)
         x = 29
 ```
 
@@ -133,11 +133,11 @@ takes the values and evaluates every equation of the **original** system —
 never the echelon one:
 
 ```
-  Ecuación 1:  1*(29) + (-2)*(16) + 1*(3) = 0
+  Ecuación 1:  1(29) - 2(16) + 1(3) = 0
                0 = 0   correcto
-  Ecuación 2:  0*(29) + 2*(16) + (-8)*(3) = 8
+  Ecuación 2:  0(29) + 2(16) - 8(3) = 8
                8 = 8   correcto
-  Ecuación 3:  (-4)*(29) + 5*(16) + 9*(3) = -9
+  Ecuación 3:  -4(29) + 5(16) + 9(3) = -9
                -9 = -9   correcto
 
 Todas las ecuaciones se cumplen: la solución es correcta.

@@ -130,7 +130,7 @@ def render_equations(solution: Solution, names: Sequence[str] = ()) -> str:
             for col in range(1, constants)
             if echelon.elem(row, col) != 0
         ]
-        left = " ".join(pieces).removeprefix("+ ") if pieces else "0"
+        left = _sum(pieces)
         rows.append((f"f_{row}", left, format_scalar(echelon.elem(row, constants))))
 
     width = max(len(left) for _tag, left, _constant in rows)
@@ -157,11 +157,11 @@ def render_substitutions(solution: Solution, names: Sequence[str] = ()) -> str:
             for coefficient, col in step.terms
         )
         replaced = " ".join(
-            _term(coefficient, format_factor(value))
+            _term(coefficient, f"({format_scalar(value)})")
             for (coefficient, _col), value in zip(step.terms, values)
         )
         moved = " ".join(
-            _term(coefficient, format_factor(value), flip=True)
+            _term(coefficient, f"({format_scalar(value)})", flip=True)
             for (coefficient, _col), value in zip(step.terms, values)
         )
 
@@ -222,15 +222,48 @@ def _plural(count: int, singular: str, plural: str) -> str:
     return f"{count} {singular if count == 1 else plural}"
 
 def _substituted(check: RowCheck) -> str:
-    """One equation with every unknown replaced by its value: `1*(29) + (-2)*(16)`."""
-    pieces = [
-        f"{format_factor(coefficient)}*({format_scalar(value)})"
-        for coefficient, value, _col in check.terms
-    ]
-    return " + ".join(pieces) if pieces else "0"
+    """
+    One equation with every unknown replaced by its value: `1(29) - 2(16)`.
+
+    The coefficient is kept even when it is 1, because the point of the line is
+    to show the original equation with numbers standing where the unknowns were.
+    The sign comes out in front instead of staying inside the coefficient, so
+    the row reads as a sum the way it would be written by hand.
+    """
+    pieces = []
+    for coefficient, value, _col in check.terms:
+        sign = "-" if coefficient < 0 else "+"
+        magnitude = -coefficient if coefficient < 0 else coefficient
+        pieces.append(f"{sign} {format_factor(magnitude)}({format_scalar(value)})")
+    return _sum(pieces)
+
+def _sum(pieces: list[str]) -> str:
+    """
+    The terms of a sum joined up, with the sign of the first one tidied away.
+
+    Every term is written with its sign in front so that they can be joined in
+    any order, which leaves the first one carrying a sign nothing precedes: a
+    leading `+ ` goes, and a leading `- ` closes up against its number.
+    """
+    if not pieces:
+        return "0"
+    text = " ".join(pieces)
+    if text.startswith("+ "):
+        return text[2:]
+    if text.startswith("- "):
+        return "-" + text[2:]
+    return text
 
 def _term(coefficient: Scalar, text: str, flip: bool = False) -> str:
-    """One term with its sign in front: '+ y', '- 3*z', '+ (1/3)*x'."""
+    """
+    One term with its sign in front: `+ y`, `- 3z`, `+ (1/3)x`, `- 2(16)`.
+
+    The multiplication is written by putting the two things next to each other,
+    which is how it is written by hand. That only reads correctly when what
+    follows is a name or a bracket: against a bare number the coefficient would
+    run into it and `2*16` would come out as `216`. Every caller that passes a
+    number passes it in brackets for that reason.
+    """
     negative = coefficient < 0
     if flip:
         negative = not negative
@@ -238,4 +271,4 @@ def _term(coefficient: Scalar, text: str, flip: bool = False) -> str:
     sign = "-" if negative else "+"
     if magnitude == 1:
         return f"{sign} {text}"
-    return f"{sign} {format_factor(magnitude)}*{text}"
+    return f"{sign} {format_factor(magnitude)}{text}"

@@ -364,7 +364,7 @@ class GaussPage(ctk.CTkFrame):
             for coefficient, column in item.terms:
                 sign = "-" if coefficient < 0 else "+"
                 size = -coefficient if coefficient < 0 else coefficient
-                factor = "" if size == 1 else f"{format_factor(size)}*"
+                factor = "" if size == 1 else format_factor(size)
                 terms += f" {sign} {factor}{unknown_name(column, self._names)}"
             name = unknown_name(item.column, self._names)
             lines.append(f"  {name:>{width}} = {format_scalar(item.constant)}{terms}")

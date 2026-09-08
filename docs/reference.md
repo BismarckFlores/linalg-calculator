@@ -313,6 +313,8 @@ nothing.
 | `render_substitutions(solution, names=())` | The clearing, four lines per unknown. |
 | `render_verification(verification)` | Each equation substituted, and the verdict. |
 
+Products are written the way they are written by hand: `2y`, `1(29)`, `(1/3)x`. A value substituted for an unknown arrives in brackets, because `2*16` with the star dropped would read as `216`.
+
 `CLASSIFICATIONS` is the dict holding the three required sentences. Change the
 wording there and it changes everywhere.
 

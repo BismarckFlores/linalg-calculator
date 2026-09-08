@@ -74,6 +74,7 @@ def load_fonts() -> None:
         "badge": ctk.CTkFont(family=sans, size=15, weight="bold"),
         "mono": ctk.CTkFont(family=mono, size=13),
         "mono_small": ctk.CTkFont(family=mono, size=12),
+        "mono_tiny": ctk.CTkFont(family=mono, size=11),
     })
 
 def font(name: str) -> ctk.CTkFont:

@@ -376,6 +376,10 @@ class FractionCell(ctk.CTkFrame):
     The rule is a two-pixel frame rather than a line on a canvas: it takes the
     same (light, dark) colour pair as everything else and follows the theme
     without anybody repainting it. One pixel would draw nothing at all.
+
+    Nothing is padded on one side only: the rule has to land on the middle of
+    the cell, because that is where a whole number in the same row sits and the
+    two have to read as being on the same line.
     """
 
     def __init__(
@@ -384,13 +388,11 @@ class FractionCell(ctk.CTkFrame):
         value: Scalar,
         color: Color = theme.INK,
         background: Color = "transparent",
+        font: str = "mono_small",
     ) -> None:
         super().__init__(master, fg_color=background, corner_radius=7)
         ctk.CTkLabel(
-            self,
-            text=str(value.numerator),
-            font=theme.font("mono"),
-            text_color=color,
+            self, text=str(value.numerator), font=theme.font(font), text_color=color
         ).pack(padx=7)
         # width=1 because a CTkFrame asks for 200 pixels when nobody says
         # otherwise, and `fill="x"` would then set the width of the whole cell.
@@ -398,11 +400,12 @@ class FractionCell(ctk.CTkFrame):
             fill="x", padx=7
         )
         ctk.CTkLabel(
-            self,
-            text=str(value.denominator),
-            font=theme.font("mono"),
-            text_color=color,
-        ).pack(padx=7, pady=(0, 2))
+            self, text=str(value.denominator), font=theme.font(font), text_color=color
+        ).pack(padx=7)
+
+# A fraction is set one size down from the line it stands in, the way it is in
+# print: two digits stacked at full size tower over their own line.
+SMALLER = {"mono": "mono_small", "mono_small": "mono_tiny"}
 
 # A fraction as `format_scalar` writes one: the only place a slash appears
 # between digits in anything the presentation layer produces.
@@ -443,7 +446,9 @@ class MathLine(ctk.CTkFrame):
         super().__init__(master, fg_color="transparent")
         for run, fraction in _pieces(text):
             if fraction is not None:
-                FractionCell(self, fraction, color).pack(side="left", padx=1)
+                FractionCell(
+                    self, fraction, color, "transparent", SMALLER.get(font, font)
+                ).pack(side="left", padx=1)
             elif run:
                 ctk.CTkLabel(
                     self, text=run, font=theme.font(font), text_color=color
@@ -566,7 +571,9 @@ class MatrixDisplay(ctk.CTkFrame):
                         anchor="e",
                     )
                 else:
-                    cell = FractionCell(cells, value, colour, background)
+                    cell = FractionCell(
+                        cells, value, colour, background, SMALLER["mono"]
+                    )
                 cell.grid(row=i - 1, column=places[j], sticky="e", padx=4, pady=1)
 
         if bar is not None:
