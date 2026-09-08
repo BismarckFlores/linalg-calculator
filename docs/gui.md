@@ -21,7 +21,7 @@ The sidebar lists what works, and nothing else:
 | --- | --- |
 | **Operaciones Matriciales** | `A + B`, `A − B`, `A × B`, `k · A`, `Aᵀ`. Each matrix is resized with its own steppers, and B follows A wherever the shapes have to agree. |
 | **Eliminación Gaussiana** | Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
-| **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one, which are its leading entries. Then it reduces it, step by step, and marks the pivot positions the reduced form puts on show. |
+| **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one. Then it reduces it, step by step, and marks the pivot positions the reduced form puts on show. |
 
 The two that solve something come first, and the arithmetic before the
 elimination because the elimination is written in terms of it. Reading the form
@@ -80,6 +80,11 @@ What cannot be read is said in Spanish, naming the line — `A la ecuación 2 le
 falta el '='`, `En la ecuación 1 no entiendo la parte '&'`. The terminal does
 not need the number, because it has just asked for that one equation; the window
 does, because all of them are on screen at once.
+
+The two verdicts are all that card shows by default. The five numbered
+properties, and the entry that breaks the ones that fail, are behind `Ver por
+qué`: they are what somebody wants when the answer is no, and clutter when it is
+not. A page that reduces a matrix has three cards of output already.
 
 ### What comes out
 

@@ -854,6 +854,20 @@ DOCSTRINGS: dict[str, str] = {
         "Dibuja el paso en el que esta el recorrido.",
 
     # ----- gui/pages/echelon.py, the reduction -----
+    "Fold the five properties out, or back away.":
+        "Despliega las cinco propiedades, o las vuelve a plegar.",
+    "The answer on one line, with the reasoning folded away behind it.\n"
+    "\n"
+    "Two verdicts are what somebody wants at a glance. The five properties\n"
+    "are what they want when the answer is no and they need to know which\n"
+    "one it was. Only the first of those has earned a place on the screen by\n"
+    "default; the second is one click away and stays out of the road.":
+        "La respuesta en una linea, con el razonamiento plegado detras.\n"
+        "\n"
+        "Los dos veredictos son lo que alguien quiere de un vistazo. Las cinco\n"
+        "propiedades son lo que quiere cuando la respuesta es no y necesita saber\n"
+        "cual fallo. Solo lo primero se ha ganado estar en pantalla por defecto; lo\n"
+        "segundo queda a un clic y no estorba.",
     "The page that reads the form of a matrix, and then reduces it.":
         "La pagina que lee la forma de una matriz y despues la reduce.",
     "The walk to the reduced form, one elementary operation at a time.\n"

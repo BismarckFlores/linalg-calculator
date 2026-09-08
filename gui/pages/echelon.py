@@ -62,6 +62,9 @@ FAILURES = {
 
 EXAMPLE = (("1", "-2", "1", "0"), ("0", "2", "-8", "8"), ("-4", "5", "9", "-9"))
 
+CLOSED = "Ver por qué  ▾"
+OPEN = "Ocultar  ▴"
+
 class EchelonPage(ctk.CTkFrame):
     """The page that reads the form of a matrix, and then reduces it."""
 
@@ -124,31 +127,64 @@ class EchelonPage(ctk.CTkFrame):
     # ----- The five properties -----
 
     def _draw_form(self, form: Form) -> None:
+        """
+        The answer on one line, with the reasoning folded away behind it.
+
+        Two verdicts are what somebody wants at a glance. The five properties
+        are what they want when the answer is no and they need to know which
+        one it was. Only the first of those has earned a place on the screen by
+        default; the second is one click away and stays out of the road.
+        """
         card = self._add_card()
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
 
-        SectionTitle(inside, "Forma de la matriz").pack(fill="x", pady=(0, 14))
+        SectionTitle(inside, "Forma de la matriz").pack(fill="x", pady=(0, 12))
 
         verdicts = ctk.CTkFrame(inside, fg_color="transparent")
-        verdicts.pack(anchor="w", pady=(0, 6))
+        verdicts.pack(anchor="w")
         self._verdict(verdicts, "Forma escalonada", form.is_echelon)
         self._verdict(verdicts, "Forma escalonada reducida", form.is_reduced)
 
+        self._details = ctk.CTkFrame(inside, fg_color="transparent")
         ctk.CTkLabel(
-            inside,
+            self._details,
             text="Las entradas principales están marcadas en azul.",
             font=theme.font("small"),
             text_color=theme.MUTED,
-        ).pack(anchor="w", pady=(8, 10))
+        ).pack(anchor="w", pady=(0, 10))
         MatrixDisplay(
-            inside, form.matrix, bar_after=self._bar, highlight=form.leading
+            self._details, form.matrix, bar_after=self._bar, highlight=form.leading
         ).pack(anchor="w")
 
-        properties = ctk.CTkFrame(inside, fg_color="transparent")
+        properties = ctk.CTkFrame(self._details, fg_color="transparent")
         properties.pack(fill="x", pady=(16, 0))
         for number in (*ECHELON, *REDUCED):
             self._property(properties, form, number)
+
+        self._toggle = ctk.CTkButton(
+            inside,
+            text=CLOSED,
+            width=1,
+            height=26,
+            anchor="w",
+            corner_radius=8,
+            fg_color="transparent",
+            hover_color=theme.FIELD,
+            text_color=theme.ACCENT,
+            font=theme.font("button"),
+            command=self._toggle_details,
+        )
+        self._toggle.pack(anchor="w", pady=(12, 0))
+
+    def _toggle_details(self) -> None:
+        """Fold the five properties out, or back away."""
+        if self._details.winfo_ismapped():
+            self._details.pack_forget()
+            self._toggle.configure(text=CLOSED)
+        else:
+            self._details.pack(fill="x", pady=(14, 0), before=self._toggle)
+            self._toggle.configure(text=OPEN)
 
     def _verdict(self, master: ctk.CTkFrame, text: str, holds: bool) -> None:
         """One of the two answers, coloured by itself so it reads at a glance."""
