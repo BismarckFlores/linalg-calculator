@@ -310,7 +310,7 @@ nothing.
 | `describe(solution)` | The classification, in the assignment's exact words. |
 | `render_values(solution, names=())` | The values, or the free variables, or the contradictory row — whichever applies to the kind. |
 | `render_equations(solution, names=())` | The echelon form read back as equations. |
-| `render_substitutions(solution, names=())` | The clearing, four lines per unknown. |
+| `render_substitutions(solution, names=())` | The clearing, four lines per unknown, or three when the last two would say the same. |
 | `render_verification(verification)` | Each equation substituted, and the verdict. |
 
 Products are written the way they are written by hand: `2y`, `1(29)`, `(1/3)x`. A value substituted for an unknown arrives in brackets, because `2*16` with the star dropped would read as `216`.

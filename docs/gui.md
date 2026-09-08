@@ -120,6 +120,12 @@ equivalent system, the clearing, the check and the general solution. A column of
 window has the room the terminal does not. The file handed in still prints the
 plain form, because a transcript has one line per line.
 
+The brackets that only a line of text needed are dropped where the stacked
+fraction makes them unnecessary: `(1/2)y` is bracketed so that `1/2y` cannot be
+read as one over two-y, and stacked it says where it ends by itself. They stay
+wherever something is leaning on them — `3(-17/12)` would otherwise become
+`3-17/12`.
+
 A minus sign belongs to the whole fraction, so it stands to the left of the
 stack and on the rule: `-1/4` is one number over another and then negated, which
 is what it looks like that way and not when the sign is stacked with the

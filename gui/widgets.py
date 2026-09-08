@@ -440,7 +440,30 @@ def _pieces(text: str) -> list[tuple[str, Scalar | None]]:
         runs.append(("", Scalar(int(match[1]), int(match[2]))))
         position = match.end()
     runs.append((text[position:], None))
-    return runs
+    return _unwrap(runs)
+
+def _unwrap(runs: list[tuple[str, Scalar | None]]) -> list[tuple[str, Scalar | None]]:
+    """
+    Drop the brackets that only a line of text needed.
+
+    `(1/2)y` is bracketed because `1/2y` on one line could be read as one over
+    two-y. Stacked, the fraction says where it ends by itself and the brackets
+    are noise, so they go — but only where nothing else is leaning on them.
+    Against a digit or another bracket they are still doing the work: `3(-17/12)`
+    would become `3-17/12`, and `(1/2)(23/12)` would run into itself.
+    """
+    joined = "".join(run for run, fraction in runs if fraction is None)
+    tidied = list(runs)
+    for index in range(1, len(tidied) - 1, 2):
+        before, after = tidied[index - 1][0], tidied[index + 1][0]
+        if not before.endswith("(") or not after.startswith(")"):
+            continue
+        outside = (before[-2:-1] or " ") + (after[1:2] or " ")
+        if any(character.isdigit() or character in "()" for character in outside):
+            continue
+        tidied[index - 1] = (before[:-1], None)
+        tidied[index + 1] = (after[1:], None)
+    return tidied if joined else runs
 
 class MathLine(ctk.CTkFrame):
     """

@@ -118,13 +118,14 @@ above gives the next, and so on. `core/systems.py` keeps every line of it:
         y = 16
 
   f_1:  x - 2y + z = 0
-        x - 2(16) + (3) = 0
-        x = 0 + 2(16) - (3)
+        x - 2(16) + 3 = 0
+        x = 2(16) - 3
         x = 29
 ```
 
 Four lines per unknown: the equation, the values put in, the constant cleared,
-the result. It is the same work done on paper, written the same way.
+the result — three when clearing the constant already gives the result, because
+nobody writes the same line twice.
 
 ## 6. The answer is put back where it came from
 

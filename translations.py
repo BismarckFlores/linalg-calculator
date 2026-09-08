@@ -387,6 +387,32 @@ DOCSTRINGS: dict[str, str] = {
         "la ecuacion original con numeros donde estaban las incognitas. El signo sale\n"
         "delante en vez de quedarse dentro del coeficiente, para que la fila se lea\n"
         "como una suma, igual que se escribiria a mano.",
+    "One term of a clearing, with the value standing where the unknown was.\n"
+    "\n"
+    "A coefficient of 1 is not written, and then the sign of the value becomes\n"
+    "the sign of the term: `1*(-17/12)` is written `- 17/12`, the way it would be\n"
+    "by hand, and never `+ (-17/12)`. Anything else keeps the brackets, because\n"
+    "a `2` against a `16` would read as `216`.":
+        "Un termino de un despeje, con el valor puesto donde estaba la incognita.\n"
+        "\n"
+        "Un coeficiente de 1 no se escribe, y entonces el signo del valor pasa a ser\n"
+        "el del termino: 1*(-17/12) se escribe - 17/12, como se haria a mano, y nunca\n"
+        "+ (-17/12). Lo demas conserva los parentesis, porque un 2 pegado a un 16 se\n"
+        "leeria como 216.",
+    "Drop the brackets that only a line of text needed.\n"
+    "\n"
+    "`(1/2)y` is bracketed because `1/2y` on one line could be read as one over\n"
+    "two-y. Stacked, the fraction says where it ends by itself and the brackets\n"
+    "are noise, so they go — but only where nothing else is leaning on them.\n"
+    "Against a digit or another bracket they are still doing the work: `3(-17/12)`\n"
+    "would become `3-17/12`, and `(1/2)(23/12)` would run into itself.":
+        "Quita los parentesis que solo necesitaba una linea de texto.\n"
+        "\n"
+        "(1/2)y lleva parentesis porque 1/2y en una sola linea podria leerse como uno\n"
+        "entre dos-y. Apilada, la fraccion dice sola donde termina y los parentesis\n"
+        "sobran, asi que se van; pero solo donde nada mas se apoya en ellos. Contra un\n"
+        "digito u otro parentesis siguen haciendo falta: 3(-17/12) quedaria 3-17/12, y\n"
+        "(1/2)(23/12) se juntaria consigo mismo.",
     "The terms of a sum joined up, with the sign of the first one tidied away.\n"
     "\n"
     "Every term is written with its sign in front so that they can be joined in\n"
@@ -1236,6 +1262,14 @@ COMMENTS: dict[str, str] = {
         "# Una fraccion se compone un cuerpo menor que la linea en la que va, como en",
     "# print: two digits stacked at full size tower over their own line.":
         "# imprenta: dos digitos apilados a tamano completo descuellan sobre su linea.",
+    "# A constant of zero is not written down: `x = 0 + 2(16) - 3` is nobody's":
+        "# Un termino independiente cero no se escribe: x = 0 + 2(16) - 3 no es letra",
+    "# handwriting. It is only dropped when something is left to carry the row.":
+        "# de nadie. Solo se quita cuando queda algo que sostenga la linea.",
+    "# Clearing the constant and working the sum out are two lines only when":
+        "# Despejar el termino independiente y resolver la suma son dos lineas solo",
+    "# they say two different things. Nobody writes the same line twice.":
+        "# cuando dicen cosas distintas. Nadie escribe dos veces la misma linea.",
     "# A fraction as `format_scalar` writes one: the only place a slash appears":
         "# Una fraccion tal como la escribe format_scalar: el unico sitio donde",
     "# between digits in anything the presentation layer produces.":

@@ -157,17 +157,23 @@ def render_substitutions(solution: Solution, names: Sequence[str] = ()) -> str:
             for coefficient, col in step.terms
         )
         replaced = " ".join(
-            _term(coefficient, f"({format_scalar(value)})")
+            _substitution(coefficient, value)
             for (coefficient, _col), value in zip(step.terms, values)
         )
-        moved = " ".join(
-            _term(coefficient, f"({format_scalar(value)})", flip=True)
+        moved = [
+            _substitution(coefficient, value, flip=True)
             for (coefficient, _col), value in zip(step.terms, values)
-        )
+        ]
+        # A constant of zero is not written down: `x = 0 + 2(16) - 3` is nobody's
+        # handwriting. It is only dropped when something is left to carry the row.
+        cleared = _sum(moved) if step.constant == 0 and moved else f"{constant} " + " ".join(moved)
 
         lines.append(f"{head}{name} {symbolic} = {constant}")
         lines.append(f"{indent}{name} {replaced} = {constant}")
-        lines.append(f"{indent}{name} = {constant} {moved}")
+        # Clearing the constant and working the sum out are two lines only when
+        # they say two different things. Nobody writes the same line twice.
+        if cleared.strip() != format_scalar(step.value):
+            lines.append(f"{indent}{name} = {cleared.strip()}")
         lines.append(f"{indent}{name} = {format_scalar(step.value)}")
         lines.append("")
 
@@ -253,6 +259,23 @@ def _sum(pieces: list[str]) -> str:
     if text.startswith("- "):
         return "-" + text[2:]
     return text
+
+def _substitution(coefficient: Scalar, value: Scalar, flip: bool = False) -> str:
+    """
+    One term of a clearing, with the value standing where the unknown was.
+
+    A coefficient of 1 is not written, and then the sign of the value becomes
+    the sign of the term: `1*(-17/12)` is written `- 17/12`, the way it would be
+    by hand, and never `+ (-17/12)`. Anything else keeps the brackets, because
+    a `2` against a `16` would read as `216`.
+    """
+    negative = (coefficient < 0) != flip
+    magnitude = -coefficient if coefficient < 0 else coefficient
+    if magnitude == 1:
+        product = -value if negative else value
+        sign = "-" if product < 0 else "+"
+        return f"{sign} {format_scalar(-product if product < 0 else product)}"
+    return f"{'-' if negative else '+'} {format_factor(magnitude)}({format_scalar(value)})"
 
 def _term(coefficient: Scalar, text: str, flip: bool = False) -> str:
     """
