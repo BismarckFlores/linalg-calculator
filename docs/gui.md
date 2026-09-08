@@ -95,7 +95,7 @@ of Programa 1, in the order the assignment numbers them:
 | --- | --- |
 | 1. Entrada de datos | The input card. |
 | 2. Matriz aumentada inicial | The first step of **Paso a paso** — `[ A \| b ]` before anything was done to it. |
-| 3. Eliminación por filas | **Paso a paso**: every elementary operation, one at a time, with the matrix it produced. `Anterior` / `Siguiente` walk it and the dots jump straight to one. The labels are the ones `core/steps.py` records, in typographic notation: `f₃ → f₃ + 4 · f₁`. |
+| 3. Eliminación por filas | **Paso a paso**: every elementary operation, one at a time, with the matrix it produced. `Anterior` / `Siguiente` walk it, the dots jump straight to one, and `Ver todos los pasos` lays the whole walk out to be scrolled instead. The labels are the ones `core/steps.py` records, in typographic notation: `f₃ → f₃ + 4 · f₁`. |
 | 4. Sistema equivalente | **Sistema equivalente**: the matrix the walk ended on, read back as equations. |
 | 5. Clasificación | **Resultado**: `rango(A)`, `rango(A\|b)`, the number of unknowns, which columns hold a pivot and which are free, and the classification in the words the assignment demands. |
 | 6. Solución | **Resultado** carries the values; **Despeje por sustitución hacia atrás** carries the clearing, four lines per unknown, exactly as the terminal prints it. |
@@ -106,6 +106,11 @@ appear for one. An indeterminate system shows which variables are free, an
 inconsistent one names the row that reads `0 = k`, and both say in as many words
 that there is nothing to substitute — requirement 7 has an answer even when
 there is no answer to check.
+
+Somebody following the method wants one operation at a time; somebody checking
+an answer wants to scroll past the lot. Neither is the right default for the
+other, so the step by step does both and the choice is one click. Both pages
+that walk an elimination get it, because both get it from the same widget.
 
 Changing any number removes every card below the input. A result that was
 computed from other numbers is not a result any more.
@@ -222,6 +227,14 @@ typed still there.
 ## Things that cost an afternoon
 
 Written down because none of them are guessable.
+
+**The wheel arrives at the window, not at the page under the pointer.**
+CustomTkinter binds it application-wide and then walks up from the widget the
+pointer is over, which means anything outside the scrolling area — the sidebar,
+a text box — swallows the notch. It also moves thirty pixels at a time on Linux,
+so a long page took forty notches. `Application._wire_wheel` replaces that
+binding with one that answers from anywhere and moves three lines, and steps
+aside only for a text box with scrolling of its own to do.
 
 **A `CTkFrame` one pixel wide draws nothing at all.** Not a thin line — nothing.
 The bar between A and b, and the divider in the sidebar, are two pixels for that

@@ -12,6 +12,7 @@ Run it from the root of the repository, the same way as the terminal version:
     python -m gui
 """
 
+import tkinter
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
@@ -44,6 +45,18 @@ MODULES = (
 )
 
 SIDEBAR_WIDTH = 268
+
+# How far one notch of the wheel moves the page, in units of 30 pixels: about
+# three lines of text, which is what everything else on a desktop does.
+WHEEL_STEP = 3
+
+def scrolls_itself(widget: Any) -> bool:
+    """Whether the thing under the pointer has scrolling of its own to do."""
+    while widget is not None:
+        if isinstance(widget, tkinter.Text) and widget.yview() != (0.0, 1.0):
+            return True
+        widget = getattr(widget, "master", None)
+    return False
 
 class NavRow(ctk.CTkFrame):
     """
@@ -110,7 +123,34 @@ class Application(ctk.CTk):
         self._container.grid(row=0, column=1, sticky="nsew", padx=(0, 12), pady=20)
         self._container.grid_columnconfigure(0, weight=1)
 
+        self._wire_wheel()
         self.select(MODULES[0].key)
+
+    # ----- The wheel -----
+
+    def _wire_wheel(self) -> None:
+        """
+        Make one notch of the wheel scroll the page, from anywhere in the window.
+
+        CustomTkinter binds the wheel itself, but it answers only over the
+        scrolling area and moves thirty pixels at a time: resting the pointer on
+        the sidebar or on the equations box swallowed the notch, and a long page
+        took forty of them to walk. This replaces that binding rather than
+        adding to it, so nothing scrolls twice.
+        """
+        for sequence in ("<Button-4>", "<Button-5>", "<MouseWheel>"):
+            self.unbind_all(sequence)
+            self.bind_all(sequence, self._wheel, add=True)
+
+    def _wheel(self, event: Any) -> None:
+        """One notch: down the page, unless something under the pointer wants it."""
+        if scrolls_itself(event.widget):
+            return
+        canvas = self._container._parent_canvas
+        if canvas.yview() == (0.0, 1.0):
+            return
+        up = event.num == 4 or getattr(event, "delta", 0) > 0
+        canvas.yview_scroll(-WHEEL_STEP if up else WHEEL_STEP, "units")
 
     # ----- The sidebar -----
 

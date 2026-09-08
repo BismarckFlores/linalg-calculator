@@ -26,6 +26,10 @@ from .theme import Color
 # Ten rows and ten columns: the same ceiling the terminal asks for.
 SIZE_LIMIT = 10
 
+# The two ways of reading a step by step: one at a time, or all of it at once.
+ALL_STEPS = "Ver todos los pasos  ▾"
+ONE_STEP = "Ver uno a uno  ▴"
+
 class CellError(ValueError):
     """A cell of a typed matrix does not hold a number. The message is Spanish."""
 
@@ -568,14 +572,86 @@ class StepWalker(ctk.CTkFrame):
         self._dots = ctk.CTkFrame(self, fg_color="transparent")
         self._dots.pack(pady=(14, 0))
 
-        navigation = ctk.CTkFrame(self, fg_color="transparent")
-        navigation.pack(fill="x", pady=(14, 0))
-        self._previous = self._link(navigation, "‹  Anterior", -1)
+        self._list = ctk.CTkFrame(self, fg_color="transparent")
+
+        self._navigation = ctk.CTkFrame(self, fg_color="transparent")
+        self._navigation.pack(fill="x", pady=(14, 0))
+        self._previous = self._link(self._navigation, "‹  Anterior", -1)
         self._previous.pack(side="left")
-        self._next = self._link(navigation, "Siguiente  ›", 1)
+        self._next = self._link(self._navigation, "Siguiente  ›", 1)
         self._next.pack(side="right")
+        self._unfold = ctk.CTkButton(
+            self._navigation,
+            text=ALL_STEPS,
+            width=1,
+            height=30,
+            corner_radius=15,
+            fg_color="transparent",
+            hover_color=theme.FIELD,
+            text_color=theme.MUTED,
+            font=theme.font("button"),
+            command=self._toggle_all,
+        )
+        self._unfold.pack(side="left", expand=True)
 
         self.show()
+
+    def _toggle_all(self) -> None:
+        """
+        Swap walking the steps for reading them all at once.
+
+        Somebody following the method wants one operation at a time; somebody
+        checking an answer wants to scroll past the lot. Neither is the right
+        default for the other, so both are here and the choice is one click.
+        """
+        # Everything is put back in front of the row of controls, which never
+        # moves: that is what keeps the two views in the same order on screen.
+        if self._list.winfo_ismapped():
+            self._list.pack_forget()
+            self._operation.pack(fill="x", before=self._navigation)
+            self._holder.pack(anchor="w", pady=(14, 0), before=self._navigation)
+            self._dots.pack(pady=(14, 0), before=self._navigation)
+            self._previous.pack(side="left")
+            self._next.pack(side="right")
+            self._unfold.configure(text=ALL_STEPS)
+            self.show()
+            return
+
+        self._operation.pack_forget()
+        self._holder.pack_forget()
+        self._dots.pack_forget()
+        self._previous.pack_forget()
+        self._next.pack_forget()
+        self._unfold.configure(text=ONE_STEP)
+        self._draw_list()
+        self._list.pack(fill="x", pady=(4, 0), before=self._navigation)
+        if self._on_step is not None:
+            self._on_step(self.total() - 1, self.total())
+
+    def _draw_list(self) -> None:
+        """Every step under the one before it, captioned and drawn."""
+        for widget in self._list.winfo_children():
+            widget.destroy()
+
+        for index in range(self.total()):
+            block = ctk.CTkFrame(self._list, fg_color="transparent")
+            block.pack(fill="x", pady=(0, 16))
+            ctk.CTkLabel(
+                block,
+                text=self._first_caption
+                if index == 0
+                else f"Paso {index}:   {pretty_label(self._log[index - 1].label)}",
+                font=theme.font("mono"),
+                text_color=theme.INK,
+                fg_color=theme.FIELD,
+                corner_radius=12,
+                anchor="w",
+                padx=16,
+                pady=10,
+            ).pack(fill="x")
+            MatrixDisplay(
+                block, self._log.snapshot(index), bar_after=self._bar_after
+            ).pack(anchor="w", pady=(10, 0))
 
     def total(self) -> int:
         """How many matrices there are to walk, the starting one included."""

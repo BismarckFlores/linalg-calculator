@@ -844,6 +844,37 @@ DOCSTRINGS: dict[str, str] = {
         "\n"
         "La matriz inicial cuenta como paso. Es sobre la que actua la primera\n"
         "operacion, y un recorrido que empezara despues nunca ensenaria lo escrito.",
+    "Swap walking the steps for reading them all at once.\n"
+    "\n"
+    "Somebody following the method wants one operation at a time; somebody\n"
+    "checking an answer wants to scroll past the lot. Neither is the right\n"
+    "default for the other, so both are here and the choice is one click.":
+        "Cambia recorrer los pasos por leerlos todos de una vez.\n"
+        "\n"
+        "Quien sigue el metodo quiere una operacion cada vez; quien comprueba una\n"
+        "respuesta quiere pasar la vista por todas. Ninguna de las dos es el modo\n"
+        "correcto para la otra, asi que estan las dos y elegir cuesta un clic.",
+    "Every step under the one before it, captioned and drawn.":
+        "Cada paso debajo del anterior, con su titulo y su matriz.",
+    "Make one notch of the wheel scroll the page, from anywhere in the window.\n"
+    "\n"
+    "CustomTkinter binds the wheel itself, but it answers only over the\n"
+    "scrolling area and moves thirty pixels at a time: resting the pointer on\n"
+    "the sidebar or on the equations box swallowed the notch, and a long page\n"
+    "took forty of them to walk. This replaces that binding rather than\n"
+    "adding to it, so nothing scrolls twice.":
+        "Hace que una muesca de la rueda desplace la pagina desde cualquier punto de\n"
+        "la ventana.\n"
+        "\n"
+        "CustomTkinter ya asocia la rueda, pero solo responde sobre la zona que se\n"
+        "desplaza y mueve treinta pixeles cada vez: dejar el puntero sobre el menu o\n"
+        "sobre el cuadro de ecuaciones se comia la muesca, y una pagina larga pedia\n"
+        "cuarenta. Esto sustituye esa asociacion en vez de sumarse a ella, para que\n"
+        "nada se desplace dos veces.",
+    "One notch: down the page, unless something under the pointer wants it.":
+        "Una muesca: baja la pagina, salvo que algo bajo el puntero la quiera.",
+    "Whether the thing under the pointer has scrolling of its own to do.":
+        "Si lo que hay bajo el puntero tiene desplazamiento propio que hacer.",
     "How many matrices there are to walk, the starting one included.":
         "Cuantas matrices hay que recorrer, contando la inicial.",
     "Jump straight to one of them.":
@@ -1051,6 +1082,8 @@ COMMENTS: dict[str, str] = {
         "# al final. Gauss y Gauss-Jordan comparten fila: son dos ajustes de un mismo",
     "# and the choice between them belongs inside the page.":
         "# metodo, y la eleccion entre ellos va dentro de la pagina.",
+    "# ----- The wheel -----":
+        "# ----- La rueda del raton -----",
     "# ----- The sidebar -----":
         "# ----- El menu de la izquierda -----",
     "# ----- Opening a page -----":
@@ -1077,6 +1110,16 @@ COMMENTS: dict[str, str] = {
         "# ----- Los pivotes, que viven en la forma reducida -----",
 
     # ----- gui/entry.py -----
+    "# The two ways of reading a step by step: one at a time, or all of it at once.":
+        "# Las dos maneras de leer un paso a paso: de uno en uno, o todo de una vez.",
+    "# Everything is put back in front of the row of controls, which never":
+        "# Todo se vuelve a colocar delante de la fila de controles, que no se",
+    "# moves: that is what keeps the two views in the same order on screen.":
+        "# mueve: eso es lo que mantiene las dos vistas en el mismo orden.",
+    "# How far one notch of the wheel moves the page, in units of 30 pixels: about":
+        "# Cuanto mueve la pagina una muesca de la rueda, en unidades de 30 pixeles:",
+    "# three lines of text, which is what everything else on a desktop does.":
+        "# unas tres lineas de texto, que es lo que hace todo lo demas en el escritorio.",
     "# ----- Swapping one way in for the other -----":
         "# ----- Cambio de una entrada por la otra -----",
     "# ----- Reading it back -----":
