@@ -775,6 +775,102 @@ DOCSTRINGS: dict[str, str] = {
         "mete nada de contrabando.",
     "`x = 1 + 4*z`, one line per variable, the names lined up on the equals.":
         "x = 1 + 4*z, una linea por variable, con los nombres cuadrados en el igual.",
+
+    # ----- gui/entry.py -----
+    "What somebody handed over, whichever way they wrote it.\n"
+    "\n"
+    "`unknowns` is how many columns hold coefficients, so `unknowns` is where the\n"
+    "bar of an augmented matrix goes. It is 0 for a plain matrix typed cell by\n"
+    "cell, which is not augmented and has no bar. `names` is empty unless the\n"
+    "equations said what the unknowns are called.":
+        "Lo que alguien entrego, lo haya escrito como lo haya escrito.\n"
+        "\n"
+        "unknowns es cuantas columnas son coeficientes, asi que es donde va la barra\n"
+        "de una matriz aumentada. Vale 0 para una matriz escrita casilla a casilla,\n"
+        "que no es aumentada y no lleva barra. names viene vacio salvo que las\n"
+        "ecuaciones hayan dicho como se llaman las incognitas.",
+    "The pill, the grids and the text box: everything above the Calcular button.\n"
+    "\n"
+    "`split` is the difference between the two pages. A page solving `A x = b`\n"
+    "wants A and b in separate grids, with b following A row for row; a page\n"
+    "reading the form of a matrix wants one grid and no b at all. Typed\n"
+    "equations produce an augmented matrix either way, because that is what a\n"
+    "system written out is.":
+        "El selector, las cuadriculas y el cuadro de texto: todo lo que va encima del\n"
+        "boton de calcular.\n"
+        "\n"
+        "split es la diferencia entre las dos paginas. Una pagina que resuelve A x = b\n"
+        "quiere A y b en cuadriculas separadas, con b siguiendo a A fila por fila; una\n"
+        "que lee la forma de una matriz quiere una sola cuadricula y ninguna b. Las\n"
+        "ecuaciones escritas producen una matriz aumentada por los dos caminos, porque\n"
+        "eso es un sistema escrito entero.",
+    "The matrix, and the names of the unknowns when there are any.\n"
+    "\n"
+    "Only typed equations know what the unknowns are called. Numbers in a\n"
+    "grid never say, so that route hands back an empty list and\n"
+    "`ui/presentation.py` falls back to x, y, z, w.":
+        "La matriz, y los nombres de las incognitas cuando los hay.\n"
+        "\n"
+        "Solo las ecuaciones escritas saben como se llaman las incognitas. Unos\n"
+        "numeros en una cuadricula no lo dicen nunca, asi que por ese camino la lista\n"
+        "vuelve vacia y presentation.py recurre a x, y, z, w.",
+    "Every non-blank line parsed, or a Spanish sentence about the first that\n"
+    "was not.\n"
+    "\n"
+    "`core/equations.py` raises one exception per kind of mistake and says\n"
+    "nothing to anybody; the wording is decided here, exactly as\n"
+    "`ui/prompts.py` decides it for the terminal.":
+        "Todas las lineas no vacias leidas, o una frase en castellano sobre la primera\n"
+        "que no se pudo leer.\n"
+        "\n"
+        "equations.py lanza una excepcion por cada tipo de error y no le dice nada a\n"
+        "nadie; la frase se decide aqui, igual que prompts.py la decide para la\n"
+        "terminal.",
+
+    # ----- gui/widgets.py, the step by step -----
+    "One elimination, walked one operation at a time.\n"
+    "\n"
+    "All of it is `StepLog.snapshot(k)`: the log already holds the matrix after\n"
+    "every operation, so moving back and forth recomputes nothing and cannot\n"
+    "disagree with what the elimination actually did.\n"
+    "\n"
+    "The starting matrix counts as a step. It is what the first operation acts\n"
+    "on, and a walk that began after it would never show what was typed.":
+        "Una eliminacion, recorrida operacion por operacion.\n"
+        "\n"
+        "Todo esto es StepLog.snapshot(k): el registro ya guarda la matriz despues de\n"
+        "cada operacion, asi que ir y venir no recalcula nada y no puede contradecir\n"
+        "lo que la eliminacion hizo de verdad.\n"
+        "\n"
+        "La matriz inicial cuenta como paso. Es sobre la que actua la primera\n"
+        "operacion, y un recorrido que empezara despues nunca ensenaria lo escrito.",
+    "How many matrices there are to walk, the starting one included.":
+        "Cuantas matrices hay que recorrer, contando la inicial.",
+    "Jump straight to one of them.":
+        "Saltar directamente a una de ellas.",
+    "What the operation box says right now.":
+        "Lo que dice ahora mismo la caja de la operacion.",
+    "Draw the step the walk stands on.":
+        "Dibuja el paso en el que esta el recorrido.",
+
+    # ----- gui/pages/echelon.py, the reduction -----
+    "The page that reads the form of a matrix, and then reduces it.":
+        "La pagina que lee la forma de una matriz y despues la reduce.",
+    "The walk to the reduced form, one elementary operation at a time.\n"
+    "\n"
+    "The same algorithm the elimination page runs, shown here because this\n"
+    "page has to reduce anyway: the pivot positions it reports below are the\n"
+    "leading entries of the matrix this walk ends on.":
+        "El recorrido hasta la forma reducida, una operacion elemental cada vez.\n"
+        "\n"
+        "Es el mismo algoritmo que corre la pagina de eliminacion, y se ensena aqui\n"
+        "porque esta pagina tiene que reducir de todas formas: las posiciones pivote\n"
+        "que informa mas abajo son las entradas principales de la matriz en la que\n"
+        "termina este recorrido.",
+
+    # ----- gui/pages/gauss.py -----
+    "The walk, in a card that keeps its own count in the heading.":
+        "El recorrido, en una tarjeta que lleva su propia cuenta en el encabezado.",
 }
 
 COMMENTS: dict[str, str] = {
@@ -965,4 +1061,24 @@ COMMENTS: dict[str, str] = {
         "# ----- Las cinco propiedades -----",
     "# ----- The pivots, which live in the reduced form -----":
         "# ----- Los pivotes, que viven en la forma reducida -----",
+
+    # ----- gui/entry.py -----
+    "# ----- Swapping one way in for the other -----":
+        "# ----- Cambio de una entrada por la otra -----",
+    "# ----- Reading it back -----":
+        "# ----- Lectura de lo escrito -----",
+    "# Anything a page has to catch when it reads what was typed.":
+        "# Todo lo que una pagina tiene que capturar al leer lo que se escribio.",
+
+    # ----- gui/pages/echelon.py -----
+    "# A matrix typed cell by cell is a plain matrix and has no bar; one that":
+        "# Una matriz escrita casilla a casilla no es aumentada y no lleva barra;",
+    "# came from equations is augmented, and the bar goes after the unknowns.":
+        "# una que viene de ecuaciones si, y la barra va tras las incognitas.",
+    "# ----- Putting it into the reduced form -----":
+        "# ----- Paso a la forma escalonada reducida -----",
+
+    # ----- gui/pages/gauss.py -----
+    "# ----- The two methods -----":
+        "# ----- Los dos metodos -----",
 }

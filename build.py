@@ -226,6 +226,16 @@ WINDOW_BLOCKS: list[Block] = [
         "calculada y los corchetes que las rodean. Ninguna de ellas calcula nada.",
     ),
     Block(
+        "gui/entry.py",
+        "LAS DOS MANERAS DE ENTRAR UNA MATRIZ",
+        "La tarjeta que pide los datos, que es la misma en las dos páginas que la\n"
+        "necesitan: una cuadrícula de números, o el sistema escrito como se lee,\n"
+        "una ecuación por línea. Lo que devuelve es la matriz, los nombres de las\n"
+        "incógnitas cuando algo las nombró, y cuántas columnas son coeficientes.\n"
+        "Aquí está también lo que se dice en castellano cuando algo no se puede\n"
+        "leer, con el número de la línea que lo provoca.",
+    ),
+    Block(
         "gui/pages/operations.py",
         "LA PESTAÑA DE OPERACIONES CON MATRICES",
         "Suma, resta, producto de matrices, producto por un escalar y traspuesta.\n"

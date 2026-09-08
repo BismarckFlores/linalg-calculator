@@ -17,6 +17,8 @@ import customtkinter as ctk
 
 from core.matrix import Matrix
 from core.scalar import format_scalar, to_scalar
+from core.steps import StepLog
+from ui.presentation import pretty_label
 
 from . import theme
 from .theme import Color
@@ -519,3 +521,138 @@ class MonoBlock(ctk.CTkLabel):
             justify="left",
             anchor="w",
         )
+
+class StepWalker(ctk.CTkFrame):
+    """
+    One elimination, walked one operation at a time.
+
+    All of it is `StepLog.snapshot(k)`: the log already holds the matrix after
+    every operation, so moving back and forth recomputes nothing and cannot
+    disagree with what the elimination actually did.
+
+    The starting matrix counts as a step. It is what the first operation acts
+    on, and a walk that began after it would never show what was typed.
+    """
+
+    def __init__(
+        self,
+        master: Any,
+        log: StepLog,
+        bar_after: int | None = None,
+        first_caption: str = "Matriz inicial",
+        on_step: Callable[[int, int], None] | None = None,
+    ) -> None:
+        super().__init__(master, fg_color="transparent")
+        self._log = log
+        self._bar_after = bar_after
+        self._first_caption = first_caption
+        self._on_step = on_step
+        self._index = 0
+
+        self._operation = ctk.CTkLabel(
+            self,
+            text="",
+            font=theme.font("mono"),
+            text_color=theme.INK,
+            fg_color=theme.FIELD,
+            corner_radius=12,
+            anchor="w",
+            padx=16,
+            pady=12,
+        )
+        self._operation.pack(fill="x")
+
+        self._holder = ctk.CTkFrame(self, fg_color="transparent")
+        self._holder.pack(anchor="w", pady=(14, 0))
+
+        self._dots = ctk.CTkFrame(self, fg_color="transparent")
+        self._dots.pack(pady=(14, 0))
+
+        navigation = ctk.CTkFrame(self, fg_color="transparent")
+        navigation.pack(fill="x", pady=(14, 0))
+        self._previous = self._link(navigation, "‹  Anterior", -1)
+        self._previous.pack(side="left")
+        self._next = self._link(navigation, "Siguiente  ›", 1)
+        self._next.pack(side="right")
+
+        self.show()
+
+    def total(self) -> int:
+        """How many matrices there are to walk, the starting one included."""
+        return len(self._log) + 1
+
+    def go(self, index: int) -> None:
+        """Jump straight to one of them."""
+        self._index = max(0, min(self.total() - 1, index))
+        self.show()
+
+    def move(self, delta: int) -> None:
+        self.go(self._index + delta)
+
+    def caption(self) -> str:
+        """What the operation box says right now."""
+        return self._operation.cget("text")
+
+    def show(self) -> None:
+        """Draw the step the walk stands on."""
+        self._operation.configure(
+            text=self._first_caption
+            if self._index == 0
+            else pretty_label(self._log[self._index - 1].label)
+        )
+
+        for widget in self._holder.winfo_children():
+            widget.destroy()
+        MatrixDisplay(
+            self._holder, self._log.snapshot(self._index), bar_after=self._bar_after
+        ).pack(anchor="w")
+
+        self._draw_dots()
+        total = self.total()
+        self._previous.configure(state="normal" if self._index > 0 else "disabled")
+        self._next.configure(state="normal" if self._index < total - 1 else "disabled")
+        if self._on_step is not None:
+            self._on_step(self._index, total)
+
+    def _link(self, master: ctk.CTkFrame, text: str, delta: int) -> ctk.CTkButton:
+        return ctk.CTkButton(
+            master,
+            text=text,
+            width=100,
+            height=30,
+            corner_radius=15,
+            fg_color="transparent",
+            hover_color=theme.FIELD,
+            text_color=theme.ACCENT,
+            text_color_disabled=theme.FAINT,
+            font=theme.font("button"),
+            command=lambda: self.move(delta),
+        )
+
+    def _draw_dots(self) -> None:
+        """One dot per step, while there are few enough for it to help."""
+        for widget in self._dots.winfo_children():
+            widget.destroy()
+        total = self.total()
+        if total > 20:
+            return
+
+        for index in range(total):
+            if index == self._index:
+                glyph, colour = "◉", theme.ACCENT
+            elif index < self._index:
+                glyph, colour = "✓", theme.GREEN
+            else:
+                glyph, colour = "○", theme.FAINT
+            ctk.CTkButton(
+                self._dots,
+                text=glyph,
+                width=22,
+                height=22,
+                corner_radius=11,
+                fg_color="transparent",
+                hover_color=theme.FIELD,
+                text_color=colour,
+                font=theme.font("body"),
+                command=lambda index=index: self.go(index),
+            ).pack(side="left", padx=1)

@@ -21,7 +21,7 @@ The sidebar lists what works, and nothing else:
 | --- | --- |
 | **Operaciones Matriciales** | `A + B`, `A − B`, `A × B`, `k · A`, `Aᵀ`. Each matrix is resized with its own steppers, and B follows A wherever the shapes have to agree. |
 | **Eliminación Gaussiana** | Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
-| **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one, which are its leading entries, where are its pivot positions and pivot columns. |
+| **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one, which are its leading entries. Then it reduces it, step by step, and marks the pivot positions the reduced form puts on show. |
 
 The two that solve something come first, and the arithmetic before the
 elimination because the elimination is written in terms of it. Reading the form
@@ -39,10 +39,11 @@ a duplicated menu, not a feature.
 A program that has not been written has no row. A menu of things that do
 nothing is a plan, and the plan lives in this repository, not in the window.
 
-### Two ways to hand over a system
+### Two ways to hand over a matrix
 
 The pill at the top of the input card is the same choice `ui/prompts.py` offers
-in the terminal, and it reads the system with the same two modules.
+in the terminal, and it reads what was typed with the same two modules. Both
+pages have it, and both get it from the same widget: `gui/entry.py`.
 
 **Coeficientes** is a grid for A and a column for b, resized with their own
 steppers. b follows A: one equation is one row of A and one entry of b, and they
@@ -143,13 +144,21 @@ inconsistent system is inconsistent, which the classification already says.
 gui/
 ├── theme.py       colours, fonts, the light/dark switch
 ├── widgets.py     the shapes CustomTkinter does not have
+├── entry.py       the two ways a matrix is handed over, in one card
 ├── app.py         the window, the sidebar, and which page is open
 ├── __main__.py    python -m gui
 └── pages/
     ├── operations.py   matrix arithmetic
-    ├── echelon.py      the five properties, and where the pivots are
+    ├── echelon.py      the five properties, the reduction, the pivots
     └── gauss.py        A x = b, both methods
 ```
+
+Two things both pages need live outside them, because the second page needing
+one is what proves it was never page-specific: `SystemInput` in `entry.py` is
+the input card with its pill, its grids and its text box, and `StepWalker` in
+`widgets.py` is the step by step with its dots and its two links. Each was
+written inside the elimination page first and moved out when the echelon page
+asked for the same thing.
 
 A page lands here when it works. There is no placeholder page, and adding one
 would be the same mistake as a `Method` enum with a single member: weight that

@@ -28,6 +28,7 @@ linalg-calculator/
 ├── gui/                  # the window: a third front end over the same engine
 │   ├── theme.py          # colours, fonts, the light/dark switch
 │   ├── widgets.py        # the shapes CustomTkinter does not have
+│   ├── entry.py          # the two ways a matrix is handed over, in one card
 │   ├── app.py            # the window, the sidebar, which page is open
 │   └── pages/            # operations, echelon forms, elimination
 ├── deliverables/         # the scripts handed in to the course

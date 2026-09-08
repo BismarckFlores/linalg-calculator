@@ -1,9 +1,15 @@
 """
-Is this matrix in echelon form? And where are its pivots?
+Is this matrix in echelon form? What does it reduce to? Where are its pivots?
 
-The page for the definitions themselves, rather than for solving anything: it
-takes a matrix as it stands, checks the five numbered properties one by one,
-marks the leading entries, and then reduces it to find the pivot positions.
+The page for the definitions themselves. It takes a matrix as it stands, checks
+the five numbered properties one by one and marks the leading entries; then it
+reduces it, step by step, and points at the pivot positions the reduced form
+puts on show.
+
+The reduction is not decoration. A pivot position is defined as a place holding
+a leading entry once the matrix is in reduced echelon form, so answering "where
+are the pivots" means reducing, and a page that reduced without showing the work
+would be asking to be taken on trust.
 
 The Spanish for the five properties lives here and not in `ui/presentation.py`
 because no other front end says it: the terminal program answers a different
@@ -15,22 +21,22 @@ from typing import Any
 
 import customtkinter as ctk
 
-from core.echelon import ECHELON, REDUCED, Form, analyse, pivot_positions
-from core.elimination import to_rref
+from core.echelon import ECHELON, REDUCED, Form, analyse
+from core.elimination import Elimination, to_rref
 from core.matrix import Matrix
 from core.scalar import format_scalar
 
 from .. import theme
+from ..entry import UNREADABLE, SystemInput
 from ..widgets import (
     Card,
-    CellError,
     Chip,
     ErrorBanner,
     MatrixDisplay,
-    MatrixEntryGrid,
     PageHeader,
     PrimaryButton,
     SectionTitle,
+    StepWalker,
 )
 
 # The five properties, worded as the course words them and numbered as it
@@ -54,19 +60,22 @@ FAILURES = {
     5: "a_{row}{column} = {value}, y comparte columna con una entrada principal.",
 }
 
+EXAMPLE = (("1", "-2", "1", "0"), ("0", "2", "-8", "8"), ("-4", "5", "9", "-9"))
+
 class EchelonPage(ctk.CTkFrame):
-    """The page that reads the form of a matrix instead of putting it in one."""
+    """The page that reads the form of a matrix, and then reduces it."""
 
     def __init__(self, master: Any) -> None:
         super().__init__(master, fg_color="transparent")
         self._output: list[ctk.CTkBaseClass] = []
+        self._bar: int | None = None
 
         PageHeader(
             self,
             "▧",
             "Formas Escalonadas",
-            "Comprobar si una matriz está en forma escalonada o escalonada reducida, "
-            "y localizar sus pivotes.",
+            "Comprobar si una matriz está en forma escalonada, reducirla y localizar "
+            "sus pivotes.",
         ).pack(anchor="w", pady=(0, 18))
 
         card = Card(self)
@@ -74,16 +83,16 @@ class EchelonPage(ctk.CTkFrame):
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=24)
 
-        self._matrix = MatrixEntryGrid(
+        self._input = SystemInput(
             inside,
-            "Matriz",
-            3,
-            4,
-            values=(("1", "0", "-2", "3"), ("0", "1", "4", "-1"), ("0", "0", "0", "0")),
+            split=False,
+            rows=3,
+            cols=4,
+            values=EXAMPLE,
+            title="Matriz",
             on_change=self._clear_output,
-            on_resize=lambda *_size: self._clear_output(),
         )
-        self._matrix.pack(anchor="w")
+        self._input.pack(fill="x")
 
         self._error = ErrorBanner(inside)
 
@@ -97,15 +106,20 @@ class EchelonPage(ctk.CTkFrame):
     def _analyse(self) -> None:
         self._clear_output()
         try:
-            matrix = self._matrix.matrix()
-        except (CellError, ValueError) as problem:
+            typed = self._input.read()
+        except UNREADABLE as problem:
             self._error.show(str(problem))
             return
 
         self._error.hide()
-        form = analyse(matrix)
-        self._draw_form(form)
-        self._draw_pivots(matrix)
+        # A matrix typed cell by cell is a plain matrix and has no bar; one that
+        # came from equations is augmented, and the bar goes after the unknowns.
+        self._bar = typed.unknowns or None
+        reduction = to_rref(typed.matrix)
+
+        self._draw_form(analyse(typed.matrix))
+        self._draw_reduction(reduction)
+        self._draw_pivots(typed.matrix, reduction)
 
     # ----- The five properties -----
 
@@ -127,7 +141,9 @@ class EchelonPage(ctk.CTkFrame):
             font=theme.font("small"),
             text_color=theme.MUTED,
         ).pack(anchor="w", pady=(8, 10))
-        MatrixDisplay(inside, form.matrix, highlight=form.leading).pack(anchor="w")
+        MatrixDisplay(
+            inside, form.matrix, bar_after=self._bar, highlight=form.leading
+        ).pack(anchor="w")
 
         properties = ctk.CTkFrame(inside, fg_color="transparent")
         properties.pack(fill="x", pady=(16, 0))
@@ -185,9 +201,45 @@ class EchelonPage(ctk.CTkFrame):
                 anchor="w",
             ).pack(anchor="w")
 
+    # ----- Putting it into the reduced form -----
+
+    def _draw_reduction(self, reduction: Elimination) -> None:
+        """
+        The walk to the reduced form, one elementary operation at a time.
+
+        The same algorithm the elimination page runs, shown here because this
+        page has to reduce anyway: the pivot positions it reports below are the
+        leading entries of the matrix this walk ends on.
+        """
+        card = self._add_card()
+        inside = ctk.CTkFrame(card, fg_color="transparent")
+        inside.pack(fill="x", padx=24, pady=22)
+
+        counter = SectionTitle(inside, "Reducción a la forma escalonada reducida", " ")
+        counter.pack(fill="x", pady=(0, 14))
+
+        if reduction.log.is_empty():
+            ctk.CTkLabel(
+                inside,
+                text=(
+                    "No hizo falta ninguna operación: la matriz ya estaba en forma "
+                    "escalonada reducida."
+                ),
+                font=theme.font("small"),
+                text_color=theme.MUTED,
+            ).pack(anchor="w", pady=(0, 12))
+
+        StepWalker(
+            inside,
+            reduction.log,
+            bar_after=self._bar,
+            first_caption="Matriz inicial",
+            on_step=lambda index, total: counter.set_badge(f"{index + 1} / {total}"),
+        ).pack(fill="x")
+
     # ----- The pivots, which live in the reduced form -----
 
-    def _draw_pivots(self, matrix: Matrix) -> None:
+    def _draw_pivots(self, matrix: Matrix, reduction: Elimination) -> None:
         card = self._add_card()
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
@@ -205,7 +257,7 @@ class EchelonPage(ctk.CTkFrame):
             justify="left",
         ).pack(anchor="w", pady=(0, 14))
 
-        positions = pivot_positions(matrix)
+        positions = reduction.pivots
         columns = [column for _row, column in positions]
 
         chips = ctk.CTkFrame(inside, fg_color="transparent")
@@ -223,11 +275,7 @@ class EchelonPage(ctk.CTkFrame):
         both.pack(anchor="w")
         self._marked(both, "La matriz, con sus posiciones pivote", matrix, positions)
         self._marked(
-            both,
-            "Su forma escalonada reducida",
-            to_rref(matrix).result,
-            positions,
-            column=1,
+            both, "Su forma escalonada reducida", reduction.result, positions, column=1
         )
 
     def _marked(
@@ -247,7 +295,9 @@ class EchelonPage(ctk.CTkFrame):
             font=theme.font("label"),
             text_color=theme.MUTED,
         ).pack(anchor="w", pady=(0, 8))
-        MatrixDisplay(holder, matrix, highlight=positions).pack(anchor="w")
+        MatrixDisplay(holder, matrix, bar_after=self._bar, highlight=positions).pack(
+            anchor="w"
+        )
 
     # ----- Housekeeping -----
 

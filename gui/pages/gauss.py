@@ -18,16 +18,6 @@ from typing import Any
 import customtkinter as ctk
 
 from core.elimination import Elimination, to_rref
-from core.equations import (
-    Equation,
-    EquationError,
-    MissingEquals,
-    UnreadableTerm,
-    parse_equation,
-    to_augmented,
-    unknown_names,
-)
-from core.matrix import Matrix
 from core.parametric import General, general_solution
 from core.scalar import format_factor, format_scalar
 from core.systems import Solution, SystemKind, solve
@@ -44,34 +34,21 @@ from ui.presentation import (
 )
 
 from .. import theme
+from ..entry import UNREADABLE, SystemInput
 from ..widgets import (
-    SIZE_LIMIT,
     Card,
-    CellError,
     Chip,
     ErrorBanner,
-    MatrixDisplay,
-    MatrixEntryGrid,
     MonoBlock,
     PageHeader,
     PrimaryButton,
     SectionTitle,
     SegmentedControl,
+    StepWalker,
 )
 
 GAUSS = "Gauss"
 JORDAN = "Gauss-Jordan"
-
-# The two ways a system can be handed over, the same two the terminal offers.
-COEFFICIENTS = "Coeficientes"
-EQUATIONS = "Ecuaciones"
-
-EQUATION_HELP = (
-    "Una ecuación por línea. Por ejemplo:  2x + 3y - z = 5   o   2x = 3y + 1\n"
-    "Se admiten enteros, decimales (2.5 o 2,5) y fracciones (1/3)."
-)
-
-EXAMPLE_SYSTEM = "x - 2y + z = 0\n2y - 8z = 8\n-4x + 5y + 9z = -9"
 
 # One page and one title; only the line underneath changes with the method,
 # because where the walk stops is the whole difference between the two.
@@ -107,11 +84,9 @@ class GaussPage(ctk.CTkFrame):
     def __init__(self, master: Any) -> None:
         super().__init__(master, fg_color="transparent")
         self._method = GAUSS
-        self._way_in = COEFFICIENTS
         self._names: list[str] = []
         self._output: list[ctk.CTkBaseClass] = []
         self._elimination: Elimination | None = None
-        self._index = 0
         self._unknowns = 0
 
         self._header = PageHeader(self, "▦", "Eliminación Gaussiana", SUBTITLES[GAUSS])
@@ -125,13 +100,14 @@ class GaussPage(ctk.CTkFrame):
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=24)
 
-        SegmentedControl(inside, (COEFFICIENTS, EQUATIONS), self._choose_way_in).pack(
-            anchor="w", pady=(0, 18)
+        self._input = SystemInput(
+            inside,
+            split=True,
+            values=(("1", "-2", "1"), ("0", "2", "-8"), ("-4", "5", "9")),
+            constants=(("0",), ("8",), ("-9",)),
+            on_change=self._clear_output,
         )
-
-        self._grids = self._build_grids(inside)
-        self._grids.pack(fill="x")
-        self._typed = self._build_equations(inside)
+        self._input.pack(fill="x")
 
         self._error = ErrorBanner(inside)
 
@@ -140,104 +116,11 @@ class GaussPage(ctk.CTkFrame):
         PrimaryButton(self._buttons, "Calcular  →", self._calculate).pack(side="right")
         self._error.appear_before(self._buttons)
 
-    def _build_grids(self, master: Any) -> ctk.CTkFrame:
-        """The coefficients typed one cell at a time: A beside b."""
-        frame = ctk.CTkFrame(master, fg_color="transparent")
-        self._a = MatrixEntryGrid(
-            frame,
-            "Matriz A",
-            3,
-            3,
-            values=(("1", "-2", "1"), ("0", "2", "-8"), ("-4", "5", "9")),
-            on_change=self._clear_output,
-            on_resize=self._a_resized,
-        )
-        self._a.grid(row=0, column=0, sticky="nw", padx=(0, 40))
-        self._b = MatrixEntryGrid(
-            frame,
-            "Vector b",
-            3,
-            1,
-            values=(("0",), ("8",), ("-9",)),
-            resizable_cols=False,
-            on_change=self._clear_output,
-            on_resize=self._b_resized,
-        )
-        self._b.grid(row=0, column=1, sticky="nw")
-        return frame
-
-    def _build_equations(self, master: Any) -> ctk.CTkFrame:
-        """The system written out, one equation per line, the way it is on paper."""
-        frame = ctk.CTkFrame(master, fg_color="transparent")
-        ctk.CTkLabel(
-            frame, text="ECUACIONES", font=theme.font("label"), text_color=theme.MUTED
-        ).pack(anchor="w", pady=(0, 8))
-
-        self._lines = ctk.CTkTextbox(
-            frame,
-            height=150,
-            corner_radius=12,
-            fg_color=theme.FIELD,
-            border_width=1,
-            border_color=theme.BORDER,
-            # CTkTextbox annotates text_color as a single colour while accepting
-            # the same (light, dark) pair as everything else, and honouring it.
-            text_color=theme.INK,  # type: ignore[arg-type]
-            font=theme.font("mono"),
-            wrap="none",
-        )
-        self._lines.insert("1.0", EXAMPLE_SYSTEM)
-        self._lines.bind("<KeyRelease>", lambda _event: self._retyped())
-        self._lines.pack(fill="x")
-
-        ctk.CTkLabel(
-            frame,
-            text=EQUATION_HELP,
-            font=theme.font("small"),
-            text_color=theme.MUTED,
-            justify="left",
-            anchor="w",
-        ).pack(anchor="w", pady=(8, 0))
-
-        # Filled in once the equations have been read, never before: the list of
-        # unknowns is a proof of what was understood, so it has to be earned.
-        self._found = ctk.CTkLabel(
-            frame, text="", font=theme.font("small"), text_color=theme.ACCENT, anchor="w"
-        )
-        return frame
-
-    # ----- The two methods, the two ways in, and the sizes that follow -----
-
-    def _choose_way_in(self, way_in: str) -> None:
-        """Swap the grids for the text box, or back. Each keeps what was typed."""
-        self._way_in = way_in
-        self._clear_output()
-        self._error.hide()
-        if way_in == EQUATIONS:
-            self._grids.pack_forget()
-            self._typed.pack(fill="x", before=self._buttons)
-        else:
-            self._typed.pack_forget()
-            self._grids.pack(fill="x", before=self._buttons)
-
-    def _retyped(self) -> None:
-        """A changed equation invalidates the unknowns that were read from it."""
-        self._found.pack_forget()
-        self._clear_output()
+    # ----- The two methods -----
 
     def _choose_method(self, method: str) -> None:
         self._method = method
         self._header.set_subtitle(SUBTITLES[method])
-        self._clear_output()
-
-    def _a_resized(self, rows: int, _cols: int) -> None:
-        """One equation is one row of A and one entry of b: they cannot drift."""
-        self._b.set_size(rows, 1)
-        self._clear_output()
-
-    def _b_resized(self, rows: int, _cols: int) -> None:
-        cols = self._a.size()[1]
-        self._a.set_size(rows, cols)
         self._clear_output()
 
     # ----- Solving -----
@@ -245,19 +128,18 @@ class GaussPage(ctk.CTkFrame):
     def _calculate(self) -> None:
         self._clear_output()
         try:
-            augmented, names = self._read_system()
-        except (CellError, EquationError, ValueError) as problem:
+            typed = self._input.read()
+        except UNREADABLE as problem:
             self._error.show(str(problem))
             return
 
         self._error.hide()
-        self._names = names
+        augmented, self._names = typed.matrix, typed.names
         solution = solve(augmented)
         self._unknowns = solution.unknowns
         self._elimination = (
             to_rref(augmented) if self._method == JORDAN else solution.reduction
         )
-        self._index = 0
 
         # The same order the assignment numbers its requirements in: the walk,
         # the equivalent system, the classification, the solution, the check.
@@ -271,75 +153,11 @@ class GaussPage(ctk.CTkFrame):
                 self._draw_substitutions(solution)
             self._draw_verification(solution)
 
-    # ----- Reading the system, whichever way it was written -----
-
-    def _read_system(self) -> tuple[Matrix, list[str]]:
-        """
-        The augmented matrix, and the names of the unknowns when there are any.
-
-        Only the typed equations know what the unknowns are called. Coefficients
-        in a grid never say, so that route hands back an empty list and
-        `ui/presentation.py` falls back to x, y, z, w.
-        """
-        if self._way_in == EQUATIONS:
-            return self._read_equations()
-        return self._a.matrix().augment(self._b.matrix()), []
-
-    def _read_equations(self) -> tuple[Matrix, list[str]]:
-        """
-        Every non-blank line parsed, or a Spanish sentence about the first that
-        was not.
-
-        `core/equations.py` raises one exception per kind of mistake and says
-        nothing to anybody; the wording is decided here, exactly as
-        `ui/prompts.py` decides it for the terminal. What the window has to add
-        is the number of the line, because every equation is on screen at once
-        and nothing else would say which one is meant.
-        """
-        lines = [line.strip() for line in self._lines.get("1.0", "end").splitlines()]
-        lines = [line for line in lines if line]
-
-        if not lines:
-            raise ValueError("Escribe al menos una ecuación.")
-        if len(lines) > SIZE_LIMIT:
-            raise ValueError(
-                f"Son {len(lines)} ecuaciones y el máximo es {SIZE_LIMIT}."
-            )
-
-        equations: list[Equation] = []
-        for number, text in enumerate(lines, start=1):
-            try:
-                equations.append(parse_equation(text))
-            except MissingEquals:
-                raise ValueError(
-                    f"A la ecuación {number} le falta el '='. "
-                    "Una ecuación se escribe como  2x + 3y = 5"
-                ) from None
-            except UnreadableTerm as problem:
-                raise ValueError(
-                    f"En la ecuación {number} no entiendo la parte "
-                    f"'{problem.text}'. Revísala."
-                ) from None
-            except EquationError:
-                raise ValueError(
-                    f"No pude leer la ecuación {number}. Escríbela otra vez."
-                ) from None
-
-        names = unknown_names(equations)
-        if not names:
-            raise ValueError("Ninguna de las ecuaciones tiene incógnitas.")
-        if len(names) > SIZE_LIMIT:
-            raise ValueError(f"Son {len(names)} incógnitas y el máximo es {SIZE_LIMIT}.")
-
-        self._found.configure(
-            text=f"Incógnitas encontradas ({len(names)}): {', '.join(names)}"
-        )
-        self._found.pack(anchor="w", pady=(10, 0))
-        return to_augmented(equations, names), names
-
     # ----- The step by step -----
 
     def _draw_steps(self) -> None:
+        """The walk, in a card that keeps its own count in the heading."""
+        assert self._elimination is not None
         card = self._add_card()
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
@@ -347,110 +165,14 @@ class GaussPage(ctk.CTkFrame):
         self._counter = SectionTitle(inside, "Paso a paso", " ")
         self._counter.pack(fill="x", pady=(0, 14))
 
-        self._operation = ctk.CTkLabel(
+        self._walker = StepWalker(
             inside,
-            text="",
-            font=theme.font("mono"),
-            text_color=theme.INK,
-            fg_color=theme.FIELD,
-            corner_radius=12,
-            anchor="w",
-            padx=16,
-            pady=12,
+            self._elimination.log,
+            bar_after=self._unknowns,
+            first_caption="Matriz aumentada  [ A | b ]",
+            on_step=lambda index, total: self._counter.set_badge(f"{index + 1} / {total}"),
         )
-        self._operation.pack(fill="x")
-
-        self._matrix_holder = ctk.CTkFrame(inside, fg_color="transparent")
-        self._matrix_holder.pack(anchor="w", pady=(14, 0))
-
-        self._dots = ctk.CTkFrame(inside, fg_color="transparent")
-        self._dots.pack(pady=(14, 0))
-
-        navigation = ctk.CTkFrame(inside, fg_color="transparent")
-        navigation.pack(fill="x", pady=(14, 0))
-        self._previous = self._link(navigation, "‹  Anterior", -1)
-        self._previous.pack(side="left")
-        self._next = self._link(navigation, "Siguiente  ›", 1)
-        self._next.pack(side="right")
-
-        self._show_step()
-
-    def _link(self, master: Any, text: str, delta: int) -> ctk.CTkButton:
-        return ctk.CTkButton(
-            master,
-            text=text,
-            width=100,
-            height=30,
-            corner_radius=15,
-            fg_color="transparent",
-            hover_color=theme.FIELD,
-            text_color=theme.ACCENT,
-            text_color_disabled=theme.FAINT,
-            font=theme.font("button"),
-            command=lambda: self._move(delta),
-        )
-
-    def _move(self, delta: int) -> None:
-        self._index = max(0, min(self._total() - 1, self._index + delta))
-        self._show_step()
-
-    def _go(self, index: int) -> None:
-        self._index = index
-        self._show_step()
-
-    def _total(self) -> int:
-        """The starting matrix counts as a step: it is what the operations act on."""
-        assert self._elimination is not None
-        return len(self._elimination.log) + 1
-
-    def _show_step(self) -> None:
-        assert self._elimination is not None
-        log = self._elimination.log
-        total = self._total()
-
-        self._counter.set_badge(f"{self._index + 1} / {total}")
-        self._operation.configure(
-            text="Matriz aumentada  [ A | b ]"
-            if self._index == 0
-            else pretty_label(log[self._index - 1].label)
-        )
-
-        for widget in self._matrix_holder.winfo_children():
-            widget.destroy()
-        MatrixDisplay(
-            self._matrix_holder, log.snapshot(self._index), bar_after=self._unknowns
-        ).pack(anchor="w")
-
-        self._draw_dots(total)
-        self._previous.configure(state="normal" if self._index > 0 else "disabled")
-        self._next.configure(state="normal" if self._index < total - 1 else "disabled")
-
-    def _draw_dots(self, total: int) -> None:
-        """One dot per step, while there are few enough for it to help."""
-        for widget in self._dots.winfo_children():
-            widget.destroy()
-        if total > 20:
-            return
-
-        for index in range(total):
-            if index == self._index:
-                glyph, colour = "◉", theme.ACCENT
-            elif index < self._index:
-                glyph, colour = "✓", theme.GREEN
-            else:
-                glyph, colour = "○", theme.FAINT
-            ctk.CTkButton(
-                self._dots,
-                text=glyph,
-                width=22,
-                height=22,
-                corner_radius=11,
-                fg_color="transparent",
-                hover_color=theme.FIELD,
-                text_color=colour,
-                font=theme.font("body"),
-                command=lambda index=index: self._go(index),
-            ).pack(side="left", padx=1)
+        self._walker.pack(fill="x")
 
     # ----- The answer -----
 

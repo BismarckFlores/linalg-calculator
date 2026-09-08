@@ -358,7 +358,8 @@ The window. `python -m gui`, from the repository root. Full notes in
 | Module | Holds |
 | --- | --- |
 | `gui/theme.py` | Every colour as a `(light, dark)` pair, the fonts, `set_dark`, and `on_change` for the parts drawn by hand. |
-| `gui/widgets.py` | `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `MonoBlock`. |
+| `gui/widgets.py` | `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `MonoBlock`, `StepWalker`. |
+| `gui/entry.py` | `SystemInput`, the input card both pages use, and `Typed`, what it hands back: the matrix, the names of the unknowns, and how many columns are coefficients. |
 | `gui/app.py` | `MODULES` — the sidebar, in order — plus `NavRow`, `Application` and `main()`. |
 | `gui/pages/operations.py` | `OperationsPage`: the five matrix operations. |
 | `gui/pages/echelon.py` | `EchelonPage`: the five properties, the leading entries and the pivots. Owns their Spanish, since no other front end says it. |
@@ -368,12 +369,10 @@ The window. `python -m gui`, from the repository root. Full notes in
 no page has no row, and `_build_page` raises for a key it does not know rather
 than falling back to something apologetic.
 
-`MatrixEntryGrid.matrix()` is the one boundary worth knowing: it returns a
-`Matrix` or raises `CellError`, whose message is already Spanish and already
-names the cell. `GaussPage._read_system` is the other: it hands back `[A | b]`
-and the names of the unknowns, exactly like `prompts.ask_system`, and the names
-are empty for the coefficient route because nothing there ever says what the
-unknowns are called.
+`SystemInput.read()` is the boundary worth knowing: it hands back a `Typed`,
+exactly what `prompts.ask_system` hands the terminal, or raises with a Spanish
+message. The names are empty for the grid route, because nothing there ever says
+what the unknowns are called.
 
 Nothing in `gui/` calculates. `build.py` assembles it into
 `Programa 2_Grupo5.py`, the deliverable that opens a window.
