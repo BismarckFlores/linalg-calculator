@@ -16,7 +16,7 @@ from typing import Any, Literal
 import customtkinter as ctk
 
 from core.matrix import Matrix
-from core.scalar import format_scalar, to_scalar
+from core.scalar import Scalar, format_scalar, to_scalar
 from core.steps import StepLog
 from ui.presentation import pretty_label
 
@@ -363,6 +363,46 @@ class MatrixEntryGrid(ctk.CTkFrame):
                 row.append(entry)
             self._entries.append(row)
 
+class FractionCell(ctk.CTkFrame):
+    """
+    One entry written the way a fraction is written by hand: one number over
+    another, with a rule between them.
+
+    `1/3` on a single line is what a terminal can manage and what the file
+    handed in prints. A window can do better, and a column of `22/15` and
+    `-17/15` is much easier to read stacked than slashed.
+
+    The rule is a two-pixel frame rather than a line on a canvas: it takes the
+    same (light, dark) colour pair as everything else and follows the theme
+    without anybody repainting it. One pixel would draw nothing at all.
+    """
+
+    def __init__(
+        self,
+        master: Any,
+        value: Scalar,
+        color: Color = theme.INK,
+        background: Color = "transparent",
+    ) -> None:
+        super().__init__(master, fg_color=background, corner_radius=7)
+        ctk.CTkLabel(
+            self,
+            text=str(value.numerator),
+            font=theme.font("mono"),
+            text_color=color,
+        ).pack(padx=7)
+        # width=1 because a CTkFrame asks for 200 pixels when nobody says
+        # otherwise, and `fill="x"` would then set the width of the whole cell.
+        ctk.CTkFrame(self, width=1, height=2, fg_color=color, corner_radius=0).pack(
+            fill="x", padx=7
+        )
+        ctk.CTkLabel(
+            self,
+            text=str(value.denominator),
+            font=theme.font("mono"),
+            text_color=color,
+        ).pack(padx=7, pady=(0, 2))
+
 class MatrixDisplay(ctk.CTkFrame):
     """A matrix the program wrote, in brackets, with an optional bar down it."""
 
@@ -395,17 +435,24 @@ class MatrixDisplay(ctk.CTkFrame):
         marked = set(highlight)
         for i in range(1, matrix.rows + 1):
             for j in range(1, matrix.cols + 1):
+                value = matrix.elem(i, j)
                 inside = (i, j) in marked
-                ctk.CTkLabel(
-                    cells,
-                    text=format_scalar(matrix.elem(i, j)),
-                    font=theme.font("mono"),
-                    text_color=theme.ACCENT if inside else theme.INK,
-                    fg_color=theme.ACCENT_SOFT if inside else "transparent",
-                    corner_radius=7,
-                    padx=6,
-                    anchor="e",
-                ).grid(row=i - 1, column=places[j], sticky="e", padx=4, pady=1)
+                colour = theme.ACCENT if inside else theme.INK
+                background = theme.ACCENT_SOFT if inside else "transparent"
+                if value.denominator == 1:
+                    cell = ctk.CTkLabel(
+                        cells,
+                        text=format_scalar(value),
+                        font=theme.font("mono"),
+                        text_color=colour,
+                        fg_color=background,
+                        corner_radius=7,
+                        padx=6,
+                        anchor="e",
+                    )
+                else:
+                    cell = FractionCell(cells, value, colour, background)
+                cell.grid(row=i - 1, column=places[j], sticky="e", padx=4, pady=1)
 
         if bar is not None:
             ctk.CTkFrame(cells, width=2, height=1, corner_radius=0, fg_color=theme.RULE).grid(

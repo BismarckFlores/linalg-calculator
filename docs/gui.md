@@ -112,6 +112,12 @@ an answer wants to scroll past the lot. Neither is the right default for the
 other, so the step by step does both and the choice is one click. Both pages
 that walk an elimination get it, because both get it from the same widget.
 
+Every matrix on screen writes its fractions the way they are written by hand,
+one number over another with a rule between them. A column of `22/15` and
+`-17/15` is much harder to read slashed onto one line, and the window has the
+room the terminal does not. Whole numbers stay on one line, and the rows of a
+matrix line up on their middles.
+
 Changing any number removes every card below the input. A result that was
 computed from other numbers is not a result any more.
 

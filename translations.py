@@ -508,6 +508,26 @@ DOCSTRINGS: dict[str, str] = {
         "El texto de las casillas sobrevive a los propios recuadros: crecer de 2x2 a\n"
         "3x3 y volver encuentra los cuatro numeros originales donde estaban, porque lo\n"
         "escrito se guarda en un diccionario y los recuadros se rehacen alrededor.",
+    "One entry written the way a fraction is written by hand: one number over\n"
+    "another, with a rule between them.\n"
+    "\n"
+    "`1/3` on a single line is what a terminal can manage and what the file\n"
+    "handed in prints. A window can do better, and a column of `22/15` and\n"
+    "`-17/15` is much easier to read stacked than slashed.\n"
+    "\n"
+    "The rule is a two-pixel frame rather than a line on a canvas: it takes the\n"
+    "same (light, dark) colour pair as everything else and follows the theme\n"
+    "without anybody repainting it. One pixel would draw nothing at all.":
+        "Una entrada escrita como se escribe una fraccion a mano: un numero encima\n"
+        "del otro, con una raya en medio.\n"
+        "\n"
+        "1/3 en una sola linea es lo que puede hacer una terminal y lo que imprime el\n"
+        "archivo entregado. Una ventana puede hacerlo mejor, y una columna de 22/15 y\n"
+        "-17/15 se lee mucho mejor apilada que con barras.\n"
+        "\n"
+        "La raya es un marco de dos pixeles y no una linea sobre un lienzo: asi toma\n"
+        "la misma pareja de colores (claro, oscuro) que todo lo demas y sigue al tema\n"
+        "sin que nadie la repinte. Con un pixel no se dibujaria nada.",
     "A matrix the program wrote, in brackets, with an optional bar down it.":
         "Una matriz escrita por el programa, entre corchetes y con una barra opcional.",
     "The pill of choices at the top of a page: an operation, or a method.":
@@ -1086,6 +1106,14 @@ COMMENTS: dict[str, str] = {
         "# ----- La rueda del raton -----",
     "# ----- The sidebar -----":
         "# ----- El menu de la izquierda -----",
+    "# width=1 because a CTkFrame asks for 200 pixels when nobody says":
+        "# width=1 porque un CTkFrame pide 200 pixeles cuando nadie dice otra cosa,",
+    "# otherwise, and `fill=\"x\"` would then set the width of the whole cell.":
+        "# y entonces el fill=\"x\" acabaria fijando el ancho de toda la casilla.",
+    "# A page opens at its own beginning. Keeping the scroll of the page just":
+        "# Una pagina se abre por su principio. Conservar el desplazamiento de la que",
+    "# left would drop somebody into the middle of one they have not read.":
+        "# se acaba de dejar soltaria a alguien en mitad de otra que no ha leido.",
     "# ----- Opening a page -----":
         "# ----- Apertura de una pagina -----",
 

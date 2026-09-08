@@ -228,6 +228,11 @@ class Application(ctk.CTk):
         self._rows[key].set_active(True)
         self._open = key
 
+        # A page opens at its own beginning. Keeping the scroll of the page just
+        # left would drop somebody into the middle of one they have not read.
+        self.update_idletasks()
+        self._container._parent_canvas.yview_moveto(0.0)
+
     def _build_page(self, key: str) -> ctk.CTkFrame:
         if key == "operations":
             return OperationsPage(self._container)

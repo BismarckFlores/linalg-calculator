@@ -358,7 +358,7 @@ The window. `python -m gui`, from the repository root. Full notes in
 | Module | Holds |
 | --- | --- |
 | `gui/theme.py` | Every colour as a `(light, dark)` pair, the fonts, `set_dark`, and `on_change` for the parts drawn by hand. |
-| `gui/widgets.py` | `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `MonoBlock`, `StepWalker`. |
+| `gui/widgets.py` | `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `MonoBlock`, `StepWalker`, `FractionCell`. |
 | `gui/entry.py` | `SystemInput`, the input card both pages use, and `Typed`, what it hands back: the matrix, the names of the unknowns, and how many columns are coefficients. |
 | `gui/app.py` | `MODULES` — the sidebar, in order — plus `NavRow`, `Application` and `main()`. |
 | `gui/pages/operations.py` | `OperationsPage`: the five matrix operations. |
