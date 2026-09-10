@@ -847,6 +847,18 @@ DOCSTRINGS: dict[str, str] = {
         "Una de las dos respuestas, con su propio color para leerla de un vistazo.",
     "One numbered property: whether it holds, and where it broke if not.":
         "Una propiedad numerada: si se cumple, y donde se rompio si no.",
+    "What the pivots say about the system an augmented matrix stands for.\n"
+    "\n"
+    "It is the existence theorem read off the pivots, and nothing more: a\n"
+    "system has a solution exactly when the column of b holds no pivot, and\n"
+    "only one when every column of A holds one. The words for the kind are\n"
+    "the assignment's, from `ui/presentation.py`, like everywhere else.":
+        "Lo que dicen los pivotes del sistema que representa una matriz aumentada.\n"
+        "\n"
+        "Es el teorema de existencia leido en los pivotes, y nada mas: un sistema\n"
+        "tiene solucion exactamente cuando la columna de b no tiene pivote, y una\n"
+        "sola cuando todas las columnas de A lo tienen. Las palabras de la\n"
+        "clasificacion son las del enunciado, de presentation.py, como en todo lo demas.",
     "One matrix with the pivot positions picked out, under its own caption.":
         "Una matriz con sus posiciones pivote resaltadas, bajo su propio titulo.",
     "A verdict about a matrix stops meaning anything once it is retyped.":
@@ -1288,6 +1300,14 @@ COMMENTS: dict[str, str] = {
         "# Cuanto mueve la pagina una muesca de la rueda, en unidades de 30 pixeles:",
     "# three lines of text, which is what everything else on a desktop does.":
         "# unas tres lineas de texto, que es lo que hace todo lo demas en el escritorio.",
+    "# One grid says nothing about whether its last column is b. Somebody has":
+        "# Una sola cuadricula no dice si su ultima columna es b. Alguien tiene que",
+    "# to, or a 3x5 augmented matrix reads as five unknowns instead of four.":
+        "# decirlo, o una matriz aumentada de 3x5 se lee como cinco incognitas y no cuatro.",
+    "# The columns that are coefficients: all of them for a plain matrix, all":
+        "# Las columnas que son coeficientes: todas en una matriz cualquiera, todas",
+    "# but the last for an augmented one, whose last column is b.":
+        "# menos la ultima en una aumentada, cuya ultima columna es b.",
     "# ----- Swapping one way in for the other -----":
         "# ----- Cambio de una entrada por la otra -----",
     "# ----- Reading it back -----":

@@ -80,6 +80,7 @@ class SystemInput(ctk.CTkFrame):
         title: str = "Matriz",
         example: str = EXAMPLE_SYSTEM,
         on_change: Callable[[], None] | None = None,
+        augmentable: bool = False,
     ) -> None:
         super().__init__(master, fg_color="transparent")
         self._split = split
@@ -116,6 +117,20 @@ class SystemInput(ctk.CTkFrame):
                 on_resize=self._b_resized,
             )
             self._b.grid(row=0, column=1, sticky="nw")
+
+        # One grid says nothing about whether its last column is b. Somebody has
+        # to, or a 3x5 augmented matrix reads as five unknowns instead of four.
+        self._augmented: ctk.CTkSwitch | None = None
+        if augmentable and not split:
+            self._augmented = ctk.CTkSwitch(
+                self._grids,
+                text="Es una matriz aumentada  [ A | b ]",
+                font=theme.font("body"),
+                text_color=theme.INK,
+                progress_color=theme.ACCENT,
+                command=self._changed,
+            )
+            self._augmented.grid(row=1, column=0, columnspan=2, sticky="w", pady=(14, 0))
 
         self._typed = self._build_equations(example)
 
@@ -205,7 +220,15 @@ class SystemInput(ctk.CTkFrame):
             return self._read_equations()
         if self._b is not None:
             return Typed(self._a.matrix().augment(self._b.matrix()), [], self._a.size()[1])
-        return Typed(self._a.matrix())
+        matrix = self._a.matrix()
+        if self._augmented is not None and self._augmented.get():
+            if matrix.cols < 2:
+                raise ValueError(
+                    "Una matriz aumentada necesita al menos una columna de "
+                    "coeficientes además de la de los términos independientes."
+                )
+            return Typed(matrix, [], matrix.cols - 1)
+        return Typed(matrix)
 
     def _read_equations(self) -> Typed:
         """

@@ -25,6 +25,8 @@ from core.echelon import ECHELON, REDUCED, Form, analyse
 from core.elimination import Elimination, to_rref
 from core.matrix import Matrix
 from core.scalar import format_scalar
+from core.systems import Solution, SystemKind, solve
+from ui.presentation import describe, unknown_name
 
 from .. import theme
 from ..entry import UNREADABLE, SystemInput
@@ -72,6 +74,7 @@ class EchelonPage(ctk.CTkFrame):
         super().__init__(master, fg_color="transparent")
         self._output: list[ctk.CTkBaseClass] = []
         self._bar: int | None = None
+        self._names: list[str] = []
 
         PageHeader(
             self,
@@ -94,6 +97,7 @@ class EchelonPage(ctk.CTkFrame):
             values=EXAMPLE,
             title="Matriz",
             on_change=self._clear_output,
+            augmentable=True,
         )
         self._input.pack(fill="x")
 
@@ -120,9 +124,12 @@ class EchelonPage(ctk.CTkFrame):
         self._bar = typed.unknowns or None
         reduction = to_rref(typed.matrix)
 
+        self._names = typed.names
         self._draw_form(analyse(typed.matrix))
         self._draw_reduction(reduction)
-        self._draw_pivots(typed.matrix, reduction)
+        self._draw_pivots(
+            typed.matrix, reduction, solve(typed.matrix) if self._bar else None
+        )
 
     # ----- The five properties -----
 
@@ -275,7 +282,9 @@ class EchelonPage(ctk.CTkFrame):
 
     # ----- The pivots, which live in the reduced form -----
 
-    def _draw_pivots(self, matrix: Matrix, reduction: Elimination) -> None:
+    def _draw_pivots(
+        self, matrix: Matrix, reduction: Elimination, solution: Solution | None
+    ) -> None:
         card = self._add_card()
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
@@ -294,18 +303,24 @@ class EchelonPage(ctk.CTkFrame):
         ).pack(anchor="w", pady=(0, 14))
 
         positions = reduction.pivots
-        columns = [column for _row, column in positions]
+        # The columns that are coefficients: all of them for a plain matrix, all
+        # but the last for an augmented one, whose last column is b.
+        width = self._bar or matrix.cols
+        columns = [column for _row, column in positions if column <= width]
+        free = [column for column in range(1, width + 1) if column not in set(columns)]
 
         chips = ctk.CTkFrame(inside, fg_color="transparent")
         chips.pack(anchor="w", pady=(0, 14))
+        if solution is not None:
+            Chip(chips, f"incógnitas: {width}", theme.MUTED).pack(side="left", padx=(0, 8))
         Chip(chips, f"columnas pivote: {_listed(columns)}").pack(side="left", padx=(0, 8))
-        free = [
-            column for column in range(1, matrix.cols + 1) if column not in set(columns)
-        ]
         if free:
             Chip(chips, f"columnas sin pivote: {_listed(free)}", theme.MUTED).pack(
-                side="left"
+                side="left", padx=(0, 8)
             )
+
+        if solution is not None:
+            self._draw_reading(inside, solution, reduction, free)
 
         both = ctk.CTkFrame(inside, fg_color="transparent")
         both.pack(anchor="w")
@@ -313,6 +328,57 @@ class EchelonPage(ctk.CTkFrame):
         self._marked(
             both, "Su forma escalonada reducida", reduction.result, positions, column=1
         )
+
+    def _draw_reading(
+        self,
+        master: ctk.CTkFrame,
+        solution: Solution,
+        reduction: Elimination,
+        free: list[int],
+    ) -> None:
+        """
+        What the pivots say about the system an augmented matrix stands for.
+
+        It is the existence theorem read off the pivots, and nothing more: a
+        system has a solution exactly when the column of b holds no pivot, and
+        only one when every column of A holds one. The words for the kind are
+        the assignment's, from `ui/presentation.py`, like everywhere else.
+        """
+        from .gauss import KIND_COLORS
+
+        headline = ctk.CTkFrame(master, fg_color="transparent")
+        headline.pack(anchor="w", pady=(0, 4))
+        ctk.CTkLabel(
+            headline, text="●", font=theme.font("body"),
+            text_color=KIND_COLORS[solution.kind],
+        ).pack(side="left", padx=(0, 8))
+        ctk.CTkLabel(
+            headline, text=describe(solution), font=theme.font("body"), text_color=theme.INK
+        ).pack(side="left")
+
+        if solution.kind is SystemKind.INCONSISTENT:
+            row = next(row for row, column in reduction.pivots if column > solution.unknowns)
+            reason = (
+                "La columna de los términos independientes es columna pivote: la fila "
+                f"{row} de la forma reducida se lee 0 = 1, y ningún valor de las "
+                "incógnitas la cumple."
+            )
+        elif solution.kind is SystemKind.INFINITE:
+            names = ", ".join(unknown_name(column, self._names) for column in free)
+            reason = (
+                "La columna de los términos independientes no es columna pivote, así "
+                f"que hay solución; y {names} no tienen pivote, así que son "
+                "variables libres."
+            )
+        else:
+            reason = (
+                "La columna de los términos independientes no es columna pivote y "
+                "todas las de A lo son: hay solución, y es una sola."
+            )
+        ctk.CTkLabel(
+            master, text=reason, font=theme.font("small"), text_color=theme.MUTED,
+            justify="left", wraplength=620,
+        ).pack(anchor="w", pady=(0, 14))
 
     def _marked(
         self,
