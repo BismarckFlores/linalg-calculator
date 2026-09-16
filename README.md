@@ -21,7 +21,9 @@ linalg-calculator/
 │   ├── verification.py   # putting a solution back into the original system
 │   ├── equations.py      # `2x + 3y = 5` read into a row of the augmented matrix
 │   ├── echelon.py        # the five properties, the leading entries, the pivots
-│   └── parametric.py     # the general solution, when there are infinitely many
+│   ├── parametric.py     # the general solution, when there are infinitely many
+│   ├── bases.py          # whole numbers in any base from 2 to 36, working kept
+│   └── vectors.py        # vectors of Rⁿ, and whether b combines the others
 ├── ui/                   # everything a person reads, in Spanish
 │   ├── presentation.py   # engine objects → the words that go on screen
 │   └── prompts.py        # reading a system from the keyboard, two ways in
@@ -30,7 +32,7 @@ linalg-calculator/
 │   ├── widgets.py        # the shapes CustomTkinter does not have
 │   ├── entry.py          # the two ways a matrix is handed over, in one card
 │   ├── app.py            # the window, the sidebar, which page is open
-│   └── pages/            # operations, echelon forms, elimination
+│   └── pages/            # vectors, operations, elimination, echelon forms, numeral systems
 ├── deliverables/         # the scripts handed in to the course
 │   ├── program1.py       # Programa 1: systems by row elimination
 │   └── out/              # generated single files, not versioned
@@ -48,7 +50,7 @@ linalg-calculator/
 ```bash
 python -m deliverables.program1     # run Programa 1
 python -m gui                       # the same engine in a window
-python build.py                     # write both files in deliverables/out/
+python build.py                     # write every file in deliverables/out/
 python check.py                     # smoke test the engine
 ```
 
@@ -133,6 +135,18 @@ basic variable — the one holding a pivot — in terms of the free ones. It rea
 the reduced form, where a pivot is 1 and alone in its column, so the row is
 already the answer.
 
+`to_base` and `from_base` move a whole number between base 10 and any base from
+2 to 36 without borrowing Python's own conversions: towards a base by repeated
+division, keeping every `n = b·q + r`, and back by the linear combination of
+powers the numeral stands for, keeping every term.
+
+`add`, `subtract` and `scale` work on vectors of Rⁿ component by component, and
+nothing fixes n in advance: it is however many components were typed.
+`combine` answers whether b is a linear combination of v₁, …, vₖ by building
+`[ v₁ … vₖ | b ]` and solving it with the same `solve` as any system, so one
+solution is one way of combining them, infinitely many are infinitely many
+ways, and none means b is not a combination.
+
 `verify` is the independent check: hand it A, b and the values found and it
 evaluates every equation of the original system, comparing both sides exactly.
 It trusts nothing the elimination did, which is the only way the check is worth
@@ -153,10 +167,11 @@ system out, and otherwise `x`, `y`, `z`, `w`, then `x5` and up.
 
 `gui/` is the third caller of the same engine, and it proves the point: a window
 built on `core/` and `ui/presentation.py` needed no change to either. It is a
-CustomTkinter application with the matrix arithmetic on the first tab and the
-elimination on the second — the system typed as coefficients or as equations,
-and Gauss or Gauss-Jordan chosen inside it, since they are two settings of one
-method. It is handed in the same way as everything else, as one generated file,
+CustomTkinter application with a tab per piece of the course: vectors, matrix
+arithmetic, the elimination — the system typed as coefficients or as
+equations, shown as the matrix equation `A x = b`, and Gauss or Gauss-Jordan
+chosen inside it, since they are two settings of one method — echelon forms,
+and numeral systems. It is handed in the same way as everything else, as one generated file,
 which is the only deliverable here that asks for anything to be installed. See
 [docs/gui.md](docs/gui.md).
 

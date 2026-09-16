@@ -19,14 +19,17 @@ The sidebar lists what works, and nothing else:
 
 | Row | What it does |
 | --- | --- |
+| **Vectores** | `u + v`, `u − v` and `k · u` in Rⁿ, as columns side by side and component by component, and whether b is a linear combination of v₁, …, vₖ, solved as the system it is. Nobody says what n is: it is however many components were typed. |
 | **Operaciones Matriciales** | `A + B`, `A − B`, `A × B`, `k · A`, `Aᵀ`. Each matrix is resized with its own steppers, and B follows A wherever the shapes have to agree. |
 | **Eliminación Gaussiana** | Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
 | **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one. Then it reduces it, step by step, and marks the pivot positions the reduced form puts on show. Switched to `Es una matriz aumentada [ A \| b ]`, it also reads the pivots as a system. |
+| **Sistemas Numéricos** | Converts a whole number from decimal to binary, octal, hexadecimal or any base from 2 to 36 by repeated division, and back to decimal by the linear combination of powers it stands for. Each direction is checked with the other. |
 
-The two that solve something come first, and the arithmetic before the
-elimination because the elimination is written in terms of it. Reading the form
-of a matrix is a check somebody reaches for after one of those, so it sits at
-the end.
+The order follows the course. Vectors come first, then the matrix pages — the
+arithmetic before the elimination because the elimination is written in terms
+of it, and reading the form of a matrix after both, as the check somebody
+reaches for once one of them is done. The numeral systems have nothing to do
+with matrices, so they sit apart, at the end.
 
 The order is one tuple, `MODULES` in `gui/app.py`, and nothing else depends on
 it: the rows are drawn by walking it, and the first row is the page that opens.
@@ -101,13 +104,13 @@ of Programa 1, in the order the assignment numbers them:
 
 | Requirement | Where it is |
 | --- | --- |
-| 1. Entrada de datos | The input card. |
+| 1. Entrada de datos | The input card, and **Ecuación matricial A x = b** under it: A, the column of unknowns and b, in brackets side by side — the system as the single matrix equation it is. |
 | 2. Matriz aumentada inicial | The first step of **Paso a paso** — `[ A \| b ]` before anything was done to it. |
 | 3. Eliminación por filas | **Paso a paso**: every elementary operation, one at a time, with the matrix it produced. `Anterior` / `Siguiente` walk it, the dots jump straight to one, and `Ver todos los pasos` lays the whole walk out to be scrolled instead. The labels are the ones `core/steps.py` records, in typographic notation: `f₃ → f₃ + 4 · f₁`. |
 | 4. Sistema equivalente | **Sistema equivalente**: the matrix the walk ended on, read back as equations. |
 | 5. Clasificación | **Resultado**: `rango(A)`, `rango(A\|b)`, the number of unknowns, which columns hold a pivot and which are free, and the classification in the words the assignment demands. |
 | 6. Solución | **Resultado** carries the values; **Despeje por sustitución hacia atrás** carries the clearing, four lines per unknown, exactly as the terminal prints it. |
-| 7. Comprobación | **Comprobación en el sistema original**: the values put back into the equations that were typed, never into the echelon ones. |
+| 7. Comprobación | **Comprobación en el sistema original**: first the product `A · x`, worked with the same matrix multiplication as **Operaciones Matriciales**, coming out as b; then the values put back into the equations that were typed, never into the echelon ones. |
 
 The last two cards only make sense for a system with one solution, so they only
 appear for one. An indeterminate system shows which variables are free, an
@@ -184,6 +187,93 @@ another name. Only the columns of A are counted: a pivot can also land on the
 constants column, and that one is not a column of the system but the reason an
 inconsistent system is inconsistent, which the classification already says.
 
+### Vectors
+
+The dimension is never asked for. The assignment makes a point of it — n is not
+known in advance — so a vector is typed as its components, `1, -2, 3` or
+`(1 -2 3)`, and n is however many there turn out to be. Components are split on
+commas, semicolons or spaces, which is why a decimal takes a point: `2,5` is two
+components, and the `n = 2` badge on the result says so.
+
+**u + v**, **u − v** and **k · u** show the operation twice. **Resultado** writes
+it as columns side by side, `[u] + [v] = [u + v]`, with the result also in a
+line, `u + v = (5, -2, 5/2)`. **Componente a componente** writes one line per
+component, `u₃ + v₃ = 3 - 1/2 = 5/2`, with the sign of the second number folded
+into the operation the way it is by hand: `3 + (-1/2)` is written `3 - 1/2`, and
+`2 - (-3)` is written `2 + 3`. A scalar multiplies with the component in
+brackets, `-3(-2)`, and a fractional scalar in brackets of its own,
+`(1/2)(-4)`. Two vectors of different dimension are refused before anything is
+added, naming both sizes.
+
+**Combinación lineal** takes b and the vectors v₁, …, vₖ, one per line, and
+answers in four cards:
+
+| Card | What it shows |
+| --- | --- |
+| Planteamiento | The question as the vector equation `c₁[v₁] + c₂[v₂] = [b]`, wrapped every four vectors, and the same thing written out component by component as a system in c₁, …, cₖ. |
+| Paso a paso | That system's augmented matrix, `[ v₁ v₂ \| b ]`, reduced with the same step walker as the elimination page. |
+| Resultado | The ranks and the answer in colour: green for one way of combining them, orange for infinitely many, red for none. With one, the scalars and `b = 3v₁ + 2v₂`. With infinitely many, the general solution and an example with every free scalar at 0. With none, the row that reads `0 = k`. |
+| Comprobación | The scalars put back: each vector scaled, the products added up column by column to b, and the same check component by component. With infinitely many it checks the example. |
+
+It is the definition, solved the way the course solves everything: b is a
+combination exactly when `[ v₁ … vₖ | b ]` is consistent, so `core/vectors.py`
+asks `solve` and adds nothing of its own to the elimination.
+
+### Numeral systems
+
+The assignment asks for two directions, and the page has a pill for each.
+
+**Decimal → otra base** takes a whole number and a base, and divides. Every
+division is written as the equation it is, `43 = 2 · 21 + 1`, beside its
+remainder and the digit that remainder becomes, so a remainder of 14 in base 16
+is visibly an `E`. The digits are then read from the bottom up into the result.
+
+The base is picked on a pill: binary, octal and hexadecimal by name, because
+those are the ones the course asks for, and **Otra base**, which opens a
+`b =` field beside the pill for any base from 2 to 36. Past 9 the digits are
+letters, `A` for 10 up to `Z` for 35 — the alphabet running out is why 36 is
+the top. The field is read with the same `from_base` the page is about, so not
+even the base goes through `int`; anything that is not a whole number in range
+is refused before converting. The note under the divisions names the letters
+the chosen base uses, and says nothing about letters when it uses none.
+
+**Otra base → decimal** takes a numeral and the base it is written in — the
+same pill, custom field included — and
+writes out the linear combination it stands for — the requirement the
+assignment names — in three stages worked down to one number:
+
+```
+2B₁₆ = 2·16¹ + 11·16⁰
+     = 2·16 + 11·1
+     = 32 + 11
+     = 43
+```
+
+with a letter's value named beside it, and the same thing again as a table of
+positions, powers and contributions. A long binary numeral breaks its sum into
+lines of six terms.
+
+The first direction checks itself with the second: the result is read back as a
+combination right under the divisions, and has to come to the number the
+divisions started from. The divisions are not trusted with their own answer.
+
+Neither direction borrows from Python: no `int(text, base)`, no `bin`, `oct` or
+`hex`. The procedure is the point, so the procedure is what runs, in
+`core/bases.py`. Only whole numbers that are not negative are converted, up to
+32 digits; a minus sign, a decimal point or a digit the base does not have is
+named back in Spanish with the digits that base does use (`En base 20 se usan
+las cifras del 0 al 9 y las letras de la A a la J.`). Spaces are ignored,
+so a binary number can be typed in groups of four.
+
+The assignment reads "binario, octal o decimal a su equivalente número
+decimal"; converting decimal to decimal says nothing, so the page offers
+hexadecimal there, the base the other direction converts into, along with any
+other base through the custom field.
+
+The example in the number box is always 43, written in whichever base is
+showing — `101011`, `53`, `2B`, or `133` for base 5 — and follows the custom
+field as it is typed, until somebody types a number of their own.
+
 ### What it does not do yet
 
 - Determinant, inverse and everything from Programa 3 onwards do not exist at
@@ -199,9 +289,11 @@ gui/
 ├── app.py         the window, the sidebar, and which page is open
 ├── __main__.py    python -m gui
 └── pages/
+    ├── vectors.py      Rⁿ: operations and linear combinations
     ├── operations.py   matrix arithmetic
+    ├── gauss.py        A x = b, both methods
     ├── echelon.py      the five properties, the reduction, the pivots
-    └── gauss.py        A x = b, both methods
+    └── bases.py        whole numbers between base 10 and bases 2 to 36
 ```
 
 Two things both pages need live outside them, because the second page needing
@@ -276,6 +368,14 @@ a text box — swallows the notch. It also moves thirty pixels at a time on Linu
 so a long page took forty notches. `Application._wire_wheel` replaces that
 binding with one that answers from anywhere and moves three lines, and steps
 aside only for a text box with scrolling of its own to do.
+
+**Two modules that each define the same global are fine until they are one
+file.** `gui/pages/gauss.py` and `gui/pages/bases.py` both had a `SUBTITLES`.
+In the repository that is two names in two namespaces; assembled, the second
+replaced the first and the elimination page would have raised `KeyError` the
+moment it opened. `build.py` now refuses to assemble a program where two blocks
+define the same name, and says which two. It caught the next one on its own:
+the custom base brought an `EXAMPLE` that `gui/pages/echelon.py` already had.
 
 **A `CTkFrame` one pixel wide draws nothing at all.** Not a thin line — nothing.
 The bar between A and b, and the divider in the sidebar, are two pixels for that

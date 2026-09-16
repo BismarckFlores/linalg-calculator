@@ -7,29 +7,34 @@ Which one was used changes the step by step and the last matrix; it does not
 change the classification, which counts pivots, nor the values, which the two
 paths agree on exactly because nothing is ever rounded.
 
+The system is also shown as what it is in matrix form, A x = b, and a unique
+solution is checked twice: by the product A x, worked with the same matrix
+multiplication as the Operaciones Matriciales page, and equation by equation.
+
 Not a line of the wording is decided here. `ui/presentation.py` writes the
 sentences for the terminal and the window alike; this page arranges them.
 """
 
-import re
 from dataclasses import replace
 from typing import Any
 
 import customtkinter as ctk
 
 from core.elimination import Elimination, to_rref
-from core.parametric import General, general_solution
-from core.scalar import format_factor, format_scalar
+from core.matrix import Matrix
+from core.parametric import general_solution
+from core.scalar import format_scalar
 from core.systems import Solution, SystemKind, solve
 from core.verification import verify
 from ui.presentation import (
-    SUBSCRIPTS,
     describe,
     pretty_label,
     render_equations,
+    render_general,
     render_substitutions,
     render_values,
     render_verification,
+    typographic_rows,
     unknown_name,
 )
 
@@ -39,6 +44,7 @@ from ..widgets import (
     Card,
     Chip,
     ErrorBanner,
+    Expression,
     MathBlock,
     MathChip,
     MathLine,
@@ -65,20 +71,6 @@ KIND_COLORS = {
     SystemKind.INFINITE: theme.ORANGE,
     SystemKind.INCONSISTENT: theme.RED,
 }
-
-# A row named at the start of a line, inside a block already lined up in columns.
-_ROW_TAG = re.compile(r"f_(\d+):")
-
-def _typographic(block: str) -> str:
-    """
-    `f_2:` written `f₂:` without moving anything that was lined up under it.
-
-    `ui/presentation.py` lays these blocks out in columns, counting characters,
-    and a subscript costs one character less than `f_2` does. The space the
-    underscore used to take is put back after the colon, so the lines that were
-    indented to match still match.
-    """
-    return _ROW_TAG.sub(lambda match: f"f{match[1].translate(SUBSCRIPTS)}: ", block)
 
 class GaussPage(ctk.CTkFrame):
     """The page that solves a system and walks through how it was solved."""
@@ -145,6 +137,8 @@ class GaussPage(ctk.CTkFrame):
 
         # The same order the assignment numbers its requirements in: the walk,
         # the equivalent system, the classification, the solution, the check.
+        # The matrix form goes first, because it is the system being solved.
+        self._draw_matrix_equation(solution)
         self._draw_steps()
         self._draw_equivalent(solution)
         self._draw_result(solution)
@@ -154,6 +148,40 @@ class GaussPage(ctk.CTkFrame):
             if self._method == GAUSS:
                 self._draw_substitutions(solution)
             self._draw_verification(solution)
+
+    # ----- The matrix form -----
+
+    def _draw_matrix_equation(self, solution: Solution) -> None:
+        """The system as one equation between matrices: A times the unknowns is b."""
+        card = self._add_card()
+        inside = ctk.CTkFrame(card, fg_color="transparent")
+        inside.pack(fill="x", padx=24, pady=22)
+
+        rows, cols = solution.coefficients.size()
+        SectionTitle(inside, "Ecuación matricial  A x = b", f"A es {rows} × {cols}").pack(
+            fill="x", pady=(0, 6)
+        )
+        ctk.CTkLabel(
+            inside,
+            text=(
+                "El sistema escrito como una sola ecuación entre matrices. Resolverlo es "
+                "encontrar el vector x que, multiplicado por A, da b."
+            ),
+            font=theme.font("small"),
+            text_color=theme.MUTED,
+            justify="left",
+            wraplength=640,
+        ).pack(anchor="w", pady=(0, 14))
+
+        unknowns = [unknown_name(column, self._names) for column in range(1, cols + 1)]
+        (
+            Expression(inside)
+            .matrix(solution.coefficients, "A")
+            .symbol("·")
+            .column(unknowns, "x", theme.ACCENT)
+            .symbol("=")
+            .matrix(solution.constants, "b")
+        ).pack(anchor="w")
 
     # ----- The step by step -----
 
@@ -206,7 +234,7 @@ class GaussPage(ctk.CTkFrame):
         ).pack(fill="x", pady=(0, 12))
 
         walked = replace(solution, reduction=self._elimination)
-        MathBlock(inside, _typographic(render_equations(walked, self._names))).pack(anchor="w")
+        MathBlock(inside, typographic_rows(render_equations(walked, self._names))).pack(anchor="w")
 
     def _draw_result(self, solution: Solution) -> None:
         card = self._add_card()
@@ -349,27 +377,7 @@ class GaussPage(ctk.CTkFrame):
         Chip(variables, f"variables básicas: {basic}").pack(side="left", padx=(0, 8))
         Chip(variables, f"variables libres: {free}", theme.MUTED).pack(side="left")
 
-        MathBlock(inside, self._general_lines(family)).pack(anchor="w")
-
-    def _general_lines(self, family: General) -> str:
-        """`x = 1 + 4*z`, one line per variable, the names lined up on the equals."""
-        width = max(
-            (len(unknown_name(item.column, self._names)) for item in family.basic),
-            default=1,
-        )
-
-        lines = []
-        for item in family.basic:
-            terms = ""
-            for coefficient, column in item.terms:
-                sign = "-" if coefficient < 0 else "+"
-                size = -coefficient if coefficient < 0 else coefficient
-                factor = "" if size == 1 else format_factor(size)
-                terms += f" {sign} {factor}{unknown_name(column, self._names)}"
-            name = unknown_name(item.column, self._names)
-            lines.append(f"  {name:>{width}} = {format_scalar(item.constant)}{terms}")
-
-        return "\n".join(lines)
+        MathBlock(inside, render_general(family, self._names)).pack(anchor="w")
 
     def _draw_substitutions(self, solution: Solution) -> None:
         card = self._add_card()
@@ -377,14 +385,48 @@ class GaussPage(ctk.CTkFrame):
         inside.pack(fill="x", padx=24, pady=22)
         SectionTitle(inside, "Despeje por sustitución hacia atrás").pack(fill="x", pady=(0, 14))
         MathBlock(
-            inside, _typographic(render_substitutions(solution, self._names)), "left"
+            inside, typographic_rows(render_substitutions(solution, self._names)), "left"
         ).pack(anchor="w")
 
     def _draw_verification(self, solution: Solution) -> None:
         card = self._add_card()
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(inside, "Comprobación en el sistema original").pack(fill="x", pady=(0, 14))
+        SectionTitle(inside, "Comprobación en el sistema original").pack(fill="x", pady=(0, 6))
+
+        # The first check is the matrix form itself: the product A x, worked with
+        # the same multiplication the Operaciones Matriciales page uses.
+        x = Matrix.column_vector(solution.values)
+        product = solution.coefficients * x
+        holds = product == solution.constants
+        ctk.CTkLabel(
+            inside,
+            text="Con el producto de matrices, A por el vector solución tiene que dar b:",
+            font=theme.font("small"),
+            text_color=theme.MUTED,
+            anchor="w",
+        ).pack(fill="x", pady=(0, 12))
+        (
+            Expression(inside)
+            .matrix(solution.coefficients, "A")
+            .symbol("·")
+            .matrix(x, "x", highlight=True)
+            .symbol("=")
+            .matrix(product, "A x")
+        ).pack(anchor="w")
+        Chip(
+            inside,
+            "A x = b  ✓" if holds else "A x ≠ b",
+            theme.GREEN if holds else theme.RED,
+        ).pack(anchor="w", pady=(12, 18))
+
+        ctk.CTkLabel(
+            inside,
+            text="Y ecuación por ecuación:",
+            font=theme.font("small"),
+            text_color=theme.MUTED,
+            anchor="w",
+        ).pack(fill="x", pady=(0, 12))
         checked = verify(solution.coefficients, solution.constants, solution.values)
         MathBlock(inside, render_verification(checked), "left").pack(anchor="w")
 

@@ -57,9 +57,10 @@ class Program:
 
     The number and the title are the assignment's, not this repository's: the
     file is named the way the submission has to be named, `Programa N_GrupoX.py`.
+    An assignment that has a name instead of a number takes the name there.
     """
 
-    number: int
+    number: int | str
     title: str
     preamble: str
     blocks: list[Block] = field(default_factory=list)
@@ -141,6 +142,15 @@ ENGINE: list[Block] = [
         "antemano cuántas hay ni cómo se llaman.",
     ),
     Block(
+        "core/parametric.py",
+        "LA SOLUCIÓN GENERAL",
+        "Cuando hay infinitas soluciones, escribe la familia entera: cada variable\n"
+        "básica (la de una columna pivote) en función de las libres. Se lee de la\n"
+        "forma escalonada reducida, donde cada pivote es 1 y está solo en su\n"
+        "columna, así que la fila ya es el despeje y no hace falta sustituir hacia\n"
+        "atrás.",
+    ),
+    Block(
         "ui/presentation.py",
         "EL TEXTO QUE SE MUESTRA",
         "Convierte los objetos anteriores en las frases que lee una persona.\n"
@@ -190,13 +200,32 @@ WINDOW_BLOCKS: list[Block] = [
         "para localizarlas hay que reducir primero.",
     ),
     Block(
-        "core/parametric.py",
-        "LA SOLUCIÓN GENERAL",
-        "Cuando hay infinitas soluciones, escribe la familia entera: cada variable\n"
-        "básica (la de una columna pivote) en función de las libres. Se lee de la\n"
-        "forma escalonada reducida, donde cada pivote es 1 y está solo en su\n"
-        "columna, así que la fila ya es el despeje y no hace falta sustituir hacia\n"
-        "atrás.",
+        "core/bases.py",
+        "LOS SISTEMAS NUMÉRICOS",
+        "Escribe un número entero en cualquier base del 2 al 36, y lee uno de esas\n"
+        "bases de vuelta en base 10, sin usar int(texto, base), bin, oct ni hex.\n"
+        "Las cifras mayores que 9 se escriben con letras, de la A (10) a la Z (35):\n"
+        "  - Hacia otra base, por divisiones sucesivas: n = b·q + r. Cada residuo\n"
+        "    es una cifra, y se leen de la última división a la primera.\n"
+        "  - Hacia base 10, por la combinación lineal que representa el número:\n"
+        "    d_k·b^k + ... + d_1·b^1 + d_0·b^0.",
+    ),
+    Block(
+        "core/vectors.py",
+        "LOS VECTORES DE Rn",
+        "Un vector es una tupla de números exactos, y su dimensión n es la\n"
+        "cantidad de componentes que tenga: no se fija de antemano. Las\n"
+        "operaciones se hacen componente a componente:\n"
+        "  u + v = (u1 + v1, ..., un + vn)\n"
+        "  u - v = (u1 - v1, ..., un - vn)\n"
+        "  k u   = (k u1, ..., k un)\n"
+        "\n"
+        "b es combinación lineal de v1, ..., vk si hay escalares con\n"
+        "c1 v1 + ... + ck vk = b. Componente a componente eso es un sistema de n\n"
+        "ecuaciones con k incógnitas, cuya matriz aumentada tiene los vectores como\n"
+        "columnas, [ v1 ... vk | b ], y se resuelve con la misma eliminación de\n"
+        "arriba: una solución es una manera de combinarlos, infinitas son\n"
+        "infinitas maneras, y ninguna quiere decir que b no es combinación lineal.",
     ),
     Block(
         "gui/theme.py",
@@ -236,6 +265,15 @@ WINDOW_BLOCKS: list[Block] = [
         "leer, con el número de la línea que lo provoca.",
     ),
     Block(
+        "gui/pages/vectors.py",
+        "LA PESTAÑA DE VECTORES",
+        "Suma y resta de vectores, producto por un escalar, y la pregunta de si un\n"
+        "vector b es combinación lineal de v1, ..., vk. Las operaciones se\n"
+        "muestran como columnas y componente a componente. La combinación se\n"
+        "plantea como ecuación vectorial, se escribe como el sistema que es, se\n"
+        "resuelve paso a paso y se comprueba volviendo a sumar los vectores.",
+    ),
+    Block(
         "gui/pages/operations.py",
         "LA PESTAÑA DE OPERACIONES CON MATRICES",
         "Suma, resta, producto de matrices, producto por un escalar y traspuesta.\n"
@@ -259,7 +297,21 @@ WINDOW_BLOCKS: list[Block] = [
         "enunciado: la matriz aumentada, la eliminación paso a paso, el sistema\n"
         "equivalente, la clasificación, el despeje y la comprobación. El sistema\n"
         "se entra como coeficientes o escribiendo las ecuaciones, y el método se\n"
-        "elige entre Gauss y Gauss-Jordan dentro de la misma pestaña.",
+        "elige entre Gauss y Gauss-Jordan dentro de la misma pestaña.\n"
+        "\n"
+        "Antes de resolver, muestra el sistema como la ecuación matricial A x = b;\n"
+        "y una solución única se comprueba también con el producto de matrices\n"
+        "A x, que tiene que dar b.",
+    ),
+    Block(
+        "gui/pages/bases.py",
+        "LA PESTAÑA DE SISTEMAS NUMÉRICOS",
+        "Convierte un número decimal a binario, octal, hexadecimal o cualquier otra\n"
+        "base del 2 al 36, que se escribe en un campo propio, y cualquiera de esas\n"
+        "bases de vuelta a decimal. En el primer sentido escribe cada división como\n"
+        "la ecuación que es; en el segundo escribe la combinación lineal completa y\n"
+        "una tabla con lo que aporta cada posición.\n"
+        "Cada conversión se comprueba con la contraria.",
     ),
     Block(
         "gui/app.py",
@@ -275,24 +327,9 @@ WINDOW_BLOCKS: list[Block] = [
     ),
 ]
 
-PROGRAMS: list[Program] = [
-    Program(
-        number=1,
-        title="Solucion de Sistemas de Ecuaciones Lineales por Eliminacion por Filas",
-        preamble="""COMO EJECUTARLO
----------------
-    python "{filename}"
-
-No hace falta instalar nada: el programa se construye utilizando unicamente
-Python estandar, con listas anidadas, condicionales, bucles y funciones. No
-emplea NumPy, SciPy ni las funciones de algebra lineal de math.""",
-        blocks=[*ENGINE, *CONSOLE_BLOCKS],
-    ),
-    Program(
-        number=2,
-        title="Reduccion a la Forma Escalonada Reducida (Gauss-Jordan)\n"
-        "e Identificacion de Columnas Pivote",
-        preamble="""COMO EJECUTARLO
+# How to run a file that opens a window: the one thing any deliverable here
+# needs installed. Each program adds a paragraph saying what its maths is.
+WINDOW_HOWTO = """COMO EJECUTARLO
 ---------------
 Este programa abre una ventana, y para dibujarla usa CustomTkinter, que no
 viene incluida con Python. Se instala dentro de un entorno virtual propio
@@ -314,13 +351,64 @@ En Linux o macOS, desde la terminal:
     python3 "{filename}"
 
 Hace falta Python 3.12 o posterior. El comando deactivate cierra el entorno
-virtual al terminar, y borrar la carpeta .venv lo deshace todo.
+virtual al terminar, y borrar la carpeta .venv lo deshace todo."""
+
+PROGRAMS: list[Program] = [
+    Program(
+        number=1,
+        title="Solucion de Sistemas de Ecuaciones Lineales por Eliminacion por Filas",
+        preamble="""COMO EJECUTARLO
+---------------
+    python "{filename}"
+
+No hace falta instalar nada: el programa se construye utilizando unicamente
+Python estandar, con listas anidadas, condicionales, bucles y funciones. No
+emplea NumPy, SciPy ni las funciones de algebra lineal de math.""",
+        blocks=[*ENGINE, *CONSOLE_BLOCKS],
+    ),
+    Program(
+        number=2,
+        title="Reduccion a la Forma Escalonada Reducida (Gauss-Jordan)\n"
+        "e Identificacion de Columnas Pivote",
+        preamble=WINDOW_HOWTO + """
 
 CustomTkinter solo dibuja. Toda la matematica de este archivo (la aritmetica
 exacta, la eliminacion por filas, la clasificacion, el despeje y la
 comprobacion) esta escrita con Python estandar: listas anidadas,
 condicionales, bucles y funciones. No emplea NumPy, SciPy ni las funciones de
 algebra lineal de math.""",
+        blocks=[*ENGINE, *WINDOW_BLOCKS],
+    ),
+    # Two assignments handed in as one file: both are pages of the same window.
+    Program(
+        number="Vectores y Sistemas Numericos",
+        title="Vectores en Rn, Operaciones Matriciales y Ecuaciones Matriciales\n"
+        "Conversion de Numeros entre Sistemas Numericos",
+        preamble=WINDOW_HOWTO + """
+
+DONDE ESTA CADA REQUISITO
+-------------------------
+Los dos programas son pestanas de la misma ventana, en el menu de la izquierda:
+
+  Programa Vectores
+    Modulo de vectores (Rn)          pestana Vectores
+      suma, resta, k por un vector   botones u + v, u - v, k . u
+      combinacion lineal             boton Combinacion lineal
+    Operaciones matriciales          pestana Operaciones Matriciales
+    Ecuacion matricial A x = b       pestana Eliminacion Gaussiana, que es el
+                                     programa elaborado anteriormente
+
+  Programa Sistemas Numericos
+    Decimal a binario, octal,        pestana Sistemas Numericos,
+    hexadecimal (u otra base)        Decimal -> otra base
+    Binario, octal, hexadecimal      pestana Sistemas Numericos,
+    (u otra base) a decimal          Otra base -> decimal
+
+CustomTkinter solo dibuja. Toda la matematica esta escrita con Python
+estandar: listas, condicionales, bucles y funciones. No se usan NumPy, SciPy,
+funciones avanzadas de math, ni int(texto, base), bin, oct o hex: las
+conversiones se hacen por divisiones sucesivas y por la combinacion lineal de
+potencias de la base.""",
         blocks=[*ENGINE, *WINDOW_BLOCKS],
     ),
 ]
@@ -512,6 +600,35 @@ def block_heading(title: str, description: str) -> str:
     lines.append(RULE)
     return "\n".join(lines)
 
+def clashes(program: Program) -> list[str]:
+    """
+    Every global name that two blocks of one program both define.
+
+    In the repository each module has a namespace of its own, so two of them
+    can each have a `SUBTITLES` and never meet. Assembled into one file they
+    share a single namespace, the later one silently replaces the earlier, and
+    the page that relied on the first breaks only when it is opened. So the
+    build refuses instead.
+    """
+    owners: dict[str, str] = {}
+    found: list[str] = []
+    for block in program.blocks:
+        if not block.source:
+            continue
+        for node in ast.parse(Path(block.source).read_text(encoding="utf-8")).body:
+            names: list[str] = []
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                names = [node.name]
+            elif isinstance(node, ast.Assign):
+                names = [target.id for target in node.targets if isinstance(target, ast.Name)]
+            elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+                names = [node.target.id]
+            for name in names:
+                if name in owners and owners[name] != block.source:
+                    found.append(f"{name}: {owners[name]} y {block.source}")
+                owners.setdefault(name, block.source)
+    return found
+
 def build(program: Program) -> tuple[str, list[str]]:
     """Assemble one whole file, and report anything left untranslated."""
     plain: set[str] = set()
@@ -535,6 +652,14 @@ def build(program: Program) -> tuple[str, list[str]]:
 
 def write(program: Program) -> None:
     """Build one program, check that it compiles, and say where it landed."""
+    repeated = clashes(program)
+    if repeated:
+        print(f"No se puede construir {program.filename()}:")
+        print("dos modulos definen el mismo nombre, y en un solo archivo se pisarian\n")
+        for clash in repeated:
+            print(f"  {clash}")
+        sys.exit(1)
+
     text, missing = build(program)
 
     if missing:

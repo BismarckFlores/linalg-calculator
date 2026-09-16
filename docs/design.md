@@ -99,6 +99,23 @@ elimination against itself, and would agree with any bug that was consistent.
 It compares both sides exactly, with no tolerance. That is affordable only
 because nothing was ever rounded, and it is why every entry is a `Fraction`.
 
+## A linear combination is a system, not a new algorithm
+
+Whether b is a combination of v₁, …, vₖ is a question about scalars: is there a
+choice of c₁, …, cₖ with c₁v₁ + … + cₖvₖ = b? Written component by component
+that is n equations in k unknowns, and its augmented matrix is the vectors
+standing as columns next to b. So `core/vectors.py` builds `[ v₁ … vₖ | b ]`
+and hands it to `solve`, and the three answers are the three classifications:
+one way, infinitely many ways, or not a combination at all.
+
+That keeps the step by step, the ranks, the general solution and the check the
+same objects the elimination page already draws, and it means a combination
+cannot disagree with the system it is.
+
+The dimension n is never declared. A vector is its components, and the only
+rule is that one calculation's vectors agree; anything that would fix n first
+would be answering a question the assignment says is not known.
+
 ## The window is a front end, not a second program
 
 `gui/` sits beside `core/` and `ui/`, imports both, and is imported by neither.
@@ -148,6 +165,13 @@ file itself — so the window's build inserts a generated line pointing `theme`
 back at the file. Rewriting `gui/` to import the names directly would have made
 the repository worse to read in order to make the build simpler; one generated
 line, with a heading explaining it, is the cheaper side of that trade.
+
+Flattening has one cost the repository never shows: every module's globals
+land in the same namespace, and a name two modules both define is silently
+replaced by the later one. So `build.py` compares the globals of every block
+before it assembles anything and refuses a program where two of them collide.
+It was not hypothetical — two pages both had a `SUBTITLES`, and later two had
+an `EXAMPLE`.
 
 ## The translation is keyed by text, and missing one stops the build
 

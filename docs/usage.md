@@ -158,10 +158,13 @@ the way. One file per assignment:
 
 ```
 Escrito: deliverables/out/Programa 1_Grupo5.py
-  1484 lineas, 11 bloques
+  1647 lineas, 12 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa 2_Grupo5.py
-  2846 lineas, 16 bloques
+  5503 lineas, 24 bloques
+  Todo el texto del archivo esta en castellano.
+Escrito: deliverables/out/Programa Vectores y Sistemas Numericos_Grupo5.py
+  5521 lineas, 24 bloques
   Todo el texto del archivo esta en castellano.
 ```
 
@@ -174,6 +177,26 @@ for. Its first lines are the instructions for running it: make a `.venv`,
 `pip install customtkinter`, run the file. That is the only thing any
 deliverable here needs installed, and only to draw — the mathematics inside it
 is standard library too.
+
+**`Programa Vectores y Sistemas Numericos_Grupo5.py`** is the same window,
+handed in once for two assignments that have names rather than numbers: the
+vectors one and the numeral systems one. Its preamble maps every requirement of
+both to the tab that answers it:
+
+| Requirement | Where |
+| --- | --- |
+| Vectors of Rⁿ: `u + v`, `u − v`, `k · u` | Vectores |
+| Is b a linear combination of v₁, …, vₖ? | Vectores → Combinación lineal |
+| Matrix sum, difference, scalar and product, sizes checked | Operaciones Matriciales |
+| `A x = b` as a matrix equation, using the earlier program | Eliminación Gaussiana |
+| Decimal to binary, octal, hexadecimal, or any base 2–36 | Sistemas Numéricos → Decimal → otra base |
+| Any of those back to decimal, as a linear combination | Sistemas Numéricos → Otra base → decimal |
+
+The program is one file, but the reports are two, one per assignment:
+`Algebra lineal G5 Programa Vectores.docx` and `Algebra lineal G5 Programa
+Sistemas Numericos.docx`, each with its PDF, next to it in `deliverables/out/`.
+Both carry the cover of the first evaluation, then that assignment's
+requirements with a screenshot of each.
 
 `GROUP_NUMBER` at the top of `build.py` names the group; each `Program` in
 `PROGRAMS` carries its own number, title, preamble and blocks, and is written as
@@ -194,6 +217,16 @@ not source: **never edit them**. A change belongs in the module it came from,
 followed by another build.
 
 ### When the build refuses
+
+```
+No se puede construir Programa 2_Grupo5.py:
+dos modulos definen el mismo nombre, y en un solo archivo se pisarian
+
+  SUBTITLES: gui/pages/gauss.py y gui/pages/bases.py
+```
+
+Each module has a namespace of its own; the file handed in has one. Rename one
+of the two. The build checks this before translating anything.
 
 ```
 No se puede construir Programa 2_Grupo5.py:

@@ -7,6 +7,7 @@ it says it should, the modules of `core/` are wired together correctly.
 
 from fractions import Fraction
 
+from core.bases import BadDigit, from_base, to_base
 from core.echelon import analyse, free_columns, leading_entries, pivot_columns
 from core.elimination import to_ref, to_rref
 from core.equations import parse_equation, to_augmented, unknown_names
@@ -15,6 +16,16 @@ from core.parametric import general_solution
 from core.scalar import format_scalar
 from core.systems import SystemKind, solve
 from core.verification import verify
+from core.vectors import (
+    DimensionMismatch,
+    UnreadableComponent,
+    add,
+    combine,
+    linear_sum,
+    parse_vector,
+    scale,
+    subtract,
+)
 from core.worksheet import Worksheet
 
 
@@ -159,6 +170,79 @@ check("y = 8 - 2z", (family.basic[1].constant, family.basic[1].terms),
 free_at = Fraction(5)
 check("and it solves the system for any z", 
       [(-2 + free_at) + (8 - 2 * free_at) + free_at], [Fraction(6)])
+
+print("numeral systems: dividing into a base, and reading back out of it")
+binary = to_base(43, 2)
+check("43 in base 2", binary.numeral, "101011")
+check("the first division", (binary.divisions[0].quotient, binary.divisions[0].remainder),
+      (21, 1))
+check("every division holds", all(
+    step.dividend == 2 * step.quotient + step.remainder for step in binary.divisions), True)
+check("3054 in base 16", to_base(3054, 16).numeral, "BEE")
+check("43 in base 8", to_base(43, 8).numeral, "53")
+check("zero is one digit", to_base(0, 2).numeral, "0")
+back = from_base("101011", 2)
+check("101011 in base 2", back.value, 43)
+check("its combination", [(term.value, term.position) for term in back.terms],
+      [(1, 5), (0, 4), (1, 3), (0, 2), (1, 1), (1, 0)])
+check("a letter is worth its value", from_base("2b", 16).terms[1].value, 11)
+check("spaces are ignored", from_base("1010 1100", 2).value, 172)
+check("the round trip holds", all(
+    from_base(to_base(n, b).numeral, b).value == n for n in range(300) for b in (2, 8, 16)),
+    True)
+check("any base up to 36", to_base(35, 36).numeral, "Z")
+check("43 in base 5", to_base(43, 5).numeral, "133")
+check("a base with letters past F", from_base("1j", 20).value, 39)
+check("the round trip holds in every base", all(
+    from_base(to_base(n, b).numeral, b).value == n for n in range(200) for b in range(2, 37)),
+    True)
+try:
+    to_base(5, 37)
+    check("base 37 is refused", "accepted", "refused")
+except ValueError:
+    check("base 37 is refused", "refused", "refused")
+try:
+    from_base("5", 5)
+    check("a 5 is not a digit in base 5", "accepted", "refused")
+except BadDigit as problem:
+    check("a 5 is not a digit in base 5", problem.digit, "5")
+try:
+    from_base("102", 2)
+    check("a 2 is not a binary digit", "accepted", "refused")
+except BadDigit as problem:
+    check("a 2 is not a binary digit", problem.digit, "2")
+
+print("vectors of R^n: operations, and linear combinations")
+u = parse_vector("(1, -2, 3)")
+v = parse_vector("4 0 -1/2")
+check("the dimension is what was typed", len(parse_vector("1; 2; 3; 4; 5")), 5)
+check("a bracketed component", parse_vector("[1, (1/3)]"), (Fraction(1), Fraction(1, 3)))
+check("u + v", add(u, v), (5, -2, Fraction(5, 2)))
+check("u - v", subtract(u, v), (-3, -2, Fraction(7, 2)))
+check("k u", scale(Fraction(-3), u), (-3, 6, -9))
+check("a sum of multiples", linear_sum((Fraction(2), Fraction(-1)), (u, v)), (-2, -4, Fraction(13, 2)))
+try:
+    add(u, (Fraction(1), Fraction(2)))
+    check("R^3 and R^2 do not add", "accepted", "refused")
+except DimensionMismatch as problem:
+    check("R^3 and R^2 do not add", (problem.first, problem.second), (3, 2))
+try:
+    parse_vector("1, dos, 3")
+    check("a word is not a component", "accepted", "refused")
+except UnreadableComponent as problem:
+    check("a word is not a component", problem.text, "dos")
+a1, a2 = parse_vector("1, -2, -5"), parse_vector("2, 5, 6")
+one = combine([a1, a2], parse_vector("7, 4, -3"))
+check("b is a combination, one way", (one.solution.kind, one.weights), (SystemKind.UNIQUE, (3, 2)))
+check("and the weights give b", linear_sum(one.weights or (), [a1, a2]), (7, 4, -3))
+none = combine([a1, a2], parse_vector("1, 0, 0"))
+check("b is not a combination", (none.is_combination, none.weights), (False, None))
+many = combine([parse_vector("1, 1"), parse_vector("2, 2"), parse_vector("0, 1")],
+               parse_vector("3, 5"))
+check("infinitely many ways", many.solution.kind, SystemKind.INFINITE)
+check("the example sets the free scalar to 0", many.weights, (3, 0, 2))
+check("and it gives b", linear_sum(many.weights or (), [parse_vector("1, 1"),
+      parse_vector("2, 2"), parse_vector("0, 1")]), (3, 5))
 
 print("exact arithmetic, end to end")
 third = solve(Matrix([[3, 1]]))

@@ -625,6 +625,86 @@ class MatrixDisplay(ctk.CTkFrame):
                 pady=2,
             )
 
+class ColumnDisplay(ctk.CTkFrame):
+    """
+    A column in brackets whose entries are text rather than numbers: the
+    unknowns `x, y, z` of `A x = b`, standing where a vector would.
+
+    Every entry goes through `MathLine`, so a fraction written in one is
+    stacked exactly as it would be inside a `MatrixDisplay`.
+    """
+
+    def __init__(
+        self,
+        master: Any,
+        entries: Sequence[str],
+        color: Color = theme.INK,
+        background: Color = theme.CARD,
+    ) -> None:
+        super().__init__(master, fg_color="transparent")
+        Bracket(self, "left", background).grid(row=0, column=0, sticky="ns")
+        cells = ctk.CTkFrame(self, fg_color="transparent")
+        cells.grid(row=0, column=1, padx=1, pady=4)
+        Bracket(self, "right", background).grid(row=0, column=2, sticky="ns")
+        for row, entry in enumerate(entries):
+            MathLine(cells, entry, "mono", color).grid(
+                row=row, column=0, sticky="e", padx=8, pady=1
+            )
+
+class Expression(ctk.CTkFrame):
+    """
+    Matrices and the symbols between them, written in a row the way an equation
+    between vectors is written: `A · x = b`, `3 · v₁ + 2 · v₂ = b`.
+
+    Every piece is centred on its row, so a `+` sits level with the middle of
+    the columns beside it, and a matrix can carry a caption underneath naming
+    it. A long combination is broken with `new_line`, and carries on under the
+    first piece of the line before.
+
+    Each method returns the expression itself, so one is written as a chain in
+    the same order it is read.
+    """
+
+    def __init__(self, master: Any, background: Color = theme.CARD) -> None:
+        super().__init__(master, fg_color="transparent")
+        self._background = background
+        self._line = 0
+        self._column = 0
+
+    def matrix(self, matrix: Matrix, caption: str = "", highlight: bool = False) -> "Expression":
+        marked = (
+            [(i, j) for i in range(1, matrix.rows + 1) for j in range(1, matrix.cols + 1)]
+            if highlight
+            else []
+        )
+        return self._place(
+            MatrixDisplay(self, matrix, background=self._background, highlight=marked),
+            caption,
+        )
+
+    def column(
+        self, entries: Sequence[str], caption: str = "", color: Color = theme.INK
+    ) -> "Expression":
+        return self._place(ColumnDisplay(self, entries, color, self._background), caption)
+
+    def symbol(self, text: str, color: Color = theme.INK) -> "Expression":
+        return self._place(MathLine(self, text, "mono", color), "", padx=6)
+
+    def new_line(self) -> "Expression":
+        self._line += 1
+        self._column = 0
+        return self
+
+    def _place(self, widget: Any, caption: str, padx: int = 2) -> "Expression":
+        row = self._line * 2
+        widget.grid(row=row, column=self._column, padx=padx, pady=(0 if row == 0 else 12, 0))
+        if caption:
+            MathLine(self, caption, "mono_small", theme.MUTED).grid(
+                row=row + 1, column=self._column, pady=(2, 0)
+            )
+        self._column += 1
+        return self
+
 class SegmentedControl(ctk.CTkSegmentedButton):
     """The pill of choices at the top of a page: an operation, or a method."""
 

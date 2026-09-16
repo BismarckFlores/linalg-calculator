@@ -24,6 +24,8 @@ systems       classifies what came out, and clears the unknowns
    │                    equations      turns `2x + 3y = 5` into a row
    │                    echelon        reads the form of a matrix, and its pivots
    │                    parametric     the family, when there are infinitely many
+   │                    bases          whole numbers between bases, on its own
+   │                    vectors        Rⁿ, and combinations solved as a system
    ├────────────────────────┴──────────────┘
 presentation  turns all of the above into Spanish
 prompts       reads a system from the keyboard, either way round
@@ -40,7 +42,11 @@ itself; `equations` imports the same two, because reading text into a matrix has
 nothing to do with what is later done to that matrix. `echelon` and `parametric`
 hang off `elimination` rather than off `systems`, because they are about a
 matrix and not about a system: one reads the form of any matrix, the other reads
-a family off a reduced one.
+a family off a reduced one. `presentation` imports `parametric` too, to write
+that family out, which is why the handed-in files carry it in the shared engine.
+
+`vectors` sits below `systems`, the other way round from `bases`: a combination
+is a question about a system, so it asks `solve` rather than solving it again.
 
 ## What flows through it
 
@@ -283,6 +289,57 @@ The general solution, for a system with infinitely many.
 Only the columns of A count. A pivot on the constants column means there is no
 solution at all and no family to write, so the caller classifies first.
 
+## `core/bases.py`
+
+Whole numbers in any base from 2 to 36. It imports nothing from the rest of
+`core`: a numeral is not a matrix.
+
+| Name | Meaning |
+| --- | --- |
+| `to_base(value, base) -> ToBase` | Repeated division. Raises `ValueError` for a negative value or a base outside `LOWEST_BASE`..`HIGHEST_BASE`. |
+| `from_base(text, base) -> FromBase` | The linear combination of powers. Ignores spaces and letter case. Raises `EmptyNumeral` or `BadDigit`. |
+| `digit_value(character, base)` | What one digit is worth, `B` being 11. |
+| `DIGITS` | `0-9` then `A-Z`: the digit symbols, one per value from 0 to 35. |
+| `LOWEST_BASE`, `HIGHEST_BASE` | 2 and 36. The top is where the alphabet runs out, since a digit has to be one symbol. |
+
+**`ToBase`** — `value`, `base`, `divisions` and `numeral`. Each **`Division`**
+is `dividend = base * quotient + remainder`, in the order they were done, so
+the numeral is the remainders read backwards.
+
+**`FromBase`** — `numeral`, `base`, `terms` and `value`. Each **`Term`** is one
+digit: `digit`, its `value`, its `position` counted from 0 on the right, the
+`power` of the base there and the `amount` it contributes.
+
+**`BadDigit`** carries the offending `digit` and the `base`, so the interface
+can name both. Both errors descend from `NumeralError`, a `ValueError`.
+
+Nothing is delegated to `int(text, base)`, `bin`, `oct` or `hex`.
+
+## `core/vectors.py`
+
+Vectors of Rⁿ as tuples of `Fraction`. The dimension is the length of the tuple
+and nothing else; every function that takes two vectors refuses two of different
+length.
+
+| Name | Meaning |
+| --- | --- |
+| `Vector` | `tuple[Scalar, ...]`. |
+| `parse_vector(text) -> Vector` | `(1, -2, 1/3)`, `1 -2 1/3` or `[1; -2; (1/3)]`. Components split on commas, semicolons or spaces, so a decimal takes a point. Raises `EmptyVector` or `UnreadableComponent`. |
+| `add(u, v)`, `subtract(u, v)` | Component by component. Raise `DimensionMismatch`. |
+| `scale(k, u)` | Every component times `k`. |
+| `linear_sum(weights, vectors)` | `c₁v₁ + … + cₖvₖ`, scaling each vector and adding them in turn. |
+| `combination_matrix(vectors, target) -> Matrix` | `[ v₁ … vₖ \| b ]`, the vectors as columns. |
+| `combine(vectors, target) -> Combination` | Builds that matrix and solves it. |
+
+**`Combination`** — frozen. `vectors`, `target`, the `solution` of the system,
+and `general`, the family when there are infinitely many. `is_combination` is
+false only for an inconsistent system. `weights` is the one solution, or with
+infinitely many the one that sets every free scalar to 0, or `None`.
+
+**`UnreadableComponent`** carries the `text` that was typed; **`DimensionMismatch`**
+carries `first` and `second`, the two dimensions. All three errors descend from
+`VectorError`, a `ValueError`.
+
 ## `core/verification.py`
 
 | Name | Meaning |
@@ -310,6 +367,10 @@ nothing.
 | `describe(solution)` | The classification, in the assignment's exact words. |
 | `render_values(solution, names=())` | The values, or the free variables, or the contradictory row — whichever applies to the kind. |
 | `render_equations(solution, names=())` | The echelon form read back as equations. |
+| `render_system(matrix, unknowns, names=())` | Any augmented matrix read as equations — the one `render_equations` uses, and the one that writes a combination out as a system. |
+| `render_general(family, names=())` | The general solution, one line per basic variable: `x = 1 - 4z`. A constant of zero is left out when there is anything else to write. |
+| `render_linear_sum(weights, names)` | `3v₁ - v₂ + (1/2)v₃`, zeros left out; `0` when every weight is zero. |
+| `typographic_rows(block)` | `f_2:` as `f₂:` inside a block, keeping what was lined up under it. For the window, like `pretty_label`. |
 | `render_substitutions(solution, names=())` | The clearing, four lines per unknown, or three when the last two would say the same. |
 | `render_verification(verification)` | Each equation substituted, and the verdict. |
 
@@ -360,12 +421,14 @@ The window. `python -m gui`, from the repository root. Full notes in
 | Module | Holds |
 | --- | --- |
 | `gui/theme.py` | Every colour as a `(light, dark)` pair, the fonts, `set_dark`, and `on_change` for the parts drawn by hand. |
-| `gui/widgets.py` | `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `StepWalker`, `FractionCell`, `MathLine`, `MathBlock`, `MathChip`. |
+| `gui/widgets.py` | `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `StepWalker`, `FractionCell`, `MathLine`, `MathBlock`, `MathChip`, and `ColumnDisplay` and `Expression`, which write an equation between matrices in a row: `A · x = b`, `c₁ v₁ + c₂ v₂ = b`. |
 | `gui/entry.py` | `SystemInput`, the input card both pages use, and `Typed`, what it hands back: the matrix, the names of the unknowns, and how many columns are coefficients. `augmentable=True` adds the switch that marks a single grid as `[ A \| b ]`. |
 | `gui/app.py` | `MODULES` — the sidebar, in order — plus `NavRow`, `Application` and `main()`. |
+| `gui/pages/vectors.py` | `VectorsPage`: `u + v`, `u − v`, `k · u` and linear combinations in Rⁿ, as columns and component by component. Owns its Spanish. |
 | `gui/pages/operations.py` | `OperationsPage`: the five matrix operations. |
 | `gui/pages/echelon.py` | `EchelonPage`: the five properties, the leading entries and the pivots. Owns their Spanish, since no other front end says it. |
-| `gui/pages/gauss.py` | `GaussPage`: `A x = b` by either method, from coefficients or from written equations, with the step by step. |
+| `gui/pages/bases.py` | `BasesPage`: decimal to base 2, 8, 16 or any other from 2 to 36 and back, with the divisions, the combination and a table of positions. |
+| `gui/pages/gauss.py` | `GaussPage`: `A x = b` by either method, from coefficients or from written equations, shown first as the matrix equation, with the step by step, and a unique solution checked with the product `A x` as well as equation by equation. |
 
 `MODULES` holds only what works. A row is added when its page is; a program with
 no page has no row, and `_build_page` raises for a key it does not know rather
@@ -377,14 +440,15 @@ message. The names are empty for the grid route, because nothing there ever says
 what the unknowns are called.
 
 Nothing in `gui/` calculates. `build.py` assembles it into
-`Programa 2_Grupo5.py`, the deliverable that opens a window.
+`Programa 2_Grupo5.py` and `Programa Vectores y Sistemas Numericos_Grupo5.py`,
+the deliverables that open a window.
 
 ## Outside the packages
 
 | File | Does |
 | --- | --- |
 | `check.py` | Runs the engine end to end and prints one line per claim. Run it after touching `core/`. |
-| `build.py` | Assembles the handed-in files. `PROGRAMS` lists what gets built, each with a preamble and its blocks; `ENGINE` is what they share, `WINDOW_BLOCKS` and `CONSOLE_BLOCKS` what each adds. `GROUP_NUMBER` and `PROGRAM_NUMBER` name the output. |
+| `build.py` | Assembles the handed-in files. `PROGRAMS` lists what gets built, each with a preamble and its blocks; `ENGINE` is what they share, `WINDOW_BLOCKS` and `CONSOLE_BLOCKS` what each adds. `GROUP_NUMBER` and each program's `number` name the output; an assignment with a name instead of a number uses the name. `clashes` refuses a program whose blocks define the same global twice. |
 | `translations.py` | `DOCSTRINGS` and `COMMENTS`, keyed by the exact English text. A missing entry stops the build. |
 | `requirements-gui.txt` | CustomTkinter. Needed by `gui/` and by nothing else. |
 

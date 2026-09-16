@@ -20,9 +20,11 @@ from typing import Any
 import customtkinter as ctk
 
 from . import theme
+from .pages.bases import BasesPage
 from .pages.echelon import EchelonPage
 from .pages.gauss import GaussPage
 from .pages.operations import OperationsPage
+from .pages.vectors import VectorsPage
 from .widgets import Card
 
 @dataclass(frozen=True)
@@ -33,15 +35,18 @@ class Module:
     glyph: str
     name: str
 
-# The order of the menu, and the first row is the page that opens. The two that
-# solve something come first, in the order they are used; reading the form of a
-# matrix is a check somebody reaches for after one of those, so it sits at the
-# end. Gauss and Gauss-Jordan share a row: they are two settings of one method,
-# and the choice between them belongs inside the page.
+# The order of the menu, and the first row is the page that opens. It follows
+# the course: vectors first, then matrices and their arithmetic, then systems,
+# and reading the form of a matrix as the check that follows them. Gauss and
+# Gauss-Jordan share a row: they are two settings of one method, and the choice
+# between them belongs inside the page. The numeral systems have nothing to do
+# with matrices, so they sit apart, at the end.
 MODULES = (
+    Module("vectors", "↗", "Vectores"),
     Module("operations", "⊞", "Operaciones Matriciales"),
     Module("gauss", "▦", "Eliminación Gaussiana"),
     Module("echelon", "▧", "Formas Escalonadas"),
+    Module("bases", "⇄", "Sistemas Numéricos"),
 )
 
 SIDEBAR_WIDTH = 268
@@ -234,12 +239,16 @@ class Application(ctk.CTk):
         self._container._parent_canvas.yview_moveto(0.0)
 
     def _build_page(self, key: str) -> ctk.CTkFrame:
+        if key == "vectors":
+            return VectorsPage(self._container)
         if key == "operations":
             return OperationsPage(self._container)
         if key == "echelon":
             return EchelonPage(self._container)
         if key == "gauss":
             return GaussPage(self._container)
+        if key == "bases":
+            return BasesPage(self._container)
         raise KeyError(f"No page is registered for {key!r}.")
 
 def main() -> None:

@@ -199,6 +199,8 @@ The program names the row rather than saying one exists somewhere.
 | Reading a written equation | `core/equations.py` |
 | The form of a matrix, and its pivots | `core/echelon.py` |
 | The general solution, when there are many | `core/parametric.py` |
+| Whole numbers between bases | `core/bases.py` |
+| Vectors, and linear combinations | `core/vectors.py` |
 | Every word on screen | `ui/presentation.py` |
 | Reading the keyboard | `ui/prompts.py` |
 | Ordering the seven sections | `deliverables/program1.py` |

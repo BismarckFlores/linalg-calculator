@@ -1066,6 +1066,222 @@ DOCSTRINGS: dict[str, str] = {
     # ----- gui/pages/gauss.py -----
     "The walk, in a card that keeps its own count in the heading.":
         "El recorrido, en una tarjeta que lleva su propia cuenta en el encabezado.",
+
+    # ----- core/bases.py -----
+    "The text is not a numeral of the base it was given in.":
+        "El texto no es un numero de la base que se indico.",
+    "There is nothing to read.":
+        "No hay nada que leer.",
+    "A character that is not a digit of the base. `digit` is the character.":
+        "Un caracter que no es cifra de la base. digit es ese caracter.",
+    "One division of the procedure: `dividend = base * quotient + remainder`.":
+        "Una division del procedimiento: dividendo = base * cociente + residuo.",
+    "A whole number written in another base, and the divisions that wrote it.":
+        "Un numero entero escrito en otra base, y las divisiones que lo escribieron.",
+    "One term of the combination: `digit * base ** position`.":
+        "Un termino de la combinacion: cifra * base ** posicion.",
+    "A numeral read back as the combination of powers of its base.":
+        "Un numero leido de vuelta como la combinacion de potencias de su base.",
+    "What one digit is worth: `7` is 7, `B` is 11. Raises `BadDigit`.":
+        "Lo que vale una cifra: 7 vale 7, B vale 11. Lanza BadDigit si no es cifra.",
+    "Write a whole number in another base by dividing it again and again.\n"
+    "\n"
+    "`n = b*q1 + r1`, then `q1 = b*q2 + r2`, and so on until a quotient is 0.\n"
+    "Each remainder is less than the base, so it is one digit, and the last one\n"
+    "found is the leading digit: `n = r_k*b^k + ... + r2*b + r1`.":
+        "Escribe un numero entero en otra base dividiendolo una y otra vez.\n"
+        "\n"
+        "n = b*q1 + r1, luego q1 = b*q2 + r2, y asi hasta que un cociente es 0.\n"
+        "Cada residuo es menor que la base, asi que es una sola cifra, y el ultimo\n"
+        "que se obtiene es la cifra de mas peso: n = r_k*b^k + ... + r2*b + r1.",
+    "Read a numeral as the linear combination of powers of its base.\n"
+    "\n"
+    "`d_k ... d_1 d_0 = d_k*b^k + ... + d_1*b^1 + d_0*b^0`. Spaces are ignored,\n"
+    "so a long binary number can be typed in groups, and letters in either case.":
+        "Lee un numero como la combinacion lineal de potencias de su base.\n"
+        "\n"
+        "d_k ... d_1 d_0 = d_k*b^k + ... + d_1*b^1 + d_0*b^0. Los espacios se\n"
+        "ignoran, para poder escribir un binario largo por grupos, y las letras\n"
+        "valen en mayuscula o en minuscula.",
+
+    # ----- gui/pages/bases.py -----
+    "A numeral with its base written under it: `101011₂`.":
+        "Un numero con su base escrita debajo: 101011₂.",
+    "A remainder as the digit it becomes: 11 is `B`.":
+        "Un residuo como la cifra en que se convierte: 11 es B.",
+    "A power the way it is written by hand: `2⁵`.":
+        "Una potencia como se escribe a mano: 2⁵.",
+    "A sum written out term by term, broken into lines of a few terms each.\n"
+    "\n"
+    "Every line after the first starts under the first term, with the `+` in\n"
+    "front, so a long binary number still reads as one expression.":
+        "Una suma escrita termino a termino, partida en lineas de pocos terminos.\n"
+        "\n"
+        "Cada linea despues de la primera empieza debajo del primer termino, con el\n"
+        "+ delante, para que un binario largo se siga leyendo como una sola expresion.",
+    "The page that converts a whole number between base 10 and any base from 2 to 36.":
+        "La pagina que convierte un numero entero entre la base 10 y cualquier base del 2 al 36.",
+    "Which digits a base writes with, said the way a person would.":
+        "Que cifras usa una base, dicho como lo diria una persona.",
+    "What the remainders past 9 are written as, or nothing if there are none.":
+        "Como se escriben los residuos mayores que 9, o nada si no los hay.",
+    "The base picked, or None while the custom field does not hold one.\n"
+    "\n"
+    "The field is read as a decimal numeral by the same `from_base` the page\n"
+    "is about, so not even the base goes through `int`.":
+        "La base elegida, o None mientras el campo de otra base no tenga una valida.\n"
+        "\n"
+        "El campo se lee como un numero decimal con el mismo from_base del que trata\n"
+        "la pagina, asi que ni siquiera la base pasa por int.",
+    "Put an example in the box, unless somebody has typed their own number.\n"
+    "\n"
+    "`43` means nothing in base 2, so switching direction or base with the\n"
+    "example still showing swaps it for 43 written in the new base. While the\n"
+    "custom field holds no base, the example is left as it is.":
+        "Pone un ejemplo en la caja, salvo que alguien haya escrito su propio numero.\n"
+        "\n"
+        "43 no significa nada en base 2, asi que al cambiar de sentido o de base con\n"
+        "el ejemplo todavia a la vista, se cambia por 43 escrito en la base nueva.\n"
+        "Mientras el campo de otra base no tenga una valida, el ejemplo se queda igual.",
+    "The numeral written out as a sum of powers, and worked down to one number.":
+        "El numero escrito como suma de potencias, y resuelto hasta un solo numero.",
+    "The same combination as a table: one row per digit, from the left.":
+        "La misma combinacion en forma de tabla: una fila por cifra, desde la izquierda.",
+    "The conversion in one line, large, before the working that justifies it.":
+        "La conversion en una linea, en grande, antes del procedimiento que la justifica.",
+    "A conversion stops being true the moment the number or the base changes.":
+        "Una conversion deja de ser cierta en cuanto cambia el numero o la base.",
+
+    # ----- vectors, and the pieces they brought -----
+    'Any augmented matrix written as the system of equations it stands for.':
+        'Cualquier matriz aumentada escrita como el sistema de ecuaciones que representa.',
+    '`x = 1 + 4z`, one line per basic variable, the names lined up on the equals.':
+        'x = 1 + 4z, una linea por variable basica, con los nombres alineados en el igual.',
+    "`3v₁ - v₂ + (1/2)v₃`: each scalar in front of its name, zeros left out.\n"
+    "\n"
+    "A sum where every scalar is zero is the zero vector, and is written `0`.":
+        "3v₁ - v₂ + (1/2)v₃: cada escalar delante de su nombre, sin los ceros.\n"
+        "\n"
+        "Una suma en la que todos los escalares son cero es el vector cero, y se escribe 0.",
+    'Something typed is not a vector, or the vectors do not fit together.':
+        'Lo escrito no es un vector, o los vectores no encajan entre si.',
+    'There are no components to read.':
+        'No hay componentes que leer.',
+    'A component that is not a number. `text` is the piece that was typed.':
+        'Una componente que no es un numero. text es el trozo que se escribio.',
+    'Two vectors that do not live in the same R^n.':
+        'Dos vectores que no estan en el mismo Rn.',
+    "Read `(1, -2, 1/3)` as a vector of R^3.\n"
+    "\n"
+    "The brackets around the whole vector are optional, and so are brackets\n"
+    "around a single component. The dimension is however many components there\n"
+    "turn out to be.":
+        "Lee (1, -2, 1/3) como un vector de R3.\n"
+        "\n"
+        "Los parentesis alrededor del vector son opcionales, y tambien los de una\n"
+        "componente suelta. La dimension es la cantidad de componentes que resulten.",
+    'u + v: the components in the same position added together.':
+        'u + v: se suman las componentes que estan en la misma posicion.',
+    'u - v: the components of v taken from those of u, position by position.':
+        'u - v: a cada componente de u se le resta la de v en la misma posicion.',
+    'k u: every component multiplied by the same scalar.':
+        'k u: cada componente multiplicada por el mismo escalar.',
+    "c1 v1 + ... + ck vk, worked out as the definition says: scale each vector,\n"
+    "then add them one after another.":
+        "c1 v1 + ... + ck vk, calculado como dice la definicion: se multiplica cada\n"
+        "vector por su escalar y despues se suman uno tras otro.",
+    '[ v1 ... vk | b ]: the vectors standing as columns, and b as the last one.':
+        '[ v1 ... vk | b ]: los vectores puestos como columnas, y b como la ultima.',
+    'Whether b is a combination of the vectors, and the system that decided it.':
+        'Si b es combinacion de los vectores, y el sistema que lo decidio.',
+    "Decide whether `target` is a linear combination of `vectors`.\n"
+    "\n"
+    "Builds [ v1 ... vk | b ] and solves it. When there are infinitely many\n"
+    "solutions the family is written out as well, read off the reduced form.":
+        "Decide si target es combinacion lineal de vectors.\n"
+        "\n"
+        "Arma [ v1 ... vk | b ] y lo resuelve. Cuando hay infinitas soluciones\n"
+        "escribe tambien la familia, leida de la forma escalonada reducida.",
+    'True unless the system has no solution.':
+        'Verdadero salvo que el sistema no tenga solucion.',
+    "One choice of scalars that works, or None when there is none.\n"
+    "\n"
+    "With a single solution that is the solution. With infinitely many it is\n"
+    "the one that sets every free scalar to 0, which leaves each basic scalar\n"
+    "equal to the constant of its row in the reduced form.":
+        "Una eleccion de escalares que funciona, o None si no hay ninguna.\n"
+        "\n"
+        "Con una sola solucion, es esa solucion. Con infinitas, es la que pone en 0\n"
+        "todos los escalares libres, y entonces cada escalar basico vale la constante\n"
+        "de su fila en la forma escalonada reducida.",
+    "A column in brackets whose entries are text rather than numbers: the\n"
+    "unknowns `x, y, z` of `A x = b`, standing where a vector would.\n"
+    "\n"
+    "Every entry goes through `MathLine`, so a fraction written in one is\n"
+    "stacked exactly as it would be inside a `MatrixDisplay`.":
+        "Una columna entre corchetes cuyas entradas son texto y no numeros: las\n"
+        "incognitas x, y, z de A x = b, puestas donde iria un vector.\n"
+        "\n"
+        "Cada entrada pasa por MathLine, asi que una fraccion escrita en ella se\n"
+        "apila igual que dentro de un MatrixDisplay.",
+    "Matrices and the symbols between them, written in a row the way an equation\n"
+    "between vectors is written: `A · x = b`, `3 · v₁ + 2 · v₂ = b`.\n"
+    "\n"
+    "Every piece is centred on its row, so a `+` sits level with the middle of\n"
+    "the columns beside it, and a matrix can carry a caption underneath naming\n"
+    "it. A long combination is broken with `new_line`, and carries on under the\n"
+    "first piece of the line before.\n"
+    "\n"
+    "Each method returns the expression itself, so one is written as a chain in\n"
+    "the same order it is read.":
+        "Matrices y los simbolos entre ellas, escritos en fila como se escribe una\n"
+        "ecuacion entre vectores: A · x = b, 3 · v₁ + 2 · v₂ = b.\n"
+        "\n"
+        "Cada pieza va centrada en su fila, asi que un + queda a la altura del centro\n"
+        "de las columnas de al lado, y una matriz puede llevar debajo un rotulo con\n"
+        "su nombre. Una combinacion larga se parte con new_line y sigue debajo de la\n"
+        "primera pieza de la linea anterior.\n"
+        "\n"
+        "Cada metodo devuelve la propia expresion, asi que se escribe en cadena en el\n"
+        "mismo orden en que se lee.",
+    '`v` and 2 written as `v₂`.':
+        'v y 2 escritos como v₂.',
+    'A vector written in a line, the way it is in a text: `(1, -2, 1/3)`.':
+        'Un vector escrito en una linea, como en un texto: (1, -2, 1/3).',
+    "`a + b` or `a - b` with the sign of b folded into the operation.\n"
+    "\n"
+    "`2 + (-3)` is written `2 - 3` and `2 - (-3)` is written `2 + 3`, the way\n"
+    "it is by hand once the brackets have done their job.":
+        "a + b o a - b con el signo de b metido en la operacion.\n"
+        "\n"
+        "2 + (-3) se escribe 2 - 3 y 2 - (-3) se escribe 2 + 3, como se hace a mano\n"
+        "una vez que los parentesis han cumplido su funcion.",
+    'A scalar after the first, with its sign as the operation: `+ 2`, `- 1/3`.':
+        'Un escalar despues del primero, con su signo como operacion: + 2, - 1/3.',
+    "`k` times one component: `3(2)`, `-3(2)`, `(1/2)(-4)`.\n"
+    "\n"
+    "The component always goes in brackets, since two numbers next to each other\n"
+    "would run together. A whole negative scalar goes in front as it is, the way\n"
+    "a line starts by hand; a fraction goes in brackets of its own.":
+        "k por una componente: 3(2), -3(2), (1/2)(-4).\n"
+        "\n"
+        "La componente va siempre entre parentesis, porque dos numeros juntos se\n"
+        "confundirian. Un escalar entero negativo va delante tal cual, como empieza\n"
+        "una linea a mano; una fraccion lleva sus propios parentesis.",
+    'The page of vector operations in R^n and linear combinations.':
+        'La pagina de operaciones con vectores de Rn y de combinaciones lineales.',
+    'A name and the box its value is typed into, on one line of a grid.':
+        'Un nombre y la caja donde se escribe su valor, en una fila de una cuadricula.',
+    'One vector, or a Spanish sentence about why it is not one.':
+        'Un vector, o una frase en castellano que explica por que no lo es.',
+    'v₁ to vₖ, one per line, each with as many components as b.':
+        'De v₁ a vₖ, uno por linea, cada uno con tantas componentes como b.',
+    'The same operation, one component at a time, as three lined-up columns.':
+        'La misma operacion, componente por componente, en tres columnas alineadas.',
+    'The scalars put back: every vector scaled, then all of them added up.':
+        'Los escalares puestos de vuelta: cada vector multiplicado y despues todos sumados.',
+    'The system as one equation between matrices: A times the unknowns is b.':
+        'El sistema como una sola ecuacion entre matrices: A por las incognitas es b.',
 }
 
 COMMENTS: dict[str, str] = {
@@ -1222,16 +1438,8 @@ COMMENTS: dict[str, str] = {
         "# ----- Mantenimiento -----",
 
     # ----- gui/app.py -----
-    "# The order of the menu, and the first row is the page that opens. The two that":
-        "# El orden del menu, y la primera fila es la pagina que se abre. Las dos que",
-    "# solve something come first, in the order they are used; reading the form of a":
-        "# resuelven algo van primero, en el orden en que se usan; leer la forma de una",
-    "# matrix is a check somebody reaches for after one of those, so it sits at the":
-        "# matriz es una comprobacion que se hace despues de una de ellas, asi que va",
-    "# end. Gauss and Gauss-Jordan share a row: they are two settings of one method,":
-        "# al final. Gauss y Gauss-Jordan comparten fila: son dos ajustes de un mismo",
-    "# and the choice between them belongs inside the page.":
-        "# metodo, y la eleccion entre ellos va dentro de la pagina.",
+    "# Gauss-Jordan share a row: they are two settings of one method, and the choice":
+        "# Gauss-Jordan comparten fila: son dos ajustes de un mismo metodo, y la eleccion",
     "# ----- The wheel -----":
         "# ----- La rueda del raton -----",
     "# ----- The sidebar -----":
@@ -1326,4 +1534,98 @@ COMMENTS: dict[str, str] = {
     # ----- gui/pages/gauss.py -----
     "# ----- The two methods -----":
         "# ----- Los dos metodos -----",
+
+    # ----- core/bases.py -----
+    "# The symbols a digit is written with: the ten figures, then the alphabet. One":
+        "# Los simbolos con que se escribe una cifra: las diez cifras y luego el alfabeto.",
+    "# symbol per digit is what makes a numeral readable, so the alphabet running out":
+        "# Un simbolo por cifra es lo que hace legible un numero, asi que las bases",
+    "# is where the bases stop.":
+        "# terminan donde se acaba el alfabeto.",
+
+    # ----- gui/pages/bases.py -----
+    "# The bases on offer, by the name somebody picks them by, and the choice that":
+        "# Las bases disponibles, con el nombre con que se eligen, y la opcion que",
+    "# opens a field for any other.":
+        "# abre un campo para cualquier otra.",
+    "# What the custom field holds before anybody types: a base none of the others is.":
+        "# Lo que tiene el campo de otra base antes de escribir: una base que no es ninguna de las demas.",
+    "# Packed only while \"Otra base\" is the choice.":
+        "# Solo se muestra mientras la opcion elegida es \"Otra base\".",
+    "# The number every example is, written in whichever base is showing, so the":
+        "# El numero que es cada ejemplo, escrito en la base que este a la vista, para",
+    "# first click works in all of them.":
+        "# que el primer clic funcione en todas.",
+    "# Which digits the bases with a name write with, for when somebody uses another.":
+        "# Que cifras usan las bases con nombre, para cuando alguien escribe otra.",
+    "# Long enough for any number worth converting by hand, short enough to draw.":
+        "# Suficiente para cualquier numero que se convierta a mano, y corto para dibujarlo.",
+    "# How many terms of a combination fit on one line before it wraps.":
+        "# Cuantos terminos de una combinacion caben en una linea antes de partirla.",
+    "# ----- Choosing what to convert -----":
+        "# ----- Eleccion de lo que se convierte -----",
+    "# ----- Converting -----":
+        "# ----- Conversion -----",
+    "# ----- From decimal -----":
+        "# ----- Desde decimal -----",
+    "# The divisions are not trusted with their own answer: read it back.":
+        "# No se confia en las divisiones para su propio resultado: se lee de vuelta.",
+    "# ----- To decimal -----":
+        "# ----- Hacia decimal -----",
+    "# ----- Pieces shared by both directions -----":
+        "# ----- Piezas comunes a los dos sentidos -----",
+
+    # ----- vectors, and the pieces they brought -----
+    '# A constant of zero only goes when something else is left to write.':
+        '# Una constante cero solo se quita cuando queda otra cosa que escribir.',
+    '# Components are separated by commas, semicolons or spaces. A decimal takes a':
+        '# Las componentes se separan con comas, punto y coma o espacios. Un decimal lleva',
+    '# point, because a comma already means the next component.':
+        '# punto, porque la coma ya significa que empieza la siguiente componente.',
+    '# What the boxes hold before anybody types, so the first click shows something.':
+        '# Lo que tienen las cajas antes de escribir, para que el primer clic muestre algo.',
+    '# How many vectors of a combination fit on one line before it wraps.':
+        '# Cuantos vectores de una combinacion caben en una linea antes de partirla.',
+    '# A colour per answer, so it is legible before it is read.':
+        '# Un color por respuesta, para que se entienda antes de leerla.',
+    '# The three fields of the operations, and the two of a combination.':
+        '# Los tres campos de las operaciones, y los dos de una combinacion.',
+    '# ----- Choosing what to calculate -----':
+        '# ----- Eleccion de lo que se calcula -----',
+    '# The error banner was just hidden, so the buttons are the next thing':
+        '# El aviso de error se acaba de ocultar, asi que los botones son lo siguiente',
+    '# down, and the fields go straight above them.':
+        '# hacia abajo, y los campos van justo encima de ellos.',
+    '# k u has a scalar and no v; the other two have v and no scalar.':
+        '# k u tiene escalar y no tiene v; las otras dos tienen v y no tienen escalar.',
+    '# ----- Reading what was typed -----':
+        '# ----- Lectura de lo escrito -----',
+    '# ----- Sum and difference -----':
+        '# ----- Suma y resta -----',
+    '# ----- A scalar times a vector -----':
+        '# ----- Un escalar por un vector -----',
+    '# ----- Linear combination -----':
+        '# ----- Combinacion lineal -----',
+    '# The question, written as the vector equation and as the system it is.':
+        '# La pregunta, escrita como ecuacion vectorial y como el sistema que es.',
+    '# The system, solved by the same elimination as everywhere else.':
+        '# El sistema, resuelto con la misma eliminacion que en todas partes.',
+    '# The matrix form goes first, because it is the system being solved.':
+        '# La forma matricial va primero, porque es el sistema que se esta resolviendo.',
+    '# ----- The matrix form -----':
+        '# ----- La forma matricial -----',
+    '# The first check is the matrix form itself: the product A x, worked with':
+        '# La primera comprobacion es la propia forma matricial: el producto A x, hecho con',
+    '# the same multiplication the Operaciones Matriciales page uses.':
+        '# la misma multiplicacion que usa la pagina de Operaciones Matriciales.',
+    '# The order of the menu, and the first row is the page that opens. It follows':
+        '# El orden del menu, y la primera fila es la pagina que se abre. Sigue el',
+    '# the course: vectors first, then matrices and their arithmetic, then systems,':
+        '# curso: primero vectores, luego matrices y sus operaciones, luego sistemas,',
+    '# and reading the form of a matrix as the check that follows them. Gauss and':
+        '# y leer la forma de una matriz como la comprobacion que les sigue. Gauss y',
+    '# between them belongs inside the page. The numeral systems have nothing to do':
+        '# entre ellos va dentro de la pagina. Los sistemas numericos no tienen que ver',
+    '# with matrices, so they sit apart, at the end.':
+        '# con matrices, asi que van aparte, al final.',
 }

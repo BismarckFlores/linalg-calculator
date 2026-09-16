@@ -13,6 +13,7 @@ import re
 from collections.abc import Sequence
 
 from core.matrix import Matrix
+from core.parametric import General
 from core.scalar import Scalar, format_factor, format_scalar
 from core.steps import StepLog
 from core.systems import Solution, SystemKind
@@ -75,6 +76,20 @@ def render_steps(log: StepLog, unknowns: int) -> str:
         )
     return "\n\n".join(blocks)
 
+# A row named at the start of a line, inside a block already lined up in columns.
+_ROW_TAG = re.compile(r"f_(\d+):")
+
+def typographic_rows(block: str) -> str:
+    """
+    `f_2:` written `f₂:` without moving anything that was lined up under it.
+
+    `ui/presentation.py` lays these blocks out in columns, counting characters,
+    and a subscript costs one character less than `f_2` does. The space the
+    underscore used to take is put back after the colon, so the lines that were
+    indented to match still match.
+    """
+    return _ROW_TAG.sub(lambda match: f"f{match[1].translate(SUBSCRIPTS)}: ", block)
+
 def pretty_label(label: str) -> str:
     """
     A step label in typographic notation: `f₂ → f₂ + 3 · f₁`.
@@ -120,18 +135,21 @@ def render_values(solution: Solution, names: Sequence[str] = ()) -> str:
 
 def render_equations(solution: Solution, names: Sequence[str] = ()) -> str:
     """The echelon matrix written back as the system of equations it stands for."""
-    echelon = solution.result
-    constants = solution.unknowns + 1
+    return render_system(solution.result, solution.unknowns, names)
+
+def render_system(matrix: Matrix, unknowns: int, names: Sequence[str] = ()) -> str:
+    """Any augmented matrix written as the system of equations it stands for."""
+    constants = unknowns + 1
     rows: list[tuple[str, str, str]] = []
 
-    for row in range(1, echelon.rows + 1):
+    for row in range(1, matrix.rows + 1):
         pieces = [
-            _term(echelon.elem(row, col), unknown_name(col, names))
+            _term(matrix.elem(row, col), unknown_name(col, names))
             for col in range(1, constants)
-            if echelon.elem(row, col) != 0
+            if matrix.elem(row, col) != 0
         ]
         left = _sum(pieces)
-        rows.append((f"f_{row}", left, format_scalar(echelon.elem(row, constants))))
+        rows.append((f"f_{row}", left, format_scalar(matrix.elem(row, constants))))
 
     width = max(len(left) for _tag, left, _constant in rows)
     lines = [f"  {tag}:  {left:>{width}} = {constant}" for tag, left, constant in rows]
@@ -178,6 +196,37 @@ def render_substitutions(solution: Solution, names: Sequence[str] = ()) -> str:
         lines.append("")
 
     return "\n".join(lines).rstrip()
+
+def render_general(family: General, names: Sequence[str] = ()) -> str:
+    """`x = 1 + 4z`, one line per basic variable, the names lined up on the equals."""
+    width = max(
+        (len(unknown_name(item.column, names)) for item in family.basic),
+        default=1,
+    )
+
+    lines = []
+    for item in family.basic:
+        pieces = [f"+ {format_scalar(item.constant)}"] + [
+            _term(coefficient, unknown_name(column, names))
+            for coefficient, column in item.terms
+        ]
+        # A constant of zero only goes when something else is left to write.
+        if item.constant == 0 and len(pieces) > 1:
+            pieces = pieces[1:]
+        name = unknown_name(item.column, names)
+        lines.append(f"  {name:>{width}} = {_sum(pieces)}")
+
+    return "\n".join(lines)
+
+def render_linear_sum(weights: Sequence[Scalar], names: Sequence[str]) -> str:
+    """
+    `3v₁ - v₂ + (1/2)v₃`: each scalar in front of its name, zeros left out.
+
+    A sum where every scalar is zero is the zero vector, and is written `0`.
+    """
+    return _sum([
+        _term(weight, name) for weight, name in zip(weights, names) if weight != 0
+    ])
 
 def render_verification(verification: Verification) -> str:
     """
