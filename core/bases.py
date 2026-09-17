@@ -6,6 +6,11 @@ and the digits read from the last division to the first. Back to decimal, by
 the linear combination the numeral stands for: every digit times its base raised
 to its position, counted from 0 on the right.
 
+A negative number keeps its sign apart from its digits, the way it is written
+by hand in any base: -43 is -101011 in base 2 and -2B in base 16. The digits
+are those of the absolute value, and the minus multiplies the whole thing. The
+sign is never one of the digits, so this works the same in every base.
+
 Nothing is borrowed from Python for either direction: no `int(text, base)`, no
 `bin`, `oct` or `hex`. The point of the assignment is the procedure, so the
 procedure is what runs.
@@ -47,12 +52,21 @@ class Division:
 
 @dataclass(frozen=True)
 class ToBase:
-    """A whole number written in another base, and the divisions that wrote it."""
+    """
+    A whole number written in another base, and the divisions that wrote it.
+
+    `value` keeps its sign. The divisions are those of its absolute value, and
+    `numeral` is their digits with a minus in front when the number is negative.
+    """
 
     value: int
     base: int
     divisions: tuple[Division, ...]
     numeral: str
+
+    @property
+    def negative(self) -> bool:
+        return self.value < 0
 
 @dataclass(frozen=True)
 class Term:
@@ -66,12 +80,23 @@ class Term:
 
 @dataclass(frozen=True)
 class FromBase:
-    """A numeral read back as the combination of powers of its base."""
+    """
+    A numeral read back as the combination of powers of its base.
+
+    The terms are those of the digits alone. When the numeral has a minus in
+    front, `negative` is true and `value` is minus their sum.
+    """
 
     numeral: str
     base: int
     terms: tuple[Term, ...]
     value: int
+    negative: bool = False
+
+    @property
+    def magnitude(self) -> int:
+        """What the digits add up to, before the sign is applied."""
+        return sum(term.amount for term in self.terms)
 
 def digit_value(character: str, base: int) -> int:
     """What one digit is worth: `7` is 7, `B` is 11. Raises `BadDigit`."""
@@ -87,13 +112,14 @@ def to_base(value: int, base: int) -> ToBase:
     `n = b*q1 + r1`, then `q1 = b*q2 + r2`, and so on until a quotient is 0.
     Each remainder is less than the base, so it is one digit, and the last one
     found is the leading digit: `n = r_k*b^k + ... + r2*b + r1`.
+
+    A negative number divides its absolute value and puts the minus back in
+    front of the digits: `-n` in base b is `-(n in base b)`.
     """
     _check(base)
-    if value < 0:
-        raise ValueError("Only whole numbers that are not negative are converted.")
 
     divisions: list[Division] = []
-    current = value
+    current = -value if value < 0 else value
     while True:
         quotient, remainder = current // base, current % base
         divisions.append(Division(current, quotient, remainder))
@@ -101,8 +127,8 @@ def to_base(value: int, base: int) -> ToBase:
         if current == 0:
             break
 
-    numeral = "".join(DIGITS[step.remainder] for step in reversed(divisions))
-    return ToBase(value, base, tuple(divisions), numeral)
+    digits = "".join(DIGITS[step.remainder] for step in reversed(divisions))
+    return ToBase(value, base, tuple(divisions), ("-" if value < 0 else "") + digits)
 
 def from_base(text: str, base: int) -> FromBase:
     """
@@ -110,9 +136,16 @@ def from_base(text: str, base: int) -> FromBase:
 
     `d_k ... d_1 d_0 = d_k*b^k + ... + d_1*b^1 + d_0*b^0`. Spaces are ignored,
     so a long binary number can be typed in groups, and letters in either case.
+
+    A leading minus makes the number negative: the digits after it are read as
+    above, and the sum is negated. A leading plus is accepted and changes
+    nothing. Minus zero is zero, and is written without a sign.
     """
     _check(base)
     numeral = "".join(text.split()).upper()
+    negative = numeral.startswith("-")
+    if numeral[:1] in ("-", "+"):
+        numeral = numeral[1:]
     if not numeral:
         raise EmptyNumeral("There is no numeral to read.")
 
@@ -124,7 +157,15 @@ def from_base(text: str, base: int) -> FromBase:
         power = base**position
         terms.append(Term(character, value, position, power, value * power))
 
-    return FromBase(numeral, base, tuple(terms), sum(term.amount for term in terms))
+    total = sum(term.amount for term in terms)
+    negative = negative and total != 0
+    return FromBase(
+        ("-" if negative else "") + numeral,
+        base,
+        tuple(terms),
+        -total if negative else total,
+        negative,
+    )
 
 def _check(base: int) -> None:
     if not LOWEST_BASE <= base <= HIGHEST_BASE:

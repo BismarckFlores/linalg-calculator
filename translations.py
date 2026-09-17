@@ -1076,33 +1076,61 @@ DOCSTRINGS: dict[str, str] = {
         "Un caracter que no es cifra de la base. digit es ese caracter.",
     "One division of the procedure: `dividend = base * quotient + remainder`.":
         "Una division del procedimiento: dividendo = base * cociente + residuo.",
-    "A whole number written in another base, and the divisions that wrote it.":
-        "Un numero entero escrito en otra base, y las divisiones que lo escribieron.",
+    "A whole number written in another base, and the divisions that wrote it.\n"
+    "\n"
+    "`value` keeps its sign. The divisions are those of its absolute value, and\n"
+    "`numeral` is their digits with a minus in front when the number is negative.":
+        "Un numero entero escrito en otra base, y las divisiones que lo escribieron.\n"
+        "\n"
+        "value conserva su signo. Las divisiones son las de su valor absoluto, y\n"
+        "numeral son sus cifras, con un menos delante cuando el numero es negativo.",
     "One term of the combination: `digit * base ** position`.":
         "Un termino de la combinacion: cifra * base ** posicion.",
-    "A numeral read back as the combination of powers of its base.":
-        "Un numero leido de vuelta como la combinacion de potencias de su base.",
+    "A numeral read back as the combination of powers of its base.\n"
+    "\n"
+    "The terms are those of the digits alone. When the numeral has a minus in\n"
+    "front, `negative` is true and `value` is minus their sum.":
+        "Un numero leido de vuelta como la combinacion de potencias de su base.\n"
+        "\n"
+        "Los terminos son solo los de las cifras. Cuando el numero lleva un menos\n"
+        "delante, negative es verdadero y value es menos la suma de los terminos.",
     "What one digit is worth: `7` is 7, `B` is 11. Raises `BadDigit`.":
         "Lo que vale una cifra: 7 vale 7, B vale 11. Lanza BadDigit si no es cifra.",
     "Write a whole number in another base by dividing it again and again.\n"
     "\n"
     "`n = b*q1 + r1`, then `q1 = b*q2 + r2`, and so on until a quotient is 0.\n"
     "Each remainder is less than the base, so it is one digit, and the last one\n"
-    "found is the leading digit: `n = r_k*b^k + ... + r2*b + r1`.":
+    "found is the leading digit: `n = r_k*b^k + ... + r2*b + r1`.\n"
+    "\n"
+    "A negative number divides its absolute value and puts the minus back in\n"
+    "front of the digits: `-n` in base b is `-(n in base b)`.":
         "Escribe un numero entero en otra base dividiendolo una y otra vez.\n"
         "\n"
         "n = b*q1 + r1, luego q1 = b*q2 + r2, y asi hasta que un cociente es 0.\n"
         "Cada residuo es menor que la base, asi que es una sola cifra, y el ultimo\n"
-        "que se obtiene es la cifra de mas peso: n = r_k*b^k + ... + r2*b + r1.",
+        "que se obtiene es la cifra de mas peso: n = r_k*b^k + ... + r2*b + r1.\n"
+        "\n"
+        "Un numero negativo divide su valor absoluto y vuelve a poner el menos\n"
+        "delante de las cifras: -n en base b es -(n en base b).",
     "Read a numeral as the linear combination of powers of its base.\n"
     "\n"
     "`d_k ... d_1 d_0 = d_k*b^k + ... + d_1*b^1 + d_0*b^0`. Spaces are ignored,\n"
-    "so a long binary number can be typed in groups, and letters in either case.":
+    "so a long binary number can be typed in groups, and letters in either case.\n"
+    "\n"
+    "A leading minus makes the number negative: the digits after it are read as\n"
+    "above, and the sum is negated. A leading plus is accepted and changes\n"
+    "nothing. Minus zero is zero, and is written without a sign.":
         "Lee un numero como la combinacion lineal de potencias de su base.\n"
         "\n"
         "d_k ... d_1 d_0 = d_k*b^k + ... + d_1*b^1 + d_0*b^0. Los espacios se\n"
         "ignoran, para poder escribir un binario largo por grupos, y las letras\n"
-        "valen en mayuscula o en minuscula.",
+        "valen en mayuscula o en minuscula.\n"
+        "\n"
+        "Un menos al principio hace negativo el numero: las cifras que le siguen se\n"
+        "leen igual y la suma cambia de signo. Un mas al principio se acepta y no\n"
+        "cambia nada. Menos cero es cero, y se escribe sin signo.",
+    "What the digits add up to, before the sign is applied.":
+        "Lo que suman las cifras, antes de aplicar el signo.",
 
     # ----- gui/pages/bases.py -----
     "A numeral with its base written under it: `101011₂`.":
@@ -1628,4 +1656,10 @@ COMMENTS: dict[str, str] = {
         '# entre ellos va dentro de la pagina. Los sistemas numericos no tienen que ver',
     '# with matrices, so they sit apart, at the end.':
         '# con matrices, asi que van aparte, al final.',
+    "# The sign is not a digit, so it does not count towards the limit.":
+        "# El signo no es una cifra, asi que no cuenta para el limite.",
+    "# A negative numeral wraps each stage in -( ... ), so the sign is seen":
+        "# Un numero negativo envuelve cada etapa en -( ... ), para que se vea que el",
+    "# to apply to the whole sum and not to its first term.":
+        "# signo se aplica a toda la suma y no solo a su primer termino.",
 }

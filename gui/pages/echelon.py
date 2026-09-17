@@ -40,6 +40,7 @@ from ..widgets import (
     SectionTitle,
     StepWalker,
 )
+from .gauss import KIND_COLORS
 
 # The five properties, worded as the course words them and numbered as it
 # numbers them: the first three make an echelon form, the last two a reduced one.
@@ -344,8 +345,6 @@ class EchelonPage(ctk.CTkFrame):
         only one when every column of A holds one. The words for the kind are
         the assignment's, from `ui/presentation.py`, like everywhere else.
         """
-        from .gauss import KIND_COLORS
-
         headline = ctk.CTkFrame(master, fg_color="transparent")
         headline.pack(anchor="w", pady=(0, 4))
         ctk.CTkLabel(

@@ -196,6 +196,20 @@ check("a base with letters past F", from_base("1j", 20).value, 39)
 check("the round trip holds in every base", all(
     from_base(to_base(n, b).numeral, b).value == n for n in range(200) for b in range(2, 37)),
     True)
+check("-43 in base 2", to_base(-43, 2).numeral, "-101011")
+check("a negative divides its absolute value", to_base(-43, 2).divisions[0].dividend, 43)
+check("-2B in base 16", from_base("-2b", 16).value, -43)
+check("the sign is not a term", len(from_base("-2B", 16).terms), 2)
+check("minus zero is zero", (from_base("-0", 2).value, from_base("-0", 2).numeral), (0, "0"))
+check("a plus changes nothing", from_base("+101", 2).value, 5)
+check("negatives round trip in every base", all(
+    from_base(to_base(-n, b).numeral, b).value == -n for n in range(100) for b in range(2, 37)),
+    True)
+try:
+    from_base("1-0", 2)
+    check("a sign in the middle is refused", "accepted", "refused")
+except BadDigit as problem:
+    check("a sign in the middle is refused", problem.digit, "-")
 try:
     to_base(5, 37)
     check("base 37 is refused", "accepted", "refused")

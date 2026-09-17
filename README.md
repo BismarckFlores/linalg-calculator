@@ -138,7 +138,8 @@ already the answer.
 `to_base` and `from_base` move a whole number between base 10 and any base from
 2 to 36 without borrowing Python's own conversions: towards a base by repeated
 division, keeping every `n = b·q + r`, and back by the linear combination of
-powers the numeral stands for, keeping every term.
+powers the numeral stands for, keeping every term. A negative number keeps its
+sign apart from its digits, so `-43` is `-101011` in base 2 and `-2B` in base 16.
 
 `add`, `subtract` and `scale` work on vectors of Rⁿ component by component, and
 nothing fixes n in advance: it is however many components were typed.

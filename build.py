@@ -208,7 +208,10 @@ WINDOW_BLOCKS: list[Block] = [
         "  - Hacia otra base, por divisiones sucesivas: n = b·q + r. Cada residuo\n"
         "    es una cifra, y se leen de la última división a la primera.\n"
         "  - Hacia base 10, por la combinación lineal que representa el número:\n"
-        "    d_k·b^k + ... + d_1·b^1 + d_0·b^0.",
+        "    d_k·b^k + ... + d_1·b^1 + d_0·b^0.\n"
+        "Un número negativo se convierte como a mano, en cualquier base: se\n"
+        "convierte su valor absoluto y el signo menos va delante de las cifras y\n"
+        "de toda la combinación, -2B en base 16 = -(2·16^1 + 11·16^0) = -43.",
     ),
     Block(
         "core/vectors.py",
@@ -306,11 +309,12 @@ WINDOW_BLOCKS: list[Block] = [
     Block(
         "gui/pages/bases.py",
         "LA PESTAÑA DE SISTEMAS NUMÉRICOS",
-        "Convierte un número decimal a binario, octal, hexadecimal o cualquier otra\n"
-        "base del 2 al 36, que se escribe en un campo propio, y cualquiera de esas\n"
-        "bases de vuelta a decimal. En el primer sentido escribe cada división como\n"
-        "la ecuación que es; en el segundo escribe la combinación lineal completa y\n"
-        "una tabla con lo que aporta cada posición.\n"
+        "Convierte un número decimal, positivo o negativo, a binario, octal,\n"
+        "hexadecimal o cualquier otra base del 2 al 36, que se escribe en un campo\n"
+        "propio, y cualquiera de esas bases de vuelta a decimal. En el primer\n"
+        "sentido escribe cada división como la ecuación que es; en el segundo\n"
+        "escribe la combinación lineal completa y una tabla con lo que aporta cada\n"
+        "posición.\n"
         "Cada conversión se comprueba con la contraria.",
     ),
     Block(

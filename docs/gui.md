@@ -259,11 +259,31 @@ divisions started from. The divisions are not trusted with their own answer.
 
 Neither direction borrows from Python: no `int(text, base)`, no `bin`, `oct` or
 `hex`. The procedure is the point, so the procedure is what runs, in
-`core/bases.py`. Only whole numbers that are not negative are converted, up to
-32 digits; a minus sign, a decimal point or a digit the base does not have is
-named back in Spanish with the digits that base does use (`En base 20 se usan
-las cifras del 0 al 9 y las letras de la A a la J.`). Spaces are ignored,
-so a binary number can be typed in groups of four.
+`core/bases.py`. Whole numbers are converted, up to 32 digits; a decimal point,
+a sign anywhere but the front, or a digit the base does not have is named back
+in Spanish with the digits that base does use (`En base 20 se usan las cifras
+del 0 al 9 y las letras de la A a la J.`). Spaces are ignored, so a binary
+number can be typed in groups of four.
+
+Negative numbers are converted the way they are by hand, in every base: the
+sign stays apart from the digits. Towards a base, the divisions are those of
+the absolute value — a note says `|-43| = 43` — and the digits read back come
+out as `-( 1 0 1 0 1 1 )  →  -101011₂`. Back to decimal, each stage of the
+combination is wrapped in the sign, so it is seen to apply to the whole sum and
+not to its first term:
+
+```
+-2B₁₆ = -(2·16¹ + 11·16⁰)
+      = -(2·16 + 11·1)
+      = -(32 + 11)
+      = -43
+```
+
+and the table of positions adds up the digits, `Suma = 43`, then applies the
+sign, `Con el signo: -43`. A leading `+` is accepted and changes nothing, and
+`-0` is `0`. The sign never counts towards the 32 digits, because it is not one.
+Two's complement — `-43` as `11010101` in 8 bits — is a different notation, tied
+to binary and to a fixed width, and is not what this page does.
 
 The assignment reads "binario, octal o decimal a su equivalente número
 decimal"; converting decimal to decimal says nothing, so the page offers

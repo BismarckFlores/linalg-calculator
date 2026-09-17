@@ -296,17 +296,20 @@ Whole numbers in any base from 2 to 36. It imports nothing from the rest of
 
 | Name | Meaning |
 | --- | --- |
-| `to_base(value, base) -> ToBase` | Repeated division. Raises `ValueError` for a negative value or a base outside `LOWEST_BASE`..`HIGHEST_BASE`. |
-| `from_base(text, base) -> FromBase` | The linear combination of powers. Ignores spaces and letter case. Raises `EmptyNumeral` or `BadDigit`. |
+| `to_base(value, base) -> ToBase` | Repeated division of the absolute value, the minus put back in front of the digits. Raises `ValueError` for a base outside `LOWEST_BASE`..`HIGHEST_BASE`. |
+| `from_base(text, base) -> FromBase` | The linear combination of powers. Ignores spaces and letter case; one leading `-` negates the result, one leading `+` changes nothing. Raises `EmptyNumeral` (also for a lone sign) or `BadDigit` (also for a sign anywhere else). |
 | `digit_value(character, base)` | What one digit is worth, `B` being 11. |
 | `DIGITS` | `0-9` then `A-Z`: the digit symbols, one per value from 0 to 35. |
 | `LOWEST_BASE`, `HIGHEST_BASE` | 2 and 36. The top is where the alphabet runs out, since a digit has to be one symbol. |
 
-**`ToBase`** — `value`, `base`, `divisions` and `numeral`. Each **`Division`**
-is `dividend = base * quotient + remainder`, in the order they were done, so
-the numeral is the remainders read backwards.
+**`ToBase`** — `value` (signed), `base`, `divisions` and `numeral`, and
+`negative`. Each **`Division`** is `dividend = base * quotient + remainder`, in
+the order they were done, on the absolute value, so the numeral is the
+remainders read backwards with a `-` in front when the value is negative.
 
-**`FromBase`** — `numeral`, `base`, `terms` and `value`. Each **`Term`** is one
+**`FromBase`** — `numeral` (with its `-`), `base`, `terms`, `value` (signed),
+`negative`, and `magnitude`, what the terms add up to before the sign. `-0`
+comes back as `0`, not negative. Each **`Term`** is one
 digit: `digit`, its `value`, its `position` counted from 0 on the right, the
 `power` of the base there and the `amount` it contributes.
 

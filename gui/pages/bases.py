@@ -13,6 +13,10 @@ the divisions that produced them.
 Binary, octal and hexadecimal are one click away, because they are the ones the
 course asks for. Any other base is typed into a field of its own.
 
+A negative number is converted the way it is by hand: the digits are those of
+its absolute value, and the minus goes in front of them and in front of the
+whole combination, `-2B₁₆ = -(2·16¹ + 11·16⁰) = -43`.
+
 The Spanish lives here because no other front end says any of it.
 """
 
@@ -75,7 +79,7 @@ EXAMPLE_NUMBER = 43
 ALLOWED = {
     2: "En binario solo se usan las cifras 0 y 1.",
     8: "En octal se usan las cifras del 0 al 7.",
-    10: "Escribe un número entero sin signo, con las cifras del 0 al 9.",
+    10: "Escribe un número entero con las cifras del 0 al 9, y un signo menos delante si es negativo.",
     16: "En hexadecimal se usan las cifras del 0 al 9 y las letras de la A a la F.",
 }
 
@@ -284,7 +288,8 @@ class BasesPage(ctk.CTkFrame):
             self._error.show(BAD_BASE)
             return
         read_in = 10 if self._direction == TO_BASE else base
-        if len("".join(text.split())) > LENGTH_LIMIT:
+        # The sign is not a digit, so it does not count towards the limit.
+        if len("".join(text.split()).lstrip("+-")) > LENGTH_LIMIT:
             self._error.show(f"El número puede tener como mucho {LENGTH_LIMIT} cifras.")
             return
         try:
@@ -293,6 +298,12 @@ class BasesPage(ctk.CTkFrame):
             self._error.show("Escribe un número.")
             return
         except BadDigit as problem:
+            if problem.digit in "+-":
+                self._error.show(
+                    f"'{problem.digit}' no es una cifra: el signo solo puede ir una vez, "
+                    "al principio del número."
+                )
+                return
             self._error.show(
                 f"'{problem.digit}' no es una cifra en base {problem.base}. "
                 f"{allowed(problem.base)}"
@@ -324,6 +335,13 @@ class BasesPage(ctk.CTkFrame):
             f"Se divide entre {result.base} hasta que el cociente es 0. Cada residuo "
             "es una cifra del resultado." + letters_note(result.base),
         )
+        if result.negative:
+            self._muted(
+                inside,
+                f"El número es negativo: se divide su valor absoluto, "
+                f"|{result.value}| = {-result.value}, y el signo menos se pone delante "
+                "del resultado.",
+            ).pack_configure(pady=(4, 0))
 
         rows = ctk.CTkFrame(inside, fg_color="transparent")
         rows.pack(anchor="w", pady=(12, 0))
@@ -344,6 +362,8 @@ class BasesPage(ctk.CTkFrame):
             )
 
         digits = " ".join(written_digit(step.remainder) for step in reversed(result.divisions))
+        if result.negative:
+            digits = f"-( {digits} )"
         self._muted(inside, "Leídos de abajo hacia arriba:").pack_configure(pady=(14, 4))
         self._mono(
             inside, f"{digits}   →   {written(result.numeral, result.base)}", theme.ACCENT
@@ -375,21 +395,29 @@ class BasesPage(ctk.CTkFrame):
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
         SectionTitle(inside, title).pack(fill="x", pady=(0, 6))
+        if number.negative:
+            note += " El signo menos multiplica a toda la combinación."
         self._muted(inside, note)
 
+        # A negative numeral wraps each stage in -( ... ), so the sign is seen
+        # to apply to the whole sum and not to its first term.
+        opening, closing = ("-(", ")") if number.negative else ("", "")
         left = written(number.numeral, number.base) + " = "
-        indent = len(left)
-        pad = " " * (indent - 2) + "= "
+        pad = " " * (len(left) - 2) + "= "
+        indent = len(left) + len(opening)
         powers = [f"{term.value}·{power(number.base, term.position)}" for term in number.terms]
         weights = [f"{term.value}·{term.power}" for term in number.terms]
         amounts = [str(term.amount) for term in number.terms]
 
         block = [
-            wrapped(left, powers, indent),
-            wrapped(pad, weights, indent),
-            wrapped(pad, amounts, indent),
-            f"{pad}{number.value}",
+            wrapped(left + opening, powers, indent) + closing,
+            wrapped(pad + opening, weights, indent) + closing,
+            wrapped(pad + opening, amounts, indent) + closing,
         ]
+        if number.negative:
+            block.append(f"{pad}-{number.magnitude}")
+        else:
+            block.append(f"{pad}{number.value}")
         self._mono(inside, "\n".join(block)).pack(anchor="w", pady=(12, 0))
 
         letters = sorted({term.digit for term in number.terms if not term.digit.isdigit()})
@@ -431,9 +459,13 @@ class BasesPage(ctk.CTkFrame):
         ctk.CTkFrame(table, height=2, fg_color=theme.BORDER, corner_radius=0).grid(
             row=total, column=0, columnspan=4, sticky="ew", pady=6
         )
-        self._mono(table, f"Suma = {number.value}", theme.ACCENT).grid(
-            row=total + 1, column=3, sticky="e", padx=(0, 32)
-        )
+        self._mono(
+            table, f"Suma = {number.magnitude}", theme.INK if number.negative else theme.ACCENT
+        ).grid(row=total + 1, column=3, sticky="e", padx=(0, 32))
+        if number.negative:
+            self._mono(table, f"Con el signo: -{number.magnitude}", theme.ACCENT).grid(
+                row=total + 2, column=3, sticky="e", padx=(0, 32), pady=(4, 0)
+            )
 
     # ----- Pieces shared by both directions -----
 
