@@ -99,6 +99,22 @@ elimination against itself, and would agree with any bug that was consistent.
 It compares both sides exactly, with no tolerance. That is affordable only
 because nothing was ever rounded, and it is why every entry is a `Fraction`.
 
+## An inverse is one augmented reduction
+
+`core/inverse.py` asks the existing Gauss–Jordan algorithm to reduce
+`[A | Iₙ]`. Invertibility is decided by checking the entire left block against
+`Iₙ`, rather than assuming a pivot count on the augmented matrix proves it:
+the identity on the right always contributes pivots even when A is singular.
+Only then is the right block read as `A⁻¹`. Both products with the original A
+are checked exactly.
+
+The inverse page accepts rows as text because the shared matrix grid has a
+ten-row and ten-column stepper limit for ordinary classroom entry. A text box
+has no artificial order limit and reports the row and column of bad values.
+Its practical limits are available memory and the time required by exact
+fraction arithmetic. The same page applies the inverse to `Ax = b` and checks
+the answer with the original A.
+
 ## A linear combination is a system, not a new algorithm
 
 Whether b is a combination of v₁, …, vₖ is a question about scalars: is there a

@@ -32,7 +32,7 @@ linalg-calculator/
 │   ├── widgets.py        # the shapes CustomTkinter does not have
 │   ├── entry.py          # the two ways a matrix is handed over, in one card
 │   ├── app.py            # the window, the sidebar, which page is open
-│   └── pages/            # vectors, operations, elimination, echelon forms, numeral systems
+│   └── pages/            # vectors, operations, inverse, elimination, echelon forms, numeral systems
 ├── deliverables/         # the scripts handed in to the course
 │   ├── program1.py       # Programa 1: systems by row elimination
 │   └── out/              # generated single files, not versioned
@@ -61,6 +61,8 @@ This section grows as modules land. Nothing is listed here before it exists.
 [docs/gui.md](docs/gui.md) covers the window.
 [docs/reference.md](docs/reference.md) is what to open before changing
 something: it lists what every module exposes without you having to read it.
+[docs/inverse.md](docs/inverse.md) covers the inverse method, applications,
+theorems and course exercises.
 
 ## Rules
 
@@ -152,6 +154,12 @@ ways, and none means b is not a combination.
 evaluates every equation of the original system, comparing both sides exactly.
 It trusts nothing the elimination did, which is the only way the check is worth
 anything.
+
+`invert` applies Gauss–Jordan to `[A | Iₙ]`, reads the right block only when the
+left becomes `Iₙ`, and checks both products with the original A. The inverse
+page also solves `Ax = b` as `x = A⁻¹b` when A is invertible. Its text input has
+no fixed order limit; [docs/inverse.md](docs/inverse.md) gives the conditional
+theorems and exercises.
 
 ## The wording
 

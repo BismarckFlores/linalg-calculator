@@ -23,6 +23,7 @@ from . import theme
 from .pages.bases import BasesPage
 from .pages.echelon import EchelonPage
 from .pages.gauss import GaussPage
+from .pages.inverse import InversePage
 from .pages.operations import OperationsPage
 from .pages.vectors import VectorsPage
 from .widgets import Card
@@ -44,6 +45,7 @@ class Module:
 MODULES = (
     Module("vectors", "↗", "Vectores"),
     Module("operations", "⊞", "Operaciones Matriciales"),
+    Module("inverse", "⁻¹", "Matriz Inversa"),
     Module("gauss", "▦", "Eliminación Gaussiana"),
     Module("echelon", "▧", "Formas Escalonadas"),
     Module("bases", "⇄", "Sistemas Numéricos"),
@@ -243,6 +245,8 @@ class Application(ctk.CTk):
             return VectorsPage(self._container)
         if key == "operations":
             return OperationsPage(self._container)
+        if key == "inverse":
+            return InversePage(self._container)
         if key == "echelon":
             return EchelonPage(self._container)
         if key == "gauss":

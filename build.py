@@ -231,6 +231,13 @@ WINDOW_BLOCKS: list[Block] = [
         "infinitas maneras, y ninguna quiere decir que b no es combinación lineal.",
     ),
     Block(
+        "core/inverse.py",
+        "LA INVERSA DE UNA MATRIZ",
+        "Reduce [A | I] mediante Gauss-Jordan. Si el bloque izquierdo llega a I, "
+        "el derecho es la inversa. Comprueba ambos productos con A y permite "
+        "resolver Ax = b como x = A^-1 b cuando A es invertible.",
+    ),
+    Block(
         "gui/theme.py",
         "EL ASPECTO DE LA VENTANA",
         "Los colores, las tipografías y el interruptor entre modo claro y modo\n"
@@ -316,6 +323,13 @@ WINDOW_BLOCKS: list[Block] = [
         "escribe la combinación lineal completa y una tabla con lo que aporta cada\n"
         "posición.\n"
         "Cada conversión se comprueba con la contraria.",
+    ),
+    Block(
+        "gui/pages/inverse.py",
+        "LA PESTAÑA DE MATRIZ INVERSA",
+        "Recibe matrices de cualquier orden positivo por filas de texto, explica "
+        "los errores, muestra la reducción y sus comprobaciones, resuelve un "
+        "sistema por la inversa y presenta ejercicios y teoremas condicionales.",
     ),
     Block(
         "gui/app.py",

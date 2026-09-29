@@ -194,6 +194,17 @@ After `to_ref`, every pivot is exactly 1 and everything below it is 0.
 After `to_rref`, everything above it is 0 as well, so a pivot is the only
 non-zero entry in its column.
 
+## `core/inverse.py`
+
+| Name | Meaning |
+| --- | --- |
+| `invert(matrix) -> InverseResult` | For a nonempty square A, reduces `[A \| Iₙ]` by Gauss–Jordan. Raises `ValueError` for a nonsquare A and `SingularMatrix` when the left block cannot become `Iₙ`. |
+| `solve_with_inverse(matrix, constants) -> InverseSystem` | Requires an invertible square A and an n×1 b; returns `A⁻¹b` and checks it against the original equation. |
+
+`InverseResult` carries A, its inverse, the elimination log, and the exact
+products `A A⁻¹` and `A⁻¹ A`. `InverseSystem` carries those data, b, x and the
+exact check `Ax`.
+
 ## `core/systems.py`
 
 | Name | Meaning |
@@ -429,6 +440,7 @@ The window. `python -m gui`, from the repository root. Full notes in
 | `gui/app.py` | `MODULES` — the sidebar, in order — plus `NavRow`, `Application` and `main()`. |
 | `gui/pages/vectors.py` | `VectorsPage`: `u + v`, `u − v`, `k · u` and linear combinations in Rⁿ, as columns and component by component. Owns its Spanish. |
 | `gui/pages/operations.py` | `OperationsPage`: the five matrix operations. |
+| `gui/pages/inverse.py` | `InversePage`: unrestricted text entry, inverse and `Ax = b` application exercises, error messages, step trace, and conditional theorems. |
 | `gui/pages/echelon.py` | `EchelonPage`: the five properties, the leading entries and the pivots. Owns their Spanish, since no other front end says it. |
 | `gui/pages/bases.py` | `BasesPage`: decimal to base 2, 8, 16 or any other from 2 to 36 and back, with the divisions, the combination and a table of positions. |
 | `gui/pages/gauss.py` | `GaussPage`: `A x = b` by either method, from coefficients or from written equations, shown first as the matrix equation, with the step by step, and a unique solution checked with the product `A x` as well as equation by equation. |

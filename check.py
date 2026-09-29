@@ -11,6 +11,7 @@ from core.bases import BadDigit, from_base, to_base
 from core.echelon import analyse, free_columns, leading_entries, pivot_columns
 from core.elimination import to_ref, to_rref
 from core.equations import parse_equation, to_augmented, unknown_names
+from core.inverse import SingularMatrix, invert, solve_with_inverse
 from core.matrix import Matrix
 from core.parametric import general_solution
 from core.scalar import format_scalar
@@ -257,6 +258,38 @@ check("infinitely many ways", many.solution.kind, SystemKind.INFINITE)
 check("the example sets the free scalar to 0", many.weights, (3, 0, 2))
 check("and it gives b", linear_sum(many.weights or (), [parse_vector("1, 1"),
       parse_vector("2, 2"), parse_vector("0, 1")]), (3, 5))
+
+print("matrix inverse and its application")
+inverse_example = Matrix([[3, 4], [5, 6]])
+inverse_result = invert(inverse_example)
+check("the exact inverse", inverse_result.inverse,
+      Matrix([[-3, 2], ["5/2", "-3/2"]]))
+check("both products are the identity",
+      (inverse_result.left_check, inverse_result.right_check),
+      (Matrix.identity(2), Matrix.identity(2)))
+check("inverse by one-by-one elimination", invert(Matrix([[7]])).inverse,
+      Matrix([["1/7"]]))
+check("there is no fixed order ten limit", invert(Matrix.identity(11)).inverse,
+      Matrix.identity(11))
+upper = Matrix([[1 if i == j else 2 if j == i + 1 else 0
+                 for j in range(11)] for i in range(11)])
+upper_inverse = invert(upper).inverse
+check("order eleven nontrivial inverse",
+      (upper_inverse.elem(1, 2), upper_inverse.elem(1, 11)), (-2, 1024))
+application = solve_with_inverse(inverse_example, Matrix.column_vector([3, 7]))
+check("x = inverse(A) times b", application.solution,
+      Matrix.column_vector([5, -3]))
+check("the original system holds", application.check, application.constants)
+try:
+    invert(Matrix([[1, -2, -1], [-1, 5, 6], [5, -4, 5]]))
+    check("the practice matrix is singular", "accepted", "refused")
+except SingularMatrix:
+    check("the practice matrix is singular", "refused", "refused")
+try:
+    invert(Matrix([[1, 2, 3], [4, 5, 6]]))
+    check("a rectangular matrix has no inverse", "accepted", "refused")
+except ValueError:
+    check("a rectangular matrix has no inverse", "refused", "refused")
 
 print("exact arithmetic, end to end")
 third = solve(Matrix([[3, 1]]))
