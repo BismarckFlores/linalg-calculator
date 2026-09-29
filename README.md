@@ -157,7 +157,7 @@ anything.
 
 `invert` applies Gauss–Jordan to `[A | Iₙ]`, reads the right block only when the
 left becomes `Iₙ`, and checks both products with the original A. The inverse
-page also solves `Ax = b` as `x = A⁻¹b` when A is invertible. Its text input has
+page also solves `Ax = b` as `x = A⁻¹b` when A is invertible. Its matrix and equation inputs have
 no fixed order limit; [docs/inverse.md](docs/inverse.md) gives the conditional
 theorems and exercises.
 

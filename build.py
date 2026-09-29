@@ -327,9 +327,10 @@ WINDOW_BLOCKS: list[Block] = [
     Block(
         "gui/pages/inverse.py",
         "LA PESTAÑA DE MATRIZ INVERSA",
-        "Recibe matrices de cualquier orden positivo por filas de texto, explica "
-        "los errores, muestra la reducción y sus comprobaciones, resuelve un "
-        "sistema por la inversa y presenta ejercicios y teoremas condicionales.",
+        "Recibe matrices por coeficientes o ecuaciones con las mismas entradas "
+        "de las otras páginas. Muestra la inversa con fracciones, la reducción "
+        "paso a paso y ambos productos de comprobación, y resuelve Ax = b "
+        "mediante la inversa.",
     ),
     Block(
         "gui/app.py",

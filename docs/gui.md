@@ -21,7 +21,7 @@ The sidebar lists what works, and nothing else:
 | --- | --- |
 | **Vectores** | `u + v`, `u − v` and `k · u` in Rⁿ, as columns side by side and component by component, and whether b is a linear combination of v₁, …, vₖ, solved as the system it is. Nobody says what n is: it is however many components were typed. |
 | **Operaciones Matriciales** | `A + B`, `A − B`, `A × B`, `k · A`, `Aᵀ`. Each matrix is resized with its own steppers, and B follows A wherever the shapes have to agree. |
-| **Matriz Inversa** | Gauss–Jordan on `[A \| Iₙ]` for any positive square order, both product checks, and the application `x = A⁻¹b`. See [inverse.md](inverse.md). |
+| **Matriz Inversa** | Gauss–Jordan on `[A \| Iₙ]` with coefficient grids or equations, shared matrix displays and step navigation, both product checks, and the application `x = A⁻¹b`. See [inverse.md](inverse.md). |
 | **Eliminación Gaussiana** | Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
 | **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one. Then it reduces it, step by step, and marks the pivot positions the reduced form puts on show. Switched to `Es una matriz aumentada [ A \| b ]`, it also reads the pivots as a system. |
 | **Sistemas Numéricos** | Converts a whole number from decimal to binary, octal, hexadecimal or any base from 2 to 36 by repeated division, and back to decimal by the linear combination of powers it stands for. Each direction is checked with the other. |

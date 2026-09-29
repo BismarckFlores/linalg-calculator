@@ -108,12 +108,14 @@ the identity on the right always contributes pivots even when A is singular.
 Only then is the right block read as `A⁻¹`. Both products with the original A
 are checked exactly.
 
-The inverse page accepts rows as text because the shared matrix grid has a
-ten-row and ten-column stepper limit for ordinary classroom entry. A text box
-has no artificial order limit and reports the row and column of bad values.
-Its practical limits are available memory and the time required by exact
-fraction arithmetic. The same page applies the inverse to `Ax = b` and checks
-the answer with the original A.
+The inverse page reuses `SystemInput`, `MatrixEntryGrid`, `MatrixDisplay`,
+`Expression` and `StepWalker`, so its inputs, fractions and working look like
+the other matrix pages. `SystemInput` and `MatrixEntryGrid` accept an optional
+`max_size`: ten by default, or `None` for the unrestricted inverse page.
+`Stepper` accepts `maximum=None` for that case. The equation parser follows the
+same per-input limit. The practical limits remain memory and the time required
+by exact fraction arithmetic. The page also applies the inverse to `Ax = b`
+and checks the answer with the original A.
 
 ## A linear combination is a system, not a new algorithm
 

@@ -81,11 +81,13 @@ class SystemInput(ctk.CTkFrame):
         example: str = EXAMPLE_SYSTEM,
         on_change: Callable[[], None] | None = None,
         augmentable: bool = False,
+        max_size: int | None = SIZE_LIMIT,
     ) -> None:
         super().__init__(master, fg_color="transparent")
         self._split = split
         self._way_in = COEFFICIENTS
         self._on_change = on_change
+        self._max_size = max_size
 
         SegmentedControl(self, (COEFFICIENTS, EQUATIONS), self._choose_way_in).pack(
             anchor="w", pady=(0, 18)
@@ -101,6 +103,7 @@ class SystemInput(ctk.CTkFrame):
             values=values,
             on_change=self._changed,
             on_resize=self._a_resized,
+            max_size=max_size,
         )
         self._a.grid(row=0, column=0, sticky="nw", padx=(0, 40))
 
@@ -115,6 +118,7 @@ class SystemInput(ctk.CTkFrame):
                 resizable_cols=False,
                 on_change=self._changed,
                 on_resize=self._b_resized,
+                max_size=max_size,
             )
             self._b.grid(row=0, column=1, sticky="nw")
 
@@ -244,8 +248,8 @@ class SystemInput(ctk.CTkFrame):
 
         if not lines:
             raise ValueError("Escribe al menos una ecuación.")
-        if len(lines) > SIZE_LIMIT:
-            raise ValueError(f"Son {len(lines)} ecuaciones y el máximo es {SIZE_LIMIT}.")
+        if self._max_size is not None and len(lines) > self._max_size:
+            raise ValueError(f"Son {len(lines)} ecuaciones y el máximo es {self._max_size}.")
 
         equations: list[Equation] = []
         for number, text in enumerate(lines, start=1):
@@ -269,8 +273,8 @@ class SystemInput(ctk.CTkFrame):
         names = unknown_names(equations)
         if not names:
             raise ValueError("Ninguna de las ecuaciones tiene incógnitas.")
-        if len(names) > SIZE_LIMIT:
-            raise ValueError(f"Son {len(names)} incógnitas y el máximo es {SIZE_LIMIT}.")
+        if self._max_size is not None and len(names) > self._max_size:
+            raise ValueError(f"Son {len(names)} incógnitas y el máximo es {self._max_size}.")
 
         self._found.configure(
             text=f"Incógnitas encontradas ({len(names)}): {', '.join(names)}"

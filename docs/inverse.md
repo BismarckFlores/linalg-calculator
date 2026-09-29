@@ -1,17 +1,24 @@
 # Matrix inverse
 
-The inverse page takes a square matrix of any positive order. Enter one row per
-line and separate entries with spaces. Integers, decimal numbers and fractions
-are accepted; the calculation keeps exact rational values. There is no fixed
-dimension limit in this input. Available memory and the number of elimination
-steps still limit how large a calculation can be in practice.
+The inverse page uses the same **Coeficientes / Ecuaciones** input as the
+elimination page. Coefficients are entered in a matrix grid with row and column
+steppers. Equations are entered one per line; in inverse mode, only their
+coefficient matrix A is inverted, and their right-hand sides are ignored.
+Integers, decimals and fractions remain exact. Neither route has a fixed
+dimension limit on this page; memory and calculation time are practical limits.
+
+Results use the shared matrix displays with stacked fractions, cards and
+`StepWalker`, including its previous/next controls and all-steps view. The page
+has no exercise dropdown or theorem panel. The mathematical reference and
+practice examples below support the calculation without adding UI controls.
 
 Gauss–Jordan reduces `[A | Iₙ]`. If the left block becomes `Iₙ`, the right
 block is `A⁻¹`. The result is checked against the original input with both
 `A A⁻¹ = Iₙ` and `A⁻¹ A = Iₙ`. If A is not square, has an unreadable entry, or
 has fewer than n pivots, the page reports the reason in Spanish.
 
-The **Ax = b** application takes the same A and a column b of n entries. Its
+The **Resolver Ax = b** mode accepts A and b in separate grids, or reads both
+from the equations. Each mode preserves its input when switching away and back. Its
 method is `x = A⁻¹b`, followed by an independent check that `Ax = b` using the
 original A. This method applies only when A is invertible; a singular system
 must be classified by elimination instead.
@@ -62,7 +69,7 @@ solutions still matter, but these twelve statements are not an inverse theorem.
    so no inverse exists. The left block of `[A | I₃]` cannot become `I₃`.
 3. **Apply the inverse to a system.** With `A = [[3,4],[5,6]]` and
    `b = [3,7]ᵀ`, calculate `x = A⁻¹b = [5,−3]ᵀ` and verify `Ax = b`.
-   A second preset uses `A = [[1,0,−2],[3,1,−2],[−5,−1,9]]` and
+   A second application uses `A = [[1,0,−2],[3,1,−2],[−5,−1,9]]` and
    `b = [3,7,−16]ᵀ`; it gives `x = [1,2,−1]ᵀ`.
 4. **Use the invertible matrix theorem.** The matrix
    `[[2,3,4],[2,3,4],[2,3,4]]` has repeated rows, so it has fewer than three

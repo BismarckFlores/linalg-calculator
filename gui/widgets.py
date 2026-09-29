@@ -143,7 +143,7 @@ class Stepper(ctk.CTkFrame):
         master: Any,
         value: int,
         minimum: int,
-        maximum: int,
+        maximum: int | None,
         command: Callable[[int], None],
     ) -> None:
         super().__init__(
@@ -170,7 +170,9 @@ class Stepper(ctk.CTkFrame):
 
     def set(self, value: int) -> None:
         """Move the readout without calling back: for a size that followed another."""
-        self._value = max(self._minimum, min(self._maximum, value))
+        self._value = max(self._minimum, value)
+        if self._maximum is not None:
+            self._value = min(self._maximum, self._value)
         self._refresh()
 
     def _arrow(self, text: str, delta: int) -> ctk.CTkButton:
@@ -188,7 +190,9 @@ class Stepper(ctk.CTkFrame):
         )
 
     def _step(self, delta: int) -> None:
-        value = max(self._minimum, min(self._maximum, self._value + delta))
+        value = max(self._minimum, self._value + delta)
+        if self._maximum is not None:
+            value = min(self._maximum, value)
         if value == self._value:
             return
         self._value = value
@@ -198,7 +202,9 @@ class Stepper(ctk.CTkFrame):
     def _refresh(self) -> None:
         self._readout.configure(text=str(self._value))
         self._less.configure(state="normal" if self._value > self._minimum else "disabled")
-        self._more.configure(state="normal" if self._value < self._maximum else "disabled")
+        self._more.configure(
+            state="normal" if self._maximum is None or self._value < self._maximum else "disabled"
+        )
 
 class MatrixEntryGrid(ctk.CTkFrame):
     """
@@ -221,6 +227,7 @@ class MatrixEntryGrid(ctk.CTkFrame):
         on_change: Callable[[], None] | None = None,
         on_resize: Callable[[int, int], None] | None = None,
         background: Color = theme.CARD,
+        max_size: int | None = SIZE_LIMIT,
     ) -> None:
         super().__init__(master, fg_color="transparent")
         self.title = title
@@ -228,6 +235,7 @@ class MatrixEntryGrid(ctk.CTkFrame):
         self._cols = cols
         self._on_change = on_change
         self._on_resize = on_resize
+        self._max_size = max_size
         self._entries: list[list[ctk.CTkEntry]] = []
         self._texts: dict[tuple[int, int], str] = {
             (i, j): str(text)
@@ -302,7 +310,7 @@ class MatrixEntryGrid(ctk.CTkFrame):
         ctk.CTkLabel(
             header, text=caption, font=theme.font("small"), text_color=theme.MUTED
         ).pack(side="left", padx=(0, 6))
-        stepper = Stepper(header, value, 1, SIZE_LIMIT, command)
+        stepper = Stepper(header, value, 1, self._max_size, command)
         stepper.pack(side="left", padx=(0, 14))
         return stepper
 

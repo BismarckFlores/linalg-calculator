@@ -440,7 +440,7 @@ The window. `python -m gui`, from the repository root. Full notes in
 | `gui/app.py` | `MODULES` — the sidebar, in order — plus `NavRow`, `Application` and `main()`. |
 | `gui/pages/vectors.py` | `VectorsPage`: `u + v`, `u − v`, `k · u` and linear combinations in Rⁿ, as columns and component by component. Owns its Spanish. |
 | `gui/pages/operations.py` | `OperationsPage`: the five matrix operations. |
-| `gui/pages/inverse.py` | `InversePage`: unrestricted text entry, inverse and `Ax = b` application exercises, error messages, step trace, and conditional theorems. |
+| `gui/pages/inverse.py` | `InversePage`: inverse and `Ax = b`, both entered through the shared coefficient grids or equation parser, with matrix displays, product checks and `StepWalker`. |
 | `gui/pages/echelon.py` | `EchelonPage`: the five properties, the leading entries and the pivots. Owns their Spanish, since no other front end says it. |
 | `gui/pages/bases.py` | `BasesPage`: decimal to base 2, 8, 16 or any other from 2 to 36 and back, with the divisions, the combination and a table of positions. |
 | `gui/pages/gauss.py` | `GaussPage`: `A x = b` by either method, from coefficients or from written equations, shown first as the matrix equation, with the step by step, and a unique solution checked with the product `A x` as well as equation by equation. |
@@ -448,6 +448,10 @@ The window. `python -m gui`, from the repository root. Full notes in
 `MODULES` holds only what works. A row is added when its page is; a program with
 no page has no row, and `_build_page` raises for a key it does not know rather
 than falling back to something apologetic.
+
+`SystemInput(max_size=None)` and `MatrixEntryGrid(max_size=None)` remove the
+default dimension cap for the inverse page. Other callers retain the default
+limit of ten. `Stepper(maximum=None)` keeps its plus button enabled.
 
 `SystemInput.read()` is the boundary worth knowing: it hands back a `Typed`,
 exactly what `prompts.ask_system` hands the terminal, or raises with a Spanish
