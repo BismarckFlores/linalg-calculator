@@ -1532,6 +1532,68 @@ DOCSTRINGS: dict[str, str] = {
         "\n"
         "La tarjeta solo aparece mientras el interruptor esta encendido: es el\n"
         "procedimiento, y quien solo quiere el producto no necesita tres mil sumandos.",
+    "One piece taken while writing a number: `1994` takes M, and 994 is left.":
+        "Una pieza tomada al escribir un numero: 1994 toma M, y quedan 994.",
+    "A number written in Roman, and the pieces taken to write it, in order.":
+        "Un numero escrito en romano, y las piezas que se tomaron, en orden.",
+    "The numeral alone, for whoever does not need the working.":
+        "Solo el numero romano, para quien no necesita el procedimiento.",
+    "Write a number as a numeral, taking the largest piece that fits, again and\n"
+    "again: 1994 takes M, then CM, then XC, then IV.\n"
+    "\n"
+    "Every piece taken is kept with what was left before and after it, which is\n"
+    "the same subtraction done on paper and the whole of why the answer is what\n"
+    "it is.":
+        "Escribe un numero en romano tomando la pieza mas grande que quepa, una y otra\n"
+        "vez: 1994 toma M, luego CM, luego XC y luego IV.\n"
+        "\n"
+        "De cada pieza tomada se guarda lo que quedaba antes y lo que queda despues,\n"
+        "que es la misma resta que se hace en papel y todo el motivo de que el\n"
+        "resultado sea el que es.",
+    "A Roman numeral read out as the sum of its pieces: `XIV = X + IV = 14`.\n"
+    "\n"
+    "The six subtractive pairs are drawn in the accent colour, because they are\n"
+    "the one place where a smaller symbol comes before a larger one and the\n"
+    "reason the numeral is not simply read left to right.\n"
+    "\n"
+    "Both pages that show a numeral use this, so `XIV` is set out the same way\n"
+    "whether it is being operated on or converted.":
+        "Un numero romano leido como la suma de sus piezas: XIV = X + IV = 14.\n"
+        "\n"
+        "Las seis parejas de resta van en el color de acento, porque son el unico sitio\n"
+        "donde un simbolo menor va antes de uno mayor y la razon de que el numero no se\n"
+        "lea simplemente de izquierda a derecha.\n"
+        "\n"
+        "Las dos paginas que muestran un numero romano usan esto, asi que XIV se\n"
+        "presenta igual se este operando o convirtiendo.",
+    "Decimal to Roman and back, which is the one conversion with no base.\n"
+    "\n"
+    "Towards Roman the number is read in base 10 by the same `from_base` as\n"
+    "everything else, and only then written; back from Roman it is read as\n"
+    "the sum of its pieces. What cannot be written is said rather than\n"
+    "raised: there is no numeral for zero, for a negative or above MMMCMXCIX.":
+        "De decimal a romano y de vuelta, la unica conversion que no tiene base.\n"
+        "\n"
+        "Hacia el romano, el numero se lee en base 10 con el mismo from_base que todo\n"
+        "lo demas, y solo despues se escribe; de vuelta se lee como la suma de sus\n"
+        "piezas. Lo que no se puede escribir se dice en vez de lanzarse: no hay numero\n"
+        "romano para el cero, para un negativo ni por encima de MMMCMXCIX.",
+    "The number written piece by piece, each one taken from what is left.":
+        "El numero escrito pieza a pieza, cada una tomada de lo que queda.",
+    "A numeral read as the sum of its pieces, which is all it ever was.":
+        "Un numero romano leido como la suma de sus piezas, que es lo que siempre fue.",
+    "The numeral just written, read back, which has to give the number again.":
+        "El numero recien escrito, leido de vuelta, que tiene que dar otra vez el numero.",
+    "What to say about a numeral that could not be read.\n"
+    "\n"
+    "Both pages that take a Roman numeral raise the same errors, and somebody\n"
+    "who wrote `IIII` deserves the same sentence on either of them.":
+        "Que decir de un numero romano que no se pudo leer.\n"
+        "\n"
+        "Las dos paginas que reciben un numero romano lanzan los mismos errores, y\n"
+        "quien escribio IIII merece la misma frase en cualquiera de las dos.",
+    "One heading of the sidebar, and the pages that belong under it.":
+        "Un titulo del menu lateral, y las paginas que van debajo de el.",
 }
 
 COMMENTS: dict[str, str] = {
@@ -1688,8 +1750,6 @@ COMMENTS: dict[str, str] = {
         "# ----- Mantenimiento -----",
 
     # ----- gui/app.py -----
-    "# Gauss-Jordan share a row: they are two settings of one method, and the choice":
-        "# Gauss-Jordan comparten fila: son dos ajustes de un mismo metodo, y la eleccion",
     "# ----- The wheel -----":
         "# ----- La rueda del raton -----",
     "# ----- The sidebar -----":
@@ -1794,10 +1854,6 @@ COMMENTS: dict[str, str] = {
         "# terminan donde se acaba el alfabeto.",
 
     # ----- gui/pages/bases.py -----
-    "# The bases on offer, by the name somebody picks them by, and the choice that":
-        "# Las bases disponibles, con el nombre con que se eligen, y la opcion que",
-    "# opens a field for any other.":
-        "# abre un campo para cualquier otra.",
     "# What the custom field holds before anybody types: a base none of the others is.":
         "# Lo que tiene el campo de otra base antes de escribir: una base que no es ninguna de las demas.",
     "# Packed only while \"Otra base\" is the choice.":
@@ -1916,12 +1972,6 @@ COMMENTS: dict[str, str] = {
         "# ----- La suma repetida -----",
     "# ----- Reading the answer back -----":
         "# ----- La lectura de vuelta -----",
-    "# between them belongs inside the page. The ways of writing a number — bases":
-        "# entre ellos va dentro de la pagina. Las maneras de escribir un numero (las",
-    "# and Roman numerals — have nothing to do with matrices, so they sit apart, at":
-        "# bases y los numeros romanos) no tienen que ver con matrices, asi que van",
-    "# the end, next to each other.":
-        "# aparte, al final, una al lado de la otra.",
 
     # ----- the inverse -----
     "# I is augmented on the right, so every operation that works on A works on":
@@ -1956,4 +2006,40 @@ COMMENTS: dict[str, str] = {
         "# Solo una multiplicacion tiene una suma que escribir, asi que el interruptor",
     "# it and is on by default: writing it out is what the assignment asks.":
         "# va con ella y viene encendido: escribirla es lo que pide el enunciado.",
+    "# The bases on offer, by the name somebody picks them by, and the two choices":
+        "# Las bases disponibles, con el nombre con que se eligen, y las dos opciones",
+    "# that are not one of them: a field for any other base, and Roman numerals,":
+        "# que no son una base: un campo para cualquier otra, y los numeros romanos,",
+    "# which have no base number at all. ROMAN stands in for one in the pill.":
+        "# que no tienen numero de base. ROMAN hace de base para ellos en el selector.",
+    "# Roman numerals are not a base, so neither reading nor writing them":
+        "# Los numeros romanos no son una base, asi que ni leerlos ni escribirlos pasa",
+    "# goes through the divisions and the powers the rest of the page is.":
+        "# por las divisiones y las potencias de las que trata el resto de la pagina.",
+    "# ----- To Roman, and back -----":
+        "# ----- Hacia el romano, y de vuelta -----",
+    "# The pieces are not trusted with their own answer: read it back.":
+        "# No se confia en las piezas para su propio resultado: se lee de vuelta.",
+    "# The menu, by the three subjects the course is taught in, and inside each one":
+        "# El menu, por los tres temas en que se ensena el curso, y dentro de cada uno",
+    "# in the order it is taught: the matrix arithmetic before the elimination that":
+        "# en el orden en que se ensena: las operaciones con matrices antes de la",
+    "# is written in terms of it, and reading the form of a matrix after both, as":
+        "# eliminacion que se escribe con ellas, y leer la forma de una matriz despues",
+    "# the check somebody reaches for once one of them is done. Gauss and":
+        "# de las dos, como la comprobacion que se hace al terminar. Gauss y",
+    "# Gauss-Jordan share a row, because they are two settings of one method and":
+        "# Gauss-Jordan comparten fila, porque son dos ajustes de un mismo metodo y la",
+    "# the choice between them belongs inside the page.":
+        "# eleccion entre ellos va dentro de la pagina.",
+    "#":
+        "#",
+    "# Vectores holds one page today. It keeps a heading of its own anyway: the":
+        "# Vectores tiene hoy una sola pagina. Aun asi conserva su propio titulo: los",
+    "# three subjects then read the same way, and a second vector page has somewhere":
+        "# tres temas se leen igual, y una segunda pagina de vectores tiene donde",
+    "# to land.":
+        "# aterrizar.",
+    "# Every page, in the order the sidebar draws them. The first one opens.":
+        "# Todas las paginas, en el orden en que el menu las dibuja. La primera se abre.",
 }

@@ -33,8 +33,9 @@ linalg-calculator/
 │   ├── widgets.py        # the shapes CustomTkinter does not have
 │   ├── entry.py          # the two ways a matrix is handed over, in one card
 │   ├── app.py            # the window, the sidebar, which page is open
-│   └── pages/            # vectors, operations, inverse, elimination, echelon forms,
-│                         # numeral systems, Roman numerals
+│   └── pages/            # grouped in the sidebar: matrices (operations, inverse,
+│                         # elimination, echelon forms), vectors, numeral systems
+│                         # (conversions, Roman numerals)
 ├── deliverables/         # the scripts handed in to the course
 │   ├── program1.py       # Programa 1: systems by row elimination
 │   └── out/              # generated single files, not versioned

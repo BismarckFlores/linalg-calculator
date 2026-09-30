@@ -37,22 +37,41 @@ class Module:
     glyph: str
     name: str
 
-# The order of the menu, and the first row is the page that opens. It follows
-# the course: vectors first, then matrices and their arithmetic, then systems,
-# and reading the form of a matrix as the check that follows them. Gauss and
-# Gauss-Jordan share a row: they are two settings of one method, and the choice
-# between them belongs inside the page. The ways of writing a number — bases
-# and Roman numerals — have nothing to do with matrices, so they sit apart, at
-# the end, next to each other.
-MODULES = (
-    Module("vectors", "↗", "Vectores"),
-    Module("operations", "⊞", "Operaciones Matriciales"),
-    Module("inverse", "⁻¹", "Matriz Inversa"),
-    Module("gauss", "▦", "Eliminación Gaussiana"),
-    Module("echelon", "▧", "Formas Escalonadas"),
-    Module("bases", "⇄", "Sistemas Numéricos"),
-    Module("roman", "Ⅻ", "Números Romanos"),
+@dataclass(frozen=True)
+class Group:
+    """One heading of the sidebar, and the pages that belong under it."""
+
+    name: str
+    modules: tuple[Module, ...]
+
+# The menu, by the three subjects the course is taught in, and inside each one
+# in the order it is taught: the matrix arithmetic before the elimination that
+# is written in terms of it, and reading the form of a matrix after both, as
+# the check somebody reaches for once one of them is done. Gauss and
+# Gauss-Jordan share a row, because they are two settings of one method and
+# the choice between them belongs inside the page.
+#
+# Vectores holds one page today. It keeps a heading of its own anyway: the
+# three subjects then read the same way, and a second vector page has somewhere
+# to land.
+GROUPS = (
+    Group("Matrices", (
+        Module("operations", "⊞", "Operaciones Matriciales"),
+        Module("inverse", "⁻¹", "Matriz Inversa"),
+        Module("gauss", "▦", "Eliminación Gaussiana"),
+        Module("echelon", "▧", "Formas Escalonadas"),
+    )),
+    Group("Vectores", (
+        Module("vectors", "↗", "Vectores en ℝⁿ"),
+    )),
+    Group("Sistemas Numéricos", (
+        Module("bases", "⇄", "Conversiones"),
+        Module("roman", "Ⅻ", "Números Romanos"),
+    )),
 )
+
+# Every page, in the order the sidebar draws them. The first one opens.
+MODULES = tuple(module for group in GROUPS for module in group.modules)
 
 SIDEBAR_WIDTH = 268
 
@@ -212,10 +231,18 @@ class Application(ctk.CTk):
 
         navigation = ctk.CTkFrame(sidebar, fg_color="transparent")
         navigation.pack(fill="both", expand=True, padx=10, pady=10)
-        for module in MODULES:
-            row = NavRow(navigation, module, self.select)
-            row.pack(fill="x", pady=1)
-            self._rows[module.key] = row
+        for index, group in enumerate(GROUPS):
+            ctk.CTkLabel(
+                navigation,
+                text=group.name.upper(),
+                font=theme.font("label"),
+                text_color=theme.FAINT,
+                anchor="w",
+            ).pack(fill="x", padx=12, pady=(16 if index else 4, 6))
+            for module in group.modules:
+                row = NavRow(navigation, module, self.select)
+                row.pack(fill="x", pady=1)
+                self._rows[module.key] = row
 
     def _toggle_theme(self) -> None:
         dark = not theme.is_dark()

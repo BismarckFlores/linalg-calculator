@@ -13,6 +13,11 @@ the divisions that produced them.
 Binary, octal and hexadecimal are one click away, because they are the ones the
 course asks for. Any other base is typed into a field of its own.
 
+Roman numerals sit on the same pill, and are the one choice that is not a base
+at all: there are no positions and no powers, so neither the divisions nor the
+combination apply. A number is written by taking the largest piece that fits,
+again and again, and read back as the sum of the pieces it is made of.
+
 A negative number is converted the way it is by hand: the digits are those of
 its absolute value, and the minus goes in front of them and in front of the
 whole combination, `-2B₁₆ = -(2·16¹ + 11·16⁰) = -43`.
@@ -24,6 +29,15 @@ from typing import Any
 
 import customtkinter as ctk
 
+from core.roman import (
+    LARGEST,
+    Numeral,
+    OutOfRange,
+    RomanError,
+    Written,
+    read,
+    write,
+)
 from core.bases import (
     DIGITS,
     HIGHEST_BASE,
@@ -46,27 +60,32 @@ from ..widgets import (
     ErrorBanner,
     PageHeader,
     PrimaryButton,
+    RomanNumeral,
     SectionTitle,
     SegmentedControl,
 )
+from .roman import roman_complaint
 
 TO_BASE = "Decimal → otra base"
 TO_DECIMAL = "Otra base → decimal"
 
 DIRECTION_SUBTITLES = {
-    TO_BASE: "Escribir un número decimal en binario, octal, hexadecimal o cualquier base "
-    f"del {LOWEST_BASE} al {HIGHEST_BASE}, por divisiones sucesivas.",
-    TO_DECIMAL: "Leer un número en binario, octal, hexadecimal o cualquier base del "
-    f"{LOWEST_BASE} al {HIGHEST_BASE} como la combinación lineal que representa.",
+    TO_BASE: "Escribir un número decimal en binario, octal, hexadecimal, cualquier base "
+    f"del {LOWEST_BASE} al {HIGHEST_BASE} o números romanos.",
+    TO_DECIMAL: "Leer un número escrito en otra base, o en números romanos, y llevarlo "
+    "a decimal.",
 }
 
 CAPTIONS = {TO_BASE: "NÚMERO DECIMAL", TO_DECIMAL: "NÚMERO"}
 BASE_CAPTIONS = {TO_BASE: "CONVERTIR A", TO_DECIMAL: "ESTÁ ESCRITO EN"}
 
-# The bases on offer, by the name somebody picks them by, and the choice that
-# opens a field for any other.
+# The bases on offer, by the name somebody picks them by, and the two choices
+# that are not one of them: a field for any other base, and Roman numerals,
+# which have no base number at all. ROMAN stands in for one in the pill.
 BASE_NAMES = {"Binario (2)": 2, "Octal (8)": 8, "Hexadecimal (16)": 16}
 CUSTOM = "Otra base"
+ROMAN = "Romano"
+ROMAN_BASE = 0
 
 # What the custom field holds before anybody types: a base none of the others is.
 CUSTOM_EXAMPLE = "5"
@@ -153,7 +172,7 @@ class BasesPage(ctk.CTkFrame):
         self._example = True
         self._output: list[ctk.CTkBaseClass] = []
 
-        self._header = PageHeader(self, "⇄", "Sistemas Numéricos", DIRECTION_SUBTITLES[TO_BASE])
+        self._header = PageHeader(self, "⇄", "Conversiones", DIRECTION_SUBTITLES[TO_BASE])
         self._header.pack(anchor="w", pady=(0, 18))
 
         SegmentedControl(self, (TO_BASE, TO_DECIMAL), self._choose_direction).pack(
@@ -183,7 +202,9 @@ class BasesPage(ctk.CTkFrame):
         self._base_caption.pack(anchor="w", pady=(18, 8))
         choice = ctk.CTkFrame(inside, fg_color="transparent")
         choice.pack(anchor="w")
-        SegmentedControl(choice, (*BASE_NAMES, CUSTOM), self._choose_base).pack(side="left")
+        SegmentedControl(
+            choice, (*BASE_NAMES, CUSTOM, ROMAN), self._choose_base
+        ).pack(side="left")
 
         # Packed only while "Otra base" is the choice.
         self._custom_field = ctk.CTkFrame(choice, fg_color="transparent")
@@ -225,7 +246,7 @@ class BasesPage(ctk.CTkFrame):
             self._custom_base.focus_set()
         else:
             self._custom_field.pack_forget()
-            self._base = BASE_NAMES[name]
+            self._base = ROMAN_BASE if name == ROMAN else BASE_NAMES[name]
         self._base_changed()
 
     def _base_typed(self, event: Any) -> None:
@@ -270,7 +291,11 @@ class BasesPage(ctk.CTkFrame):
         if base is None:
             return
         self._number.delete(0, "end")
-        self._number.insert(0, to_base(EXAMPLE_NUMBER, base).numeral)
+        self._number.insert(
+            0,
+            write(EXAMPLE_NUMBER).numeral if base == ROMAN_BASE
+            else to_base(EXAMPLE_NUMBER, base).numeral,
+        )
 
     def _typed(self, event: Any) -> None:
         if event.keysym == "Return":
@@ -287,6 +312,12 @@ class BasesPage(ctk.CTkFrame):
         if base is None:
             self._error.show(BAD_BASE)
             return
+        # Roman numerals are not a base, so neither reading nor writing them
+        # goes through the divisions and the powers the rest of the page is.
+        if base == ROMAN_BASE:
+            self._convert_roman(text)
+            return
+
         read_in = 10 if self._direction == TO_BASE else base
         # The sign is not a digit, so it does not count towards the limit.
         if len("".join(text.split()).lstrip("+-")) > LENGTH_LIMIT:
@@ -315,6 +346,121 @@ class BasesPage(ctk.CTkFrame):
             self._draw_to_base(to_base(number.value, base))
         else:
             self._draw_to_decimal(number)
+
+    def _convert_roman(self, text: str) -> None:
+        """
+        Decimal to Roman and back, which is the one conversion with no base.
+
+        Towards Roman the number is read in base 10 by the same `from_base` as
+        everything else, and only then written; back from Roman it is read as
+        the sum of its pieces. What cannot be written is said rather than
+        raised: there is no numeral for zero, for a negative or above MMMCMXCIX.
+        """
+        try:
+            if self._direction == TO_BASE:
+                number = from_base(text, 10)
+                self._error.hide()
+                self._draw_to_roman(write(number.value))
+            else:
+                numeral = read(text)
+                self._error.hide()
+                self._draw_from_roman(numeral)
+        except EmptyNumeral:
+            self._error.show("Escribe un número.")
+        except BadDigit as problem:
+            self._error.show(
+                f"'{problem.digit}' no es una cifra decimal. {ALLOWED[10]}"
+            )
+        except OutOfRange as problem:
+            self._error.show(
+                f"{problem.value} no tiene número romano: solo se escriben los números "
+                f"del 1 al {LARGEST} (MMMCMXCIX), porque no había símbolo para el cero, "
+                "para los negativos ni por encima de M."
+            )
+        except RomanError as problem:
+            self._error.show(roman_complaint(problem))
+
+    # ----- To Roman, and back -----
+
+    def _draw_to_roman(self, result: Written) -> None:
+        """The number written piece by piece, each one taken from what is left."""
+        self._draw_answer(written(str(result.value), 10), result.numeral)
+
+        card = self._add_card()
+        inside = ctk.CTkFrame(card, fg_color="transparent")
+        inside.pack(fill="x", padx=24, pady=22)
+        SectionTitle(
+            inside, "Construcción del número", f"{len(result.taken)} piezas"
+        ).pack(fill="x", pady=(0, 6))
+        self._muted(
+            inside,
+            "Se toma la pieza más grande que quepa, se resta, y se repite con lo que "
+            "queda hasta llegar a 0. Las piezas son I, IV, V, IX, X, XL, L, XC, C, CD, "
+            "D, CM y M.",
+        )
+
+        rows = ctk.CTkFrame(inside, fg_color="transparent")
+        rows.pack(anchor="w", pady=(12, 0))
+        for header, column in (("Queda", 0), ("Pieza", 1), ("Se resta", 2), ("Sobra", 3)):
+            ctk.CTkLabel(
+                rows, text=header.upper(), font=theme.font("label"), text_color=theme.MUTED
+            ).grid(row=0, column=column, sticky="w", padx=(0, 28), pady=(0, 6))
+
+        for row, step in enumerate(result.taken, start=1):
+            self._mono(rows, str(step.before)).grid(
+                row=row, column=0, sticky="e", padx=(0, 28), pady=2
+            )
+            Chip(rows, step.text, theme.ACCENT, theme.ACCENT_SOFT).grid(
+                row=row, column=1, sticky="w", padx=(0, 28), pady=2
+            )
+            self._mono(rows, f"− {step.value}", theme.MUTED).grid(
+                row=row, column=2, sticky="e", padx=(0, 28)
+            )
+            self._mono(rows, str(step.after)).grid(row=row, column=3, sticky="e", padx=(0, 28))
+
+        self._muted(inside, "Las piezas, una tras otra:").pack_configure(pady=(14, 4))
+        self._mono(
+            inside,
+            "  ".join(step.text for step in result.taken) + f"   →   {result.numeral}",
+            theme.ACCENT,
+        ).pack(anchor="w")
+
+        # The pieces are not trusted with their own answer: read it back.
+        self._draw_roman_check(read(result.numeral), result.value)
+
+    def _draw_from_roman(self, numeral: Numeral) -> None:
+        """A numeral read as the sum of its pieces, which is all it ever was."""
+        self._draw_answer(numeral.text, written(str(numeral.value), 10))
+
+        card = self._add_card()
+        inside = ctk.CTkFrame(card, fg_color="transparent")
+        inside.pack(fill="x", padx=24, pady=22)
+        SectionTitle(inside, "Suma de sus piezas").pack(fill="x", pady=(0, 6))
+        self._muted(
+            inside,
+            "Un número romano es la suma de sus piezas, escritas de mayor a menor. Las "
+            "seis parejas IV, IX, XL, XC, CD y CM valen una resta: IX es 10 − 1.",
+        )
+        RomanNumeral(inside, numeral).pack(anchor="w", pady=(14, 0))
+        self._mono(
+            inside,
+            " + ".join(str(piece.value) for piece in numeral.pieces)
+            + f" = {numeral.value}",
+            theme.ACCENT,
+        ).pack(anchor="w", pady=(10, 0))
+
+    def _draw_roman_check(self, numeral: Numeral, value: int) -> None:
+        """The numeral just written, read back, which has to give the number again."""
+        card = self._add_card()
+        inside = ctk.CTkFrame(card, fg_color="transparent")
+        inside.pack(fill="x", padx=24, pady=22)
+        SectionTitle(inside, "Comprobación").pack(fill="x", pady=(0, 6))
+        self._muted(
+            inside,
+            f"El resultado, leído de vuelta como suma de sus piezas, da {value}: el "
+            "número del que se partió.",
+        )
+        RomanNumeral(inside, numeral).pack(anchor="w", pady=(14, 0))
 
     # ----- From decimal -----
 

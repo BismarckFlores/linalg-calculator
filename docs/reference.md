@@ -468,7 +468,7 @@ The window. `python -m gui`, from the repository root. Full notes in
 | `gui/theme.py` | Every colour as a `(light, dark)` pair, the fonts, `set_dark`, and `on_change` for the parts drawn by hand. |
 | `gui/widgets.py` | `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `StepWalker`, `FractionCell`, `MathLine`, `MathBlock`, `MathChip`, and `ColumnDisplay` and `Expression`, which write an equation between matrices in a row: `A · x = b`, `c₁ v₁ + c₂ v₂ = b`. |
 | `gui/entry.py` | `SystemInput`, the input card both pages use, and `Typed`, what it hands back: the matrix, the names of the unknowns, and how many columns are coefficients. `augmentable=True` adds the switch that marks a single grid as `[ A \| b ]`. |
-| `gui/app.py` | `MODULES` — the sidebar, in order — plus `NavRow`, `Application` and `main()`. |
+| `gui/app.py` | `GROUPS` — the sidebar, by subject — with `MODULES` flattened out of it, plus `Group`, `Module`, `NavRow`, `Application` and `main()`. |
 | `gui/pages/vectors.py` | `VectorsPage`: `u + v`, `u − v`, `k · u` and linear combinations in Rⁿ, as columns and component by component. Owns its Spanish. |
 | `gui/pages/operations.py` | `OperationsPage`: the five matrix operations. |
 | `gui/pages/roman.py` | `RomanPage`: Roman numerals added, subtracted and multiplied, with each numeral read piece by piece and a switch for the repeated addition. Owns its Spanish. |
@@ -477,7 +477,7 @@ The window. `python -m gui`, from the repository root. Full notes in
 | `gui/pages/bases.py` | `BasesPage`: decimal to base 2, 8, 16 or any other from 2 to 36 and back, with the divisions, the combination and a table of positions. |
 | `gui/pages/gauss.py` | `GaussPage`: `A x = b` by either method, from coefficients or from written equations, shown first as the matrix equation, with the step by step, and a unique solution checked with the product `A x` as well as equation by equation. |
 
-`MODULES` holds only what works. A row is added when its page is; a program with
+`GROUPS` holds only what works. A row is added when its page is; a program with
 no page has no row, and `_build_page` raises for a key it does not know rather
 than falling back to something apologetic.
 

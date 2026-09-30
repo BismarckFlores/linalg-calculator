@@ -161,13 +161,13 @@ Escrito: deliverables/out/Programa 1_Grupo5.py
   1647 lineas, 12 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa 2_Grupo5.py
-  6515 lineas, 28 bloques
+  6721 lineas, 28 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Numeros Romanos_Grupo5.py
-  6520 lineas, 28 bloques
+  6726 lineas, 28 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Vectores y Sistemas Numericos_Grupo5.py
-  6536 lineas, 28 bloques
+  6742 lineas, 28 bloques
   Todo el texto del archivo esta en castellano.
 ```
 

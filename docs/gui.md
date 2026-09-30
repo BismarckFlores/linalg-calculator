@@ -15,26 +15,31 @@ when the root is the directory Python started from.
 
 ## What is on it
 
-The sidebar lists what works, and nothing else:
+The sidebar lists what works, and nothing else, under the three subjects the
+course is taught in: **Matrices**, **Vectores** and **Sistemas Numéricos**.
 
-| Row | What it does |
-| --- | --- |
-| **Vectores** | `u + v`, `u − v` and `k · u` in Rⁿ, as columns side by side and component by component, and whether b is a linear combination of v₁, …, vₖ, solved as the system it is. Nobody says what n is: it is however many components were typed. |
-| **Operaciones Matriciales** | `A + B`, `A − B`, `A × B`, `k · A`, `Aᵀ`. Each matrix is resized with its own steppers, and B follows A wherever the shapes have to agree. |
-| **Matriz Inversa** | Gauss–Jordan on `[A \| Iₙ]` with coefficient grids or equations, shared matrix displays and step navigation, both product checks, and the application `x = A⁻¹b`. See [inverse.md](inverse.md). |
-| **Eliminación Gaussiana** | Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
-| **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one. Then it reduces it, step by step, and marks the pivot positions the reduced form puts on show. Switched to `Es una matriz aumentada [ A \| b ]`, it also reads the pivots as a system. |
-| **Números Romanos** | Adds, subtracts and multiplies Roman numerals, with a switch that writes a multiplication out as the repeated addition it stands for. Says when an answer is one the Romans could not write. |
-| **Sistemas Numéricos** | Converts a whole number from decimal to binary, octal, hexadecimal or any base from 2 to 36 by repeated division, and back to decimal by the linear combination of powers it stands for. Each direction is checked with the other. |
+| Group | Row | What it does |
+| --- | --- | --- |
+| Matrices | **Operaciones Matriciales** | `A + B`, `A − B`, `A × B`, `k · A`, `Aᵀ`. Each matrix is resized with its own steppers, and B follows A wherever the shapes have to agree. |
+| Matrices | **Matriz Inversa** | Gauss–Jordan on `[A \| Iₙ]` with coefficient grids or equations, shared matrix displays and step navigation, both product checks, and the application `x = A⁻¹b`. See [inverse.md](inverse.md). |
+| Matrices | **Eliminación Gaussiana** | Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
+| Matrices | **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one. Then it reduces it, step by step, and marks the pivot positions the reduced form puts on show. Switched to `Es una matriz aumentada [ A \| b ]`, it also reads the pivots as a system. |
+| Vectores | **Vectores en ℝⁿ** | `u + v`, `u − v` and `k · u`, as columns side by side and component by component, and whether b is a linear combination of v₁, …, vₖ, solved as the system it is. Nobody says what n is: it is however many components were typed. |
+| Sistemas Numéricos | **Conversiones** | A whole number from decimal to binary, octal, hexadecimal or any base from 2 to 36 by repeated division, and back by the linear combination of powers it stands for. `Romano` converts to and from Roman numerals, which are no base at all. Each direction is checked with the other. |
+| Sistemas Numéricos | **Números Romanos** | Adds, subtracts and multiplies Roman numerals, with a switch that writes a multiplication out as the repeated addition it stands for. Says when an answer is one the Romans could not write. |
 
-The order follows the course. Vectors come first, then the matrix pages — the
-arithmetic before the elimination because the elimination is written in terms
-of it, and reading the form of a matrix after both, as the check somebody
-reaches for once one of them is done. The numeral systems have nothing to do
-with matrices, so they sit apart, at the end.
+Inside each group the order follows the course: the matrix arithmetic before
+the elimination that is written in terms of it, and reading the form of a
+matrix after both, as the check somebody reaches for once one of them is done.
 
-The order is one tuple, `MODULES` in `gui/app.py`, and nothing else depends on
-it: the rows are drawn by walking it, and the first row is the page that opens.
+Vectores holds one page today and keeps a heading anyway. The three subjects
+then read the same way, and a second vector page has somewhere to land.
+
+The whole menu is one tuple, `GROUPS` in `gui/app.py`, and nothing else depends
+on it: the headings and rows are drawn by walking it, `MODULES` is flattened
+out of it, and the first row is the page that opens. The headings are labels,
+not buttons — everything stays one click away, which is worth more here than a
+tidier sidebar.
 
 Gauss and Gauss-Jordan share one row because they share the walk — one stops at
 the staircase and the other keeps going — so the choice is a setting of one
@@ -293,8 +298,21 @@ hexadecimal there, the base the other direction converts into, along with any
 other base through the custom field.
 
 The example in the number box is always 43, written in whichever base is
-showing — `101011`, `53`, `2B`, or `133` for base 5 — and follows the custom
-field as it is typed, until somebody types a number of their own.
+showing — `101011`, `53`, `2B`, `133` for base 5, `XLIII` in Roman — and
+follows the custom field as it is typed, until somebody types a number of their
+own.
+
+**Romano** is on the same pill and is the one choice that is not a base: Roman
+numerals have no positions and no powers, so neither the divisions nor the
+combination apply to them. Going that way, the number is written by taking the
+largest piece that fits and subtracting it, again and again, which the page
+shows as a table — `1994 → M, quedan 994` — and then reads back as a check.
+Coming the other way, the numeral is read as the sum of its pieces, with the
+six subtractive pairs marked. What has no numeral is said rather than drawn:
+zero, a negative and anything above MMMCMXCIX, because Rome wrote none of them.
+
+Both directions share their wording with the **Números Romanos** page, so
+`IIII` is refused with the same sentence wherever it is typed.
 
 ### Roman numerals
 

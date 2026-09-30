@@ -27,6 +27,7 @@ from core.roman import (
     EmptyRoman,
     NotCanonical,
     Numeral,
+    RomanError,
     Operation,
     difference_of,
     product_of,
@@ -42,6 +43,7 @@ from ..widgets import (
     ErrorBanner,
     PageHeader,
     PrimaryButton,
+    RomanNumeral,
     SectionTitle,
     SegmentedControl,
 )
@@ -78,6 +80,29 @@ TERMS_SHOWN = 30
 
 # How many terms of the repeated addition fit on one line before it wraps.
 ROMAN_TERMS_PER_LINE = 10
+
+def roman_complaint(problem: RomanError) -> str:
+    """
+    What to say about a numeral that could not be read.
+
+    Both pages that take a Roman numeral raise the same errors, and somebody
+    who wrote `IIII` deserves the same sentence on either of them.
+    """
+    if isinstance(problem, EmptyRoman):
+        return "Escribe un número romano."
+    if isinstance(problem, BadLetter):
+        return (
+            f"'{problem.letter}' no es un símbolo romano. "
+            "Solo se usan I, V, X, L, C, D y M."
+        )
+    if isinstance(problem, NotCanonical):
+        return f"'{problem.numeral}' no se escribe así: ese número es {problem.canonical}."
+    if isinstance(problem, BadOrder):
+        return (
+            f"'{problem.numeral}' no es un número romano: los símbolos van del mayor "
+            "al menor, y las únicas restas son IV, IX, XL, XC, CD y CM."
+        )
+    return str(problem)
 
 class RomanPage(ctk.CTkFrame):
     """The page that adds, subtracts and multiplies Roman numerals."""
@@ -197,23 +222,8 @@ class RomanPage(ctk.CTkFrame):
         except EmptyRoman:
             self._error.show("Escribe un número romano en las dos casillas.")
             return
-        except BadLetter as problem:
-            self._error.show(
-                f"'{problem.letter}' no es un símbolo romano. "
-                "Solo se usan I, V, X, L, C, D y M."
-            )
-            return
-        except NotCanonical as problem:
-            self._error.show(
-                f"'{problem.numeral}' no se escribe así: ese número es "
-                f"{problem.canonical}."
-            )
-            return
-        except BadOrder as problem:
-            self._error.show(
-                f"'{problem.numeral}' no es un número romano: los símbolos van del mayor "
-                "al menor, y las únicas restas son IV, IX, XL, XC, CD y CM."
-            )
+        except RomanError as problem:
+            self._error.show(roman_complaint(problem))
             return
 
         self._error.hide()
@@ -290,29 +300,7 @@ class RomanPage(ctk.CTkFrame):
             self._draw_pieces(inside, numeral)
 
     def _draw_pieces(self, inside: Any, numeral: Numeral) -> None:
-        row = ctk.CTkFrame(inside, fg_color="transparent")
-        row.pack(anchor="w", pady=(0, 10))
-        ctk.CTkLabel(
-            row, text=numeral.text, font=theme.font("mono"), text_color=theme.INK, width=90,
-            anchor="w",
-        ).pack(side="left")
-        ctk.CTkLabel(
-            row, text="=", font=theme.font("mono"), text_color=theme.MUTED
-        ).pack(side="left", padx=(0, 10))
-        for index, piece in enumerate(numeral.pieces):
-            if index:
-                ctk.CTkLabel(
-                    row, text="+", font=theme.font("mono"), text_color=theme.MUTED
-                ).pack(side="left", padx=6)
-            Chip(
-                row,
-                f"{piece.text} = {piece.value}",
-                theme.ACCENT if piece.subtractive else theme.INK,
-                theme.ACCENT_SOFT if piece.subtractive else theme.FIELD,
-            ).pack(side="left")
-        ctk.CTkLabel(
-            row, text=f"=  {numeral.value}", font=theme.font("mono"), text_color=theme.ACCENT
-        ).pack(side="left", padx=(12, 0))
+        RomanNumeral(inside, numeral).pack(anchor="w", pady=(0, 10))
 
     # ----- The repeated addition -----
 

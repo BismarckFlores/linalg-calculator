@@ -93,6 +93,23 @@ class Piece:
         return len(self.text) == 2
 
 @dataclass(frozen=True)
+class Taken:
+    """One piece taken while writing a number: `1994` takes M, and 994 is left."""
+
+    text: str
+    value: int
+    before: int
+    after: int
+
+@dataclass(frozen=True)
+class Written:
+    """A number written in Roman, and the pieces taken to write it, in order."""
+
+    value: int
+    numeral: str
+    taken: tuple[Taken, ...]
+
+@dataclass(frozen=True)
 class Numeral:
     """A numeral, its value, and the pieces it was read as."""
 
@@ -134,20 +151,30 @@ def to_value(text: str) -> int:
     return read(text).value
 
 def to_roman(value: int) -> str:
+    """The numeral alone, for whoever does not need the working."""
+    return write(value).numeral
+
+def write(value: int) -> Written:
     """
     Write a number as a numeral, taking the largest piece that fits, again and
     again: 1994 takes M, then CM, then XC, then IV.
+
+    Every piece taken is kept with what was left before and after it, which is
+    the same subtraction done on paper and the whole of why the answer is what
+    it is.
     """
     if not 1 <= value <= LARGEST:
         raise OutOfRange(value)
 
     numeral = ""
+    taken: list[Taken] = []
     left = value
     for text, amount in PIECES:
         while left >= amount:
+            taken.append(Taken(text, amount, left, left - amount))
             numeral += text
             left -= amount
-    return numeral
+    return Written(value, numeral, tuple(taken))
 
 def read(text: str) -> Numeral:
     """

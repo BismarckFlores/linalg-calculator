@@ -17,6 +17,7 @@ from typing import Any, Literal
 import customtkinter as ctk
 
 from core.matrix import Matrix
+from core.roman import Numeral
 from core.scalar import Scalar, format_scalar, to_scalar
 from core.steps import StepLog
 from ui.presentation import pretty_label
@@ -712,6 +713,42 @@ class Expression(ctk.CTkFrame):
             )
         self._column += 1
         return self
+
+class RomanNumeral(ctk.CTkFrame):
+    """
+    A Roman numeral read out as the sum of its pieces: `XIV = X + IV = 14`.
+
+    The six subtractive pairs are drawn in the accent colour, because they are
+    the one place where a smaller symbol comes before a larger one and the
+    reason the numeral is not simply read left to right.
+
+    Both pages that show a numeral use this, so `XIV` is set out the same way
+    whether it is being operated on or converted.
+    """
+
+    def __init__(self, master: Any, numeral: Numeral, width: int = 90) -> None:
+        super().__init__(master, fg_color="transparent")
+        ctk.CTkLabel(
+            self, text=numeral.text, font=theme.font("mono"), text_color=theme.INK,
+            width=width, anchor="w",
+        ).pack(side="left")
+        ctk.CTkLabel(
+            self, text="=", font=theme.font("mono"), text_color=theme.MUTED
+        ).pack(side="left", padx=(0, 10))
+        for index, piece in enumerate(numeral.pieces):
+            if index:
+                ctk.CTkLabel(
+                    self, text="+", font=theme.font("mono"), text_color=theme.MUTED
+                ).pack(side="left", padx=6)
+            Chip(
+                self,
+                f"{piece.text} = {piece.value}",
+                theme.ACCENT if piece.subtractive else theme.INK,
+                theme.ACCENT_SOFT if piece.subtractive else theme.FIELD,
+            ).pack(side="left")
+        ctk.CTkLabel(
+            self, text=f"=  {numeral.value}", font=theme.font("mono"), text_color=theme.ACCENT
+        ).pack(side="left", padx=(12, 0))
 
 class SegmentedControl(ctk.CTkSegmentedButton):
     """The pill of choices at the top of a page: an operation, or a method."""
