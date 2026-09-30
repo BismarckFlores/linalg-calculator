@@ -24,7 +24,7 @@ The sidebar lists what works, and nothing else:
 | **Matriz Inversa** | Gauss–Jordan on `[A \| Iₙ]` with coefficient grids or equations, shared matrix displays and step navigation, both product checks, and the application `x = A⁻¹b`. See [inverse.md](inverse.md). |
 | **Eliminación Gaussiana** | Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
 | **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one. Then it reduces it, step by step, and marks the pivot positions the reduced form puts on show. Switched to `Es una matriz aumentada [ A \| b ]`, it also reads the pivots as a system. |
-| **Números Romanos** | Adds and subtracts Roman numerals, and multiplies one symbol by another as the repeated addition it was taught as. Says when an answer is one the Romans could not write. |
+| **Números Romanos** | Adds, subtracts and multiplies Roman numerals, with a switch that writes a multiplication out as the repeated addition it stands for. Says when an answer is one the Romans could not write. |
 | **Sistemas Numéricos** | Converts a whole number from decimal to binary, octal, hexadecimal or any base from 2 to 36 by repeated division, and back to decimal by the linear combination of powers it stands for. Each direction is checked with the other. |
 
 The order follows the course. Vectors come first, then the matrix pages — the
@@ -298,9 +298,7 @@ field as it is typed, until somebody types a number of their own.
 
 ### Roman numerals
 
-Three operations, one per pill. **Suma** and **Resta** take any two numerals;
-**Multiplicación** takes one symbol in each box, which is what the assignment
-means by a single digit.
+Three operations, one per pill, and all three take any two numerals.
 
 A numeral is read as the sum of its pieces, and the page shows that reading
 before anything else: `XIV = X + IV = 14`, with the six subtractive pairs
@@ -309,10 +307,17 @@ symbol comes before a larger one. Then the operation is done on the values and
 the answer is written back as a numeral, with our own numbers underneath so
 both readings are visible.
 
-A multiplication is shown as what it is: `X × V` is X added five times, so the
-page writes `X + X + X + X + X` and then the total. A product needing hundreds
-of terms shows the first thirty and says how many there are — `M × M` would ask
-for a thousand X's, and they all say the same thing.
+A multiplication carries the **Notación de suma** switch, which is what the
+assignment asks for: `X × V` is X added five times, so the page writes
+`X + X + X + X + X` and then the total. It is on by default and only appears in
+that mode, because a sum is what a product stands for and the other two
+operations have none.
+
+Turning it off leaves the product alone, which is what somebody multiplying
+`XIV × IX` usually wants — the sum is right there if they want to see it, nine
+terms of XIV. A product needing hundreds of terms shows the first thirty and
+says how many there are: `M × M` would ask for a thousand X's, and `X × MMM`
+for three thousand, and they all say the same thing.
 
 Three answers have no numeral at all, and the page treats that as the answer
 rather than as a failure: zero and the negatives, which Rome had no symbol for,

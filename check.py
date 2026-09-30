@@ -21,7 +21,6 @@ from core.roman import (
     BadLetter,
     BadOrder,
     NotCanonical,
-    NotOneSymbol,
     difference_of,
     product_of,
     read,
@@ -327,11 +326,10 @@ for text, kind in (("IIII", NotCanonical), ("IC", BadOrder), ("A", BadLetter)):
     except kind:
         check(f"{text} is refused", "refused", "refused")
 check("IIII names its numeral", NotCanonical("IIII", "IV").canonical, "IV")
-try:
-    product_of("XIV", "V")
-    check("multiplying takes one symbol", "accepted", "refused")
-except NotOneSymbol as problem:
-    check("multiplying takes one symbol", problem.numeral, "XIV")
+many = product_of("XIV", "IX")
+check("any two numerals multiply", (many.value, many.numeral), (126, "CXXVI"))
+check("and keep their terms", (len(many.terms), many.terms[0]), (9, "XIV"))
+check("a product with no numeral", product_of("C", "C").numeral, "")
 
 print("exact arithmetic, end to end")
 third = solve(Matrix([[3, 1]]))

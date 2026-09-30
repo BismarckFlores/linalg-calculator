@@ -1332,27 +1332,12 @@ DOCSTRINGS: dict[str, str] = {
         "\n"
         "Las seis parejas de resta son el unico caso en que un simbolo menor va antes\n"
         "de uno mayor, y cualquier otro orden nunca fue un numero romano.",
-    "A numeral of more than one symbol, where only one is allowed.":
-        "Un numero de mas de un simbolo, donde solo se admite uno.",
     "A value with no numeral: zero, negative, or above `LARGEST`.":
         "Un valor sin numero romano: cero, negativo, o mayor que LARGEST.",
     "One piece of a numeral as it is read: `IX` is 9, and subtracts.":
         "Una pieza de un numero romano tal como se lee: IX vale 9, y resta.",
     "A numeral, its value, and the pieces it was read as.":
         "Un numero romano, su valor, y las piezas en que se leyo.",
-    "One operation done on two numerals, with everything it took to do it.\n"
-    "\n"
-    "`terms` is the repeated addition of a multiplication, one term per time the\n"
-    "left number is added, and is empty for a sum or a difference. `numeral` is\n"
-    "the answer written in Roman, or empty when the answer has no numeral, which\n"
-    "is the whole of what a zero or a negative result means here.":
-        "Una operacion hecha con dos numeros romanos, con todo lo que hizo falta.\n"
-        "\n"
-        "terms es la suma repetida de una multiplicacion, un sumando por cada vez que\n"
-        "se suma el numero de la izquierda, y esta vacio en una suma o una resta.\n"
-        "numeral es la respuesta escrita en romano, o una cadena vacia cuando la\n"
-        "respuesta no tiene numero romano, que es justo lo que significa un resultado\n"
-        "cero o negativo.",
     "Read a numeral as the sum its symbols stand for. `XIV` is 10 + 4.\n"
     "\n"
     "Only the canonical spelling is accepted: the value is written back out and\n"
@@ -1417,17 +1402,6 @@ DOCSTRINGS: dict[str, str] = {
         "de MMMCMXCIX, asi que se da el valor en nuestros numeros y se dice el motivo.",
     "Each numeral broken into its pieces, which is how its value is read.":
         "Cada numero partido en sus piezas, que es como se lee su valor.",
-    "The multiplication written as the sum it stands for.\n"
-    "\n"
-    "`X × V` is X added five times, so the terms are what the operation is,\n"
-    "not a picture of it. A product that would need hundreds of terms shows\n"
-    "the first few and says how many there are, because the rest say the\n"
-    "same thing.":
-        "La multiplicacion escrita como la suma que representa.\n"
-        "\n"
-        "X * V es X sumado cinco veces, asi que los sumandos son la operacion misma y\n"
-        "no un dibujo de ella. Un producto que necesitaria cientos de sumandos muestra\n"
-        "los primeros y dice cuantos son, porque los demas dicen lo mismo.",
     "The answer read back, which checks the writing against the reading.\n"
     "\n"
     "The value was turned into a numeral; reading that numeral has to give\n"
@@ -1514,6 +1488,50 @@ DOCSTRINGS: dict[str, str] = {
         "Una tarjeta con su titulo, guardada para que el siguiente calculo la borre.",
     "A result stops being true the moment the matrix is retyped.":
         "Un resultado deja de ser cierto en cuanto se cambia la matriz.",
+    "One operation done on two numerals, with everything it took to do it.\n"
+    "\n"
+    "`terms` is the repeated addition of a multiplication, one term per time the\n"
+    "left number is added; a sum or a difference has none. `numeral` is\n"
+    "the answer written in Roman, or empty when the answer has no numeral, which\n"
+    "is the whole of what a zero or a negative result means here.":
+        "Una operacion hecha con dos numeros romanos, con todo lo que hizo falta.\n"
+        "\n"
+        "terms es la suma repetida de una multiplicacion, un sumando por cada vez que\n"
+        "se suma el numero de la izquierda; una suma o una resta no tiene ninguno.\n"
+        "numeral es la respuesta escrita en romano, o una cadena vacia cuando la\n"
+        "respuesta no tiene numero romano, que es justo lo que significa un resultado\n"
+        "cero o negativo.",
+    "One numeral times another, keeping the repeated addition it stands for:\n"
+    "`X * V` is X + X + X + X + X, which is L.\n"
+    "\n"
+    "`terms` carries one copy of the left numeral per unit of the right one, so\n"
+    "it is the sum itself and not a picture of it. A large right-hand number\n"
+    "makes a long list — `X * MMM` is three thousand terms — and it is for the\n"
+    "caller to decide how much of it is worth showing.":
+        "Un numero romano por otro, conservando la suma repetida que representa:\n"
+        "X * V es X + X + X + X + X, que es L.\n"
+        "\n"
+        "terms lleva una copia del numero de la izquierda por cada unidad del de la\n"
+        "derecha, asi que es la suma misma y no un dibujo de ella. Un numero grande a\n"
+        "la derecha hace una lista larga (X * MMM son tres mil sumandos) y es quien\n"
+        "llama quien decide cuanto vale la pena mostrar.",
+    "The multiplication written as the sum it stands for.\n"
+    "\n"
+    "`X × V` is X added five times, so the terms are what the operation is,\n"
+    "not a picture of it. A product that would need hundreds of terms shows\n"
+    "the first few and says how many there are, because the rest say the\n"
+    "same thing.\n"
+    "\n"
+    "The card only appears while the switch is on: it is the working, and\n"
+    "somebody who wants the product does not need three thousand terms.":
+        "La multiplicacion escrita como la suma que representa.\n"
+        "\n"
+        "X * V es X sumado cinco veces, asi que los sumandos son la operacion misma y\n"
+        "no un dibujo de ella. Un producto que necesitaria cientos de sumandos muestra\n"
+        "los primeros y dice cuantos son, porque los demas dicen lo mismo.\n"
+        "\n"
+        "La tarjeta solo aparece mientras el interruptor esta encendido: es el\n"
+        "procedimiento, y quien solo quiere el producto no necesita tres mil sumandos.",
 }
 
 COMMENTS: dict[str, str] = {
@@ -1890,14 +1908,8 @@ COMMENTS: dict[str, str] = {
         "# Lo que vale cada simbolo, dicho una vez debajo de las casillas.",
     "# A thousand X's on screen say nothing that the first few do not; M × M would":
         "# Mil X en pantalla no dicen nada que no digan las primeras; M × M pediria",
-    "# ask for exactly that.":
-        "# exactamente eso.",
     "# How many terms of the repeated addition fit on one line before it wraps.":
         "# Cuantos sumandos de la suma repetida caben en una linea antes de partirla.",
-    "# A multiplication takes one symbol in each box, so the example changes":
-        "# Una multiplicacion lleva un simbolo en cada casilla, asi que el ejemplo cambia",
-    "# with it: XIV × IX is not something this page offers.":
-        "# con ella: XIV × IX no es algo que esta pagina ofrezca.",
     "# ----- How each numeral is read -----":
         "# ----- Como se lee cada numero -----",
     "# ----- The repeated addition -----":
@@ -1938,4 +1950,10 @@ COMMENTS: dict[str, str] = {
         "# ----- Eleccion de modo -----",
     "# ----- The cards -----":
         "# ----- Las tarjetas -----",
+    "# ask for exactly that, and X × MMM for three thousand.":
+        "# exactamente eso, y X × MMM tres mil.",
+    "# Only a multiplication has a sum to write out, so the switch lives with":
+        "# Solo una multiplicacion tiene una suma que escribir, asi que el interruptor",
+    "# it and is on by default: writing it out is what the assignment asks.":
+        "# va con ella y viene encendido: escribirla es lo que pide el enunciado.",
 }

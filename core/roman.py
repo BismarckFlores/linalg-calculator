@@ -10,9 +10,9 @@ only 1 to 3999 can be written at all. Anything outside that is not a numeral
 that exists, and this says so instead of inventing one.
 
 Adding and subtracting work on the values: read both numerals, operate, and
-write the answer back as a numeral. Multiplying is done the way it was taught,
-as repeated addition — X * V is X + X + X + X + X — and it takes one symbol
-times another, which is what the assignment means by a single digit.
+write the answer back as a numeral. Multiplying works the same way, and also
+keeps the repeated addition it was taught as — X * V is X + X + X + X + X —
+one term per unit of the right-hand number, for whoever wants to see it.
 
 Like the rest of `core`, this says nothing to anybody. It returns the working
 and raises, and the window decides the Spanish.
@@ -73,13 +73,6 @@ class BadOrder(RomanError):
         super().__init__(f"'{numeral}' is not how a numeral is put together.")
         self.numeral = numeral
 
-class NotOneSymbol(RomanError):
-    """A numeral of more than one symbol, where only one is allowed."""
-
-    def __init__(self, numeral: str) -> None:
-        super().__init__(f"'{numeral}' is more than one symbol.")
-        self.numeral = numeral
-
 class OutOfRange(RomanError):
     """A value with no numeral: zero, negative, or above `LARGEST`."""
 
@@ -113,7 +106,7 @@ class Operation:
     One operation done on two numerals, with everything it took to do it.
 
     `terms` is the repeated addition of a multiplication, one term per time the
-    left number is added, and is empty for a sum or a difference. `numeral` is
+    left number is added; a sum or a difference has none. `numeral` is
     the answer written in Roman, or empty when the answer has no numeral, which
     is the whole of what a zero or a negative result means here.
     """
@@ -202,18 +195,15 @@ def difference_of(left: str, right: str) -> Operation:
 
 def product_of(left: str, right: str) -> Operation:
     """
-    One symbol times another, as the repeated addition it was taught as:
+    One numeral times another, keeping the repeated addition it stands for:
     `X * V` is X + X + X + X + X, which is L.
 
-    Both factors have to be single symbols — I, V, X, L, C, D or M — which is
-    what the assignment means by one digit. `terms` carries one copy of the
-    left numeral per unit of the right one, so it is the sum itself.
+    `terms` carries one copy of the left numeral per unit of the right one, so
+    it is the sum itself and not a picture of it. A large right-hand number
+    makes a long list — `X * MMM` is three thousand terms — and it is for the
+    caller to decide how much of it is worth showing.
     """
     first, second = read(left), read(right)
-    for factor in (first, second):
-        if len(factor.text) != 1:
-            raise NotOneSymbol(factor.text)
-
     product = _operate(first, second, "*")
     return Operation(
         first, second, "*", product.value, product.numeral,

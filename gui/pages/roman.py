@@ -1,10 +1,11 @@
 """
 Adding, subtracting and multiplying Roman numerals, working shown.
 
-A sum or a difference is done on what the numerals are worth: each one is read
-as the sum of its pieces, the two values are operated, and the answer is
-written back as a numeral. A multiplication of one symbol by another is done
-as the repeated addition it was taught as, so the sum itself is the working.
+Every operation is done on what the numerals are worth: each one is read as the
+sum of its pieces, the two values are operated, and the answer is written back
+as a numeral. A multiplication can also show the repeated addition it stands
+for — the notation the assignment asks for — which is a switch, because it is
+the working rather than the answer.
 
 Two things the Romans did not write come up as answers rather than as errors:
 zero and negative numbers, and anything above MMMCMXCIX. The page says which
@@ -25,7 +26,6 @@ from core.roman import (
     BadOrder,
     EmptyRoman,
     NotCanonical,
-    NotOneSymbol,
     Numeral,
     Operation,
     difference_of,
@@ -53,7 +53,8 @@ TIMES = "Multiplicación"
 ROMAN_SUBTITLES = {
     PLUS: "Sumar dos números romanos: se leen, se suman sus valores y el total se escribe en romano.",
     MINUS: "Restar dos números romanos: los romanos no escribían el cero ni los negativos.",
-    TIMES: "Multiplicar dos símbolos romanos por notación de suma: X × V es X + X + X + X + X.",
+    TIMES: "Multiplicar dos números romanos, con la notación de suma que los escribe "
+    "como una suma repetida: X × V es X + X + X + X + X.",
 }
 
 # The sign each operation is written with, and the call that does it.
@@ -63,18 +64,16 @@ ROMAN_OPERATIONS = {PLUS: sum_of, MINUS: difference_of, TIMES: product_of}
 # What the boxes hold before anybody types, so the first click shows something.
 FIRST_EXAMPLE = "XIV"
 SECOND_EXAMPLE = "IX"
-FIRST_SYMBOL = "X"
-SECOND_SYMBOL = "V"
 
 # What each symbol is worth, said once under the boxes.
 ROMAN_HELP = (
     "Símbolos: I = 1, V = 5, X = 10, L = 50, C = 100, D = 500, M = 1000.\n"
     "Se escriben del mayor al menor, y las únicas restas son IV, IX, XL, XC, CD y CM."
 )
-SYMBOL_HELP = "Un solo símbolo en cada casilla: I, V, X, L, C, D o M."
+SUM_NOTATION = "Notación de suma"
 
 # A thousand X's on screen say nothing that the first few do not; M × M would
-# ask for exactly that.
+# ask for exactly that, and X × MMM for three thousand.
 TERMS_SHOWN = 30
 
 # How many terms of the repeated addition fit on one line before it wraps.
@@ -108,6 +107,18 @@ class RomanPage(ctk.CTkFrame):
         )
         self._sign.grid(row=0, column=1, padx=16)
         self._second = self._box(boxes, 2, SECOND_EXAMPLE)
+
+        # Only a multiplication has a sum to write out, so the switch lives with
+        # it and is on by default: writing it out is what the assignment asks.
+        self._as_sum = ctk.CTkSwitch(
+            inside,
+            text=SUM_NOTATION,
+            font=theme.font("body"),
+            text_color=theme.INK,
+            progress_color=theme.ACCENT,
+            command=self._clear_output,
+        )
+        self._as_sum.select()
 
         self._help = ctk.CTkLabel(
             inside,
@@ -152,21 +163,13 @@ class RomanPage(ctk.CTkFrame):
         self._operation = operation
         self._header.set_subtitle(ROMAN_SUBTITLES[operation])
         self._sign.configure(text=ROMAN_SIGNS[operation])
-        self._help.configure(
-            text=ROMAN_HELP + ("\n" + SYMBOL_HELP if operation == TIMES else "")
-        )
         self._clear_output()
         self._error.hide()
 
-        # A multiplication takes one symbol in each box, so the example changes
-        # with it: XIV × IX is not something this page offers.
-        single = operation == TIMES
-        if single and (len(self._first.get().strip()) > 1 or len(self._second.get().strip()) > 1):
-            self._write(self._first, FIRST_SYMBOL)
-            self._write(self._second, SECOND_SYMBOL)
-        elif not single and self._first.get().strip() == FIRST_SYMBOL:
-            self._write(self._first, FIRST_EXAMPLE)
-            self._write(self._second, SECOND_EXAMPLE)
+        if operation == TIMES:
+            self._as_sum.pack(anchor="w", pady=(14, 0), before=self._help)
+        else:
+            self._as_sum.pack_forget()
 
     def _write(self, entry: ctk.CTkEntry, text: str) -> None:
         entry.delete(0, "end")
@@ -212,17 +215,11 @@ class RomanPage(ctk.CTkFrame):
                 "al menor, y las únicas restas son IV, IX, XL, XC, CD y CM."
             )
             return
-        except NotOneSymbol as problem:
-            self._error.show(
-                f"Para multiplicar, cada casilla lleva un solo símbolo, y "
-                f"'{problem.numeral}' tiene {len(problem.numeral)}. {SYMBOL_HELP}"
-            )
-            return
 
         self._error.hide()
         self._draw_answer(done)
         self._draw_reading(done)
-        if done.terms:
+        if done.terms and self._as_sum.get():
             self._draw_terms(done)
         if done.writable:
             self._draw_check(done)
@@ -327,6 +324,9 @@ class RomanPage(ctk.CTkFrame):
         not a picture of it. A product that would need hundreds of terms shows
         the first few and says how many there are, because the rest say the
         same thing.
+
+        The card only appears while the switch is on: it is the working, and
+        somebody who wants the product does not need three thousand terms.
         """
         inside = self._card("Notación de suma", f"{len(done.terms)} sumandos")
         self._muted(

@@ -148,8 +148,8 @@ sign apart from its digits, so `-43` is `-101011` in base 2 and `-2B` in base 16
 `core/roman.py` reads and writes Roman numerals — `XIV` is X + IV, which is
 14 — and does the three operations the course asks for on them. Sums and
 differences work on the values and write the answer back as a numeral;
-multiplying one symbol by another is done as the repeated addition it was
-taught as, `X × V = X + X + X + X + X`. Zero, negatives and anything above
+a multiplication also keeps the repeated addition it stands for,
+`X × V = X + X + X + X + X`, which the window shows on request. Zero, negatives and anything above
 MMMCMXCIX come back as answers without a numeral, because the Romans wrote
 none.
 
