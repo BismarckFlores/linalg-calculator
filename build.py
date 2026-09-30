@@ -214,6 +214,19 @@ WINDOW_BLOCKS: list[Block] = [
         "de toda la combinación, -2B en base 16 = -(2·16^1 + 11·16^0) = -43.",
     ),
     Block(
+        "core/roman.py",
+        "LOS NÚMEROS ROMANOS",
+        "Lee y escribe números romanos, y hace con ellos lo que pide el enunciado:\n"
+        "  - Un número romano es la suma de sus piezas, escritas de mayor a menor.\n"
+        "    Las seis parejas IV, IX, XL, XC, CD y CM valen una resta.\n"
+        "  - Sumar y restar se hace sobre los valores: se leen los dos números, se\n"
+        "    opera y el resultado se vuelve a escribir en romano.\n"
+        "  - Multiplicar dos símbolos se hace por notación de suma, que es como se\n"
+        "    enseña: X × V es X + X + X + X + X.\n"
+        "Solo existen los números del 1 al 3999 (MMMCMXCIX): no había símbolo para\n"
+        "el cero, ni para los negativos, ni por encima de M.",
+    ),
+    Block(
         "core/vectors.py",
         "LOS VECTORES DE Rn",
         "Un vector es una tupla de números exactos, y su dimensión n es la\n"
@@ -333,6 +346,15 @@ WINDOW_BLOCKS: list[Block] = [
         "mediante la inversa.",
     ),
     Block(
+        "gui/pages/roman.py",
+        "LA PESTAÑA DE NÚMEROS ROMANOS",
+        "Suma, resta y multiplica números romanos. Muestra cómo se lee cada\n"
+        "número pieza por pieza, la operación en romano y en nuestros números, y\n"
+        "la multiplicación escrita como la suma repetida que representa. Cuando\n"
+        "el resultado es cero, negativo o mayor que MMMCMXCIX, lo dice: eso es la\n"
+        "respuesta, porque los romanos no escribían esos números.",
+    ),
+    Block(
         "gui/app.py",
         "LA VENTANA",
         "El menú de la izquierda, la página abierta a la derecha y el cambio de\n"
@@ -400,6 +422,24 @@ algebra lineal de math.""",
     ),
     # Two assignments handed in as one file: both are pages of the same window.
     Program(
+        number="Numeros Romanos",
+        title="Suma, Resta y Multiplicacion de Numeros Romanos",
+        preamble=WINDOW_HOWTO + """
+
+Las operaciones con numeros romanos estan en la pestana Numeros Romanos de la
+ventana, la ultima del menu de la izquierda:
+
+  Sumar y restar numeros romanos    botones Suma y Resta
+  Multiplicar por notacion de suma  boton Multiplicacion, un simbolo en cada
+                                    casilla (I, V, X, L, C, D o M)
+
+CustomTkinter solo dibuja. La lectura y la escritura de los numeros romanos
+estan hechas con Python estandar: listas, condicionales, bucles y funciones. No
+se usa ninguna libreria de numeros romanos, ni NumPy, SciPy o funciones
+avanzadas de math.""",
+        blocks=[*ENGINE, *WINDOW_BLOCKS],
+    ),
+    Program(
         number="Vectores y Sistemas Numericos",
         title="Vectores en Rn, Operaciones Matriciales y Ecuaciones Matriciales\n"
         "Conversion de Numeros entre Sistemas Numericos",
@@ -422,6 +462,9 @@ Los dos programas son pestanas de la misma ventana, en el menu de la izquierda:
     hexadecimal (u otra base)        Decimal -> otra base
     Binario, octal, hexadecimal      pestana Sistemas Numericos,
     (u otra base) a decimal          Otra base -> decimal
+
+La ventana trae ademas la pestana Numeros Romanos, que se entrega tambien por
+su cuenta como Programa Numeros Romanos_Grupo5.py.
 
 CustomTkinter solo dibuja. Toda la matematica esta escrita con Python
 estandar: listas, condicionales, bucles y funciones. No se usan NumPy, SciPy,

@@ -26,6 +26,7 @@ systems       classifies what came out, and clears the unknowns
    │                    parametric     the family, when there are infinitely many
    │                    bases          whole numbers between bases, on its own
    │                    vectors        Rⁿ, and combinations solved as a system
+   │                    roman          Roman numerals, on their own too
    ├────────────────────────┴──────────────┘
 presentation  turns all of the above into Spanish
 prompts       reads a system from the keyboard, either way round
@@ -329,6 +330,36 @@ can name both. Both errors descend from `NumeralError`, a `ValueError`.
 
 Nothing is delegated to `int(text, base)`, `bin`, `oct` or `hex`.
 
+## `core/roman.py`
+
+Roman numerals as text and as values. It imports nothing from the rest of
+`core`: a numeral is not a matrix.
+
+| Name | Meaning |
+| --- | --- |
+| `to_value(text) -> int` | `XIV` is 14. Only the canonical spelling is accepted. |
+| `to_roman(value) -> str` | Takes the largest piece that fits, again and again. Raises `OutOfRange` outside 1..`LARGEST`. |
+| `read(text) -> Numeral` | The numeral, its value and its pieces, for showing the working. |
+| `sum_of(a, b)`, `difference_of(a, b)` | Read both, operate on the values, write the answer back. |
+| `product_of(a, b)` | One symbol times another, as repeated addition. Raises `NotOneSymbol` otherwise. |
+| `PIECES`, `SYMBOLS`, `LARGEST` | The thirteen pieces largest first, the seven symbols, and 3999. |
+
+**`Numeral`** — `text`, `value` and `pieces`. Each **`Piece`** is `text` and
+`value`, with `subtractive` true for the six pairs.
+
+**`Operation`** — `left`, `right`, `sign`, `value`, `numeral` and `terms`.
+`numeral` is empty when the answer cannot be written, which `writable` reports;
+`terms` is the repeated addition of a multiplication and is empty otherwise.
+
+**`NotCanonical`** carries the `numeral` and the `canonical` spelling it should
+have had; **`BadOrder`** carries a numeral whose order spells nothing;
+**`BadLetter`** carries the `letter`; **`NotOneSymbol`** the numeral that was
+more than one. All descend from `RomanError`, a `ValueError`.
+
+The names are `sum_of` and `difference_of` rather than `add` and `subtract`
+because `core/vectors.py` already has those, and every module lands in one
+namespace in the file handed in.
+
 ## `core/vectors.py`
 
 Vectors of Rⁿ as tuples of `Fraction`. The dimension is the length of the tuple
@@ -440,6 +471,7 @@ The window. `python -m gui`, from the repository root. Full notes in
 | `gui/app.py` | `MODULES` — the sidebar, in order — plus `NavRow`, `Application` and `main()`. |
 | `gui/pages/vectors.py` | `VectorsPage`: `u + v`, `u − v`, `k · u` and linear combinations in Rⁿ, as columns and component by component. Owns its Spanish. |
 | `gui/pages/operations.py` | `OperationsPage`: the five matrix operations. |
+| `gui/pages/roman.py` | `RomanPage`: Roman numerals added, subtracted and multiplied by repeated addition, with each numeral read piece by piece. Owns its Spanish. |
 | `gui/pages/inverse.py` | `InversePage`: inverse and `Ax = b`, both entered through the shared coefficient grids or equation parser, with matrix displays, product checks and `StepWalker`. |
 | `gui/pages/echelon.py` | `EchelonPage`: the five properties, the leading entries and the pivots. Owns their Spanish, since no other front end says it. |
 | `gui/pages/bases.py` | `BasesPage`: decimal to base 2, 8, 16 or any other from 2 to 36 and back, with the divisions, the combination and a table of positions. |

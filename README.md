@@ -23,6 +23,7 @@ linalg-calculator/
 │   ├── echelon.py        # the five properties, the leading entries, the pivots
 │   ├── parametric.py     # the general solution, when there are infinitely many
 │   ├── bases.py          # whole numbers in any base from 2 to 36, working kept
+│   ├── roman.py          # Roman numerals, read, written and operated on
 │   └── vectors.py        # vectors of Rⁿ, and whether b combines the others
 ├── ui/                   # everything a person reads, in Spanish
 │   ├── presentation.py   # engine objects → the words that go on screen
@@ -32,7 +33,8 @@ linalg-calculator/
 │   ├── widgets.py        # the shapes CustomTkinter does not have
 │   ├── entry.py          # the two ways a matrix is handed over, in one card
 │   ├── app.py            # the window, the sidebar, which page is open
-│   └── pages/            # vectors, operations, inverse, elimination, echelon forms, numeral systems
+│   └── pages/            # vectors, operations, inverse, elimination, echelon forms,
+│                         # numeral systems, Roman numerals
 ├── deliverables/         # the scripts handed in to the course
 │   ├── program1.py       # Programa 1: systems by row elimination
 │   └── out/              # generated single files, not versioned
@@ -142,6 +144,14 @@ already the answer.
 division, keeping every `n = b·q + r`, and back by the linear combination of
 powers the numeral stands for, keeping every term. A negative number keeps its
 sign apart from its digits, so `-43` is `-101011` in base 2 and `-2B` in base 16.
+
+`core/roman.py` reads and writes Roman numerals — `XIV` is X + IV, which is
+14 — and does the three operations the course asks for on them. Sums and
+differences work on the values and write the answer back as a numeral;
+multiplying one symbol by another is done as the repeated addition it was
+taught as, `X × V = X + X + X + X + X`. Zero, negatives and anything above
+MMMCMXCIX come back as answers without a numeral, because the Romans wrote
+none.
 
 `add`, `subtract` and `scale` work on vectors of Rⁿ component by component, and
 nothing fixes n in advance: it is however many components were typed.

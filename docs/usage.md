@@ -161,10 +161,13 @@ Escrito: deliverables/out/Programa 1_Grupo5.py
   1647 lineas, 12 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa 2_Grupo5.py
-  5572 lineas, 24 bloques
+  6525 lineas, 28 bloques
+  Todo el texto del archivo esta en castellano.
+Escrito: deliverables/out/Programa Numeros Romanos_Grupo5.py
+  6530 lineas, 28 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Vectores y Sistemas Numericos_Grupo5.py
-  5590 lineas, 24 bloques
+  6543 lineas, 28 bloques
   Todo el texto del archivo esta en castellano.
 ```
 
@@ -177,6 +180,12 @@ for. Its first lines are the instructions for running it: make a `.venv`,
 `pip install customtkinter`, run the file. That is the only thing any
 deliverable here needs installed, and only to draw — the mathematics inside it
 is standard library too.
+
+**`Programa Numeros Romanos_Grupo5.py`** is the same window again, handed in
+for the Roman numerals assignment. Its preamble points at the `Números Romanos`
+tab: `Suma` and `Resta` for the two numerals, and `Multiplicación` for one
+symbol times another, written as the repeated addition the assignment asks for.
+No Roman numeral library is used; `core/roman.py` reads and writes them.
 
 **`Programa Vectores y Sistemas Numericos_Grupo5.py`** is the same window,
 handed in once for two assignments that have names rather than numbers: the

@@ -25,6 +25,7 @@ from .pages.echelon import EchelonPage
 from .pages.gauss import GaussPage
 from .pages.inverse import InversePage
 from .pages.operations import OperationsPage
+from .pages.roman import RomanPage
 from .pages.vectors import VectorsPage
 from .widgets import Card
 
@@ -40,8 +41,9 @@ class Module:
 # the course: vectors first, then matrices and their arithmetic, then systems,
 # and reading the form of a matrix as the check that follows them. Gauss and
 # Gauss-Jordan share a row: they are two settings of one method, and the choice
-# between them belongs inside the page. The numeral systems have nothing to do
-# with matrices, so they sit apart, at the end.
+# between them belongs inside the page. The ways of writing a number — bases
+# and Roman numerals — have nothing to do with matrices, so they sit apart, at
+# the end, next to each other.
 MODULES = (
     Module("vectors", "↗", "Vectores"),
     Module("operations", "⊞", "Operaciones Matriciales"),
@@ -49,6 +51,7 @@ MODULES = (
     Module("gauss", "▦", "Eliminación Gaussiana"),
     Module("echelon", "▧", "Formas Escalonadas"),
     Module("bases", "⇄", "Sistemas Numéricos"),
+    Module("roman", "Ⅻ", "Números Romanos"),
 )
 
 SIDEBAR_WIDTH = 268
@@ -253,6 +256,8 @@ class Application(ctk.CTk):
             return GaussPage(self._container)
         if key == "bases":
             return BasesPage(self._container)
+        if key == "roman":
+            return RomanPage(self._container)
         raise KeyError(f"No page is registered for {key!r}.")
 
 def main() -> None:

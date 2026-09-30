@@ -1310,6 +1310,210 @@ DOCSTRINGS: dict[str, str] = {
         'Los escalares puestos de vuelta: cada vector multiplicado y despues todos sumados.',
     'The system as one equation between matrices: A times the unknowns is b.':
         'El sistema como una sola ecuacion entre matrices: A por las incognitas es b.',
+
+    # ----- roman numerals -----
+    "Something is not a Roman numeral, or cannot be written as one.":
+        "Algo no es un numero romano, o no se puede escribir como tal.",
+    "A character that is not a Roman symbol. `letter` is that character.":
+        "Un caracter que no es un simbolo romano. letter es ese caracter.",
+    "Roman letters that add up, but are not how the number is written.\n"
+    "\n"
+    "`IIII` is four ones and `VV` is two fives; both say a number that has a\n"
+    "numeral of its own, and `canonical` is that numeral.":
+        "Letras romanas que suman, pero no son como se escribe el numero.\n"
+        "\n"
+        "IIII son cuatro unos y VV son dos cincos; las dos dicen un numero que tiene\n"
+        "su propio numeral, y canonical es ese numeral.",
+    "Roman letters in an order that spells nothing: `IC`, `XM`, `VX`.\n"
+    "\n"
+    "The six subtractive pairs are the only case where a smaller symbol comes\n"
+    "before a larger one, and anything else never was a numeral.":
+        "Letras romanas en un orden que no escribe nada: IC, XM, VX.\n"
+        "\n"
+        "Las seis parejas de resta son el unico caso en que un simbolo menor va antes\n"
+        "de uno mayor, y cualquier otro orden nunca fue un numero romano.",
+    "A numeral of more than one symbol, where only one is allowed.":
+        "Un numero de mas de un simbolo, donde solo se admite uno.",
+    "A value with no numeral: zero, negative, or above `LARGEST`.":
+        "Un valor sin numero romano: cero, negativo, o mayor que LARGEST.",
+    "One piece of a numeral as it is read: `IX` is 9, and subtracts.":
+        "Una pieza de un numero romano tal como se lee: IX vale 9, y resta.",
+    "A numeral, its value, and the pieces it was read as.":
+        "Un numero romano, su valor, y las piezas en que se leyo.",
+    "One operation done on two numerals, with everything it took to do it.\n"
+    "\n"
+    "`terms` is the repeated addition of a multiplication, one term per time the\n"
+    "left number is added, and is empty for a sum or a difference. `numeral` is\n"
+    "the answer written in Roman, or empty when the answer has no numeral, which\n"
+    "is the whole of what a zero or a negative result means here.":
+        "Una operacion hecha con dos numeros romanos, con todo lo que hizo falta.\n"
+        "\n"
+        "terms es la suma repetida de una multiplicacion, un sumando por cada vez que\n"
+        "se suma el numero de la izquierda, y esta vacio en una suma o una resta.\n"
+        "numeral es la respuesta escrita en romano, o una cadena vacia cuando la\n"
+        "respuesta no tiene numero romano, que es justo lo que significa un resultado\n"
+        "cero o negativo.",
+    "Read a numeral as the sum its symbols stand for. `XIV` is 10 + 4.\n"
+    "\n"
+    "Only the canonical spelling is accepted: the value is written back out and\n"
+    "compared with what was read, so `IIII` is refused for `IV`, and `IC` for\n"
+    "being an order that never spelled anything.":
+        "Lee un numero romano como la suma que representan sus simbolos. XIV es 10 + 4.\n"
+        "\n"
+        "Solo se acepta la escritura canonica: el valor se vuelve a escribir y se\n"
+        "compara con lo leido, asi que IIII se rechaza a favor de IV, y IC por ser un\n"
+        "orden que nunca escribio nada.",
+    "Write a number as a numeral, taking the largest piece that fits, again and\n"
+    "again: 1994 takes M, then CM, then XC, then IV.":
+        "Escribe un numero en romano tomando la pieza mas grande que quepa, una y otra\n"
+        "vez: 1994 toma M, luego CM, luego XC y luego IV.",
+    "A numeral with its value and the pieces it was read as, for showing the\n"
+    "working. Raises `EmptyRoman`, `BadLetter` or `NotCanonical`.":
+        "Un numero romano con su valor y las piezas en que se leyo, para mostrar el\n"
+        "procedimiento. Lanza EmptyRoman, BadLetter, BadOrder o NotCanonical.",
+    "`XIV + IX`: both are read, the values are added, the sum is written back.":
+        "XIV + IX: se leen los dos, se suman los valores y el total se escribe en romano.",
+    "`XIV - IX`: the same, taking one value from the other.\n"
+    "\n"
+    "A difference of zero or less has no numeral, and the operation says so\n"
+    "rather than raising: that the Romans wrote no zero is the answer.":
+        "XIV - IX: lo mismo, restando un valor del otro.\n"
+        "\n"
+        "Una diferencia de cero o menos no tiene numero romano, y la operacion lo dice\n"
+        "en vez de lanzar un error: que los romanos no escribieran el cero es la\n"
+        "respuesta.",
+    "One symbol times another, as the repeated addition it was taught as:\n"
+    "`X * V` is X + X + X + X + X, which is L.\n"
+    "\n"
+    "Both factors have to be single symbols — I, V, X, L, C, D or M — which is\n"
+    "what the assignment means by one digit. `terms` carries one copy of the\n"
+    "left numeral per unit of the right one, so it is the sum itself.":
+        "Un simbolo por otro, como la suma repetida con que se ensena:\n"
+        "X * V es X + X + X + X + X, que es L.\n"
+        "\n"
+        "Los dos factores tienen que ser un solo simbolo (I, V, X, L, C, D o M), que\n"
+        "es lo que el enunciado llama un solo digito. terms lleva una copia del numero\n"
+        "de la izquierda por cada unidad del de la derecha, asi que es la suma misma.",
+    "Whether this piece is one of the six pairs, `IX` rather than `X`.":
+        "Si esta pieza es una de las seis parejas, IX en vez de X.",
+    "Whether the answer is a number the Romans could write down.":
+        "Si la respuesta es un numero que los romanos podian escribir.",
+    "The page that adds, subtracts and multiplies Roman numerals.":
+        "La pagina que suma, resta y multiplica numeros romanos.",
+    "One of the two numerals, typed in capitals whatever the keyboard sends.":
+        "Uno de los dos numeros, escrito en mayusculas escriba lo que escriba el teclado.",
+    "Roman numerals are capitals, so lowercase is corrected as it is typed.":
+        "Los numeros romanos van en mayusculas, asi que la minuscula se corrige al escribir.",
+    "The operation in one line, in Roman above and in our numbers below.":
+        "La operacion en una linea, en romano arriba y en nuestros numeros abajo.",
+    "Why an answer has no numeral, which is an answer and not a failure.\n"
+    "\n"
+    "Zero and the negatives had no symbol at all, and neither did anything\n"
+    "above MMMCMXCIX, so the value is given in our numbers and the reason is\n"
+    "named.":
+        "Por que una respuesta no tiene numero romano, que es una respuesta y no un fallo.\n"
+        "\n"
+        "El cero y los negativos no tenian simbolo, y tampoco lo tenia nada por encima\n"
+        "de MMMCMXCIX, asi que se da el valor en nuestros numeros y se dice el motivo.",
+    "Each numeral broken into its pieces, which is how its value is read.":
+        "Cada numero partido en sus piezas, que es como se lee su valor.",
+    "The multiplication written as the sum it stands for.\n"
+    "\n"
+    "`X × V` is X added five times, so the terms are what the operation is,\n"
+    "not a picture of it. A product that would need hundreds of terms shows\n"
+    "the first few and says how many there are, because the rest say the\n"
+    "same thing.":
+        "La multiplicacion escrita como la suma que representa.\n"
+        "\n"
+        "X * V es X sumado cinco veces, asi que los sumandos son la operacion misma y\n"
+        "no un dibujo de ella. Un producto que necesitaria cientos de sumandos muestra\n"
+        "los primeros y dice cuantos son, porque los demas dicen lo mismo.",
+    "The answer read back, which checks the writing against the reading.\n"
+    "\n"
+    "The value was turned into a numeral; reading that numeral has to give\n"
+    "the value again, and it is done with the same code the operands went\n"
+    "through rather than with the number that produced it.":
+        "La respuesta leida de vuelta, que comprueba la escritura contra la lectura.\n"
+        "\n"
+        "El valor se convirtio en numero romano; leer ese numero tiene que dar otra vez\n"
+        "el valor, y se hace con el mismo codigo por el que pasaron los operandos, no\n"
+        "con el numero que lo produjo.",
+    "A result stops being true the moment either numeral is retyped.":
+        "Un resultado deja de ser cierto en cuanto se cambia cualquiera de los dos numeros.",
+
+    # ----- the inverse -----
+    "A square matrix with fewer than n pivots, which has no inverse.":
+        "Una matriz cuadrada con menos de n pivotes, que no tiene inversa.",
+    "An inverse and everything it took to find it.\n"
+    "\n"
+    "`reduction` is the walk from `[A | I]` to `[I | A⁻¹]`, so the step by step\n"
+    "and the answer are two readings of the same elimination. `left_check` and\n"
+    "`right_check` are the two products, kept rather than thrown away, because\n"
+    "showing them is what proves the answer.":
+        "Una inversa y todo lo que hizo falta para encontrarla.\n"
+        "\n"
+        "reduction es el recorrido de [A | I] a [I | A^-1], asi que el paso a paso y\n"
+        "el resultado son dos lecturas de la misma eliminacion. left_check y\n"
+        "right_check son los dos productos, guardados en vez de descartados, porque\n"
+        "mostrarlos es lo que demuestra el resultado.",
+    "A system solved by the inverse: `x = A⁻¹ b`, and `A x` put back.":
+        "Un sistema resuelto con la inversa: x = A^-1 b, y A x sustituido de vuelta.",
+    "Reduce `[A | I]` and read A⁻¹ off the right half.\n"
+    "\n"
+    "The left half reaching I is the invertible matrix theorem in practice: it\n"
+    "happens exactly when A has n pivot positions. When it does not, the matrix\n"
+    "is singular and there is nothing to return.":
+        "Reduce [A | I] y lee A^-1 en la mitad derecha.\n"
+        "\n"
+        "Que la mitad izquierda llegue a I es el teorema de la matriz invertible en la\n"
+        "practica: ocurre exactamente cuando A tiene n posiciones pivote. Cuando no,\n"
+        "la matriz es singular y no hay nada que devolver.",
+    "Solve `A x = b` as `x = A⁻¹ b`, and check it in the original A.\n"
+    "\n"
+    "Multiplying both sides of `A x = b` by A⁻¹ on the left gives `x = A⁻¹ b`,\n"
+    "and since A is invertible that x is the only solution. The check multiplies\n"
+    "A by it and compares with b, which trusts neither the inverse nor the\n"
+    "elimination that produced it.":
+        "Resuelve A x = b como x = A^-1 b, y lo comprueba en la A original.\n"
+        "\n"
+        "Multiplicar por A^-1 por la izquierda en los dos lados de A x = b da\n"
+        "x = A^-1 b, y como A es invertible esa x es la unica solucion. La\n"
+        "comprobacion multiplica A por ella y la compara con b, lo que no confia ni en\n"
+        "la inversa ni en la eliminacion que la produjo.",
+    "The page that inverts a matrix and solves a system with the inverse.":
+        "La pagina que invierte una matriz y resuelve un sistema con la inversa.",
+    "Swap the input card, and with it the hint that only one mode needs.":
+        "Cambia la tarjeta de entrada, y con ella el aviso que solo un modo necesita.",
+    "Read the matrix, invert it, and draw the cards that follow from it.\n"
+    "\n"
+    "Equations give a whole augmented matrix, so A is its first `unknowns`\n"
+    "columns and b is the rest: the same typing produces both the matrix to\n"
+    "invert and the system to solve with it.":
+        "Lee la matriz, la invierte y dibuja las tarjetas que salen de ahi.\n"
+        "\n"
+        "Las ecuaciones dan una matriz aumentada entera, asi que A son sus primeras\n"
+        "unknowns columnas y b es el resto: lo mismo que se escribe produce la matriz\n"
+        "que se invierte y el sistema que se resuelve con ella.",
+    "The system in matrix form, before anything is done to it.":
+        "El sistema en forma matricial, antes de hacerle nada.",
+    "The reduction of `[A | I]`, one operation at a time, bar included.":
+        "La reduccion de [A | I], operacion por operacion, con la barra incluida.",
+    "A⁻¹ itself, which is the right half of the matrix the walk ended on.":
+        "La propia A^-1, que es la mitad derecha de la matriz en que termino el recorrido.",
+    "`x = A⁻¹ b` as the product it is, and then value by value.":
+        "x = A^-1 b como el producto que es, y despues valor por valor.",
+    "Both products against the identity, and `A x` against b.\n"
+    "\n"
+    "The definition asks for `A A⁻¹` and `A⁻¹ A`, so both are drawn rather\n"
+    "than one with a note that the other holds too.":
+        "Los dos productos contra la identidad, y A x contra b.\n"
+        "\n"
+        "La definicion pide A A^-1 y A^-1 A, asi que se dibujan los dos en vez de uno\n"
+        "con una nota de que el otro tambien se cumple.",
+    "A card with its heading, kept so the next calculation can clear it.":
+        "Una tarjeta con su titulo, guardada para que el siguiente calculo la borre.",
+    "A result stops being true the moment the matrix is retyped.":
+        "Un resultado deja de ser cierto en cuanto se cambia la matriz.",
 }
 
 COMMENTS: dict[str, str] = {
@@ -1662,4 +1866,76 @@ COMMENTS: dict[str, str] = {
         "# Un numero negativo envuelve cada etapa en -( ... ), para que se vea que el",
     "# to apply to the whole sum and not to its first term.":
         "# signo se aplica a toda la suma y no solo a su primer termino.",
+
+    # ----- roman numerals -----
+    "# Every piece a numeral is built from, largest first, with the six subtractive":
+        "# Cada pieza con que se construye un numero romano, de mayor a menor, con las",
+    "# pairs among them. Reading and writing both walk this list in order, which is":
+        "# seis parejas de resta incluidas. Leer y escribir recorren esta lista en orden,",
+    "# what makes the canonical form the only one either of them produces.":
+        "# que es lo que hace que solo produzcan la escritura canonica.",
+    "# The seven symbols, which is what \"one digit\" means for the multiplication.":
+        "# Los siete simbolos, que es lo que significa un solo digito en la multiplicacion.",
+    "# MMMCMXCIX. There is no symbol for 5000, so nothing above this can be written.":
+        "# MMMCMXCIX. No hay simbolo para 5000, asi que nada mayor se puede escribir.",
+    "# Walking the pieces in order only ever spells the canonical form. Letters":
+        "# Recorrer las piezas en orden solo escribe la forma canonica. Las letras que",
+    "# left over never fitted anywhere, so the order itself is wrong; letters":
+        "# sobran no encajaron en ninguna parte, asi que el orden esta mal; las letras",
+    "# that all fitted but write back differently are a spelling nobody used.":
+        "# que encajaron pero se reescriben distinto son una escritura que nadie uso.",
+    "# The sign each operation is written with, and the call that does it.":
+        "# El signo con que se escribe cada operacion, y la llamada que la hace.",
+    "# What each symbol is worth, said once under the boxes.":
+        "# Lo que vale cada simbolo, dicho una vez debajo de las casillas.",
+    "# A thousand X's on screen say nothing that the first few do not; M × M would":
+        "# Mil X en pantalla no dicen nada que no digan las primeras; M × M pediria",
+    "# ask for exactly that.":
+        "# exactamente eso.",
+    "# How many terms of the repeated addition fit on one line before it wraps.":
+        "# Cuantos sumandos de la suma repetida caben en una linea antes de partirla.",
+    "# A multiplication takes one symbol in each box, so the example changes":
+        "# Una multiplicacion lleva un simbolo en cada casilla, asi que el ejemplo cambia",
+    "# with it: XIV × IX is not something this page offers.":
+        "# con ella: XIV × IX no es algo que esta pagina ofrezca.",
+    "# ----- How each numeral is read -----":
+        "# ----- Como se lee cada numero -----",
+    "# ----- The repeated addition -----":
+        "# ----- La suma repetida -----",
+    "# ----- Reading the answer back -----":
+        "# ----- La lectura de vuelta -----",
+    "# between them belongs inside the page. The ways of writing a number — bases":
+        "# entre ellos va dentro de la pagina. Las maneras de escribir un numero (las",
+    "# and Roman numerals — have nothing to do with matrices, so they sit apart, at":
+        "# bases y los numeros romanos) no tienen que ver con matrices, asi que van",
+    "# the end, next to each other.":
+        "# aparte, al final, una al lado de la otra.",
+
+    # ----- the inverse -----
+    "# I is augmented on the right, so every operation that works on A works on":
+        "# I se agrega a la derecha, asi que cada operacion que actua sobre A actua",
+    "# it at the same time. That is the whole method: A becomes I, I becomes A⁻¹.":
+        "# sobre ella a la vez. Ese es todo el metodo: A se vuelve I, e I se vuelve A^-1.",
+    "# Both products, not one. AB = I alone is enough for a square matrix by the":
+        "# Los dos productos, no uno. Para una matriz cuadrada, AB = I basta por el",
+    "# theorem, but checking the pair costs one multiplication and answers the":
+        "# teorema, pero comprobar la pareja cuesta una multiplicacion y responde a la",
+    "# definition instead of relying on it.":
+        "# definicion en vez de apoyarse en el.",
+    "# The two modes: the inverse on its own, and the inverse put to work.":
+        "# Los dos modos: la inversa sola, y la inversa puesta a trabajar.",
+    "# One input card per mode, built once and swapped by packing. A matrix":
+        "# Una tarjeta de entrada por modo, construida una vez y cambiada al mostrarla.",
+    "# typed for the inverse is still there after a detour through the":
+        "# Una matriz escrita para la inversa sigue ahi despues de pasar por el",
+    "# system, which is what somebody comparing the two roads expects.":
+        "# sistema, que es lo que espera quien compara los dos caminos.",
+    "# No size limit here: inverting is one reduction, and the only real":
+        "# Sin limite de tamano aqui: invertir es una sola reduccion, y el unico techo",
+    "# ceiling is how long the arithmetic takes.":
+        "# real es lo que tarde la aritmetica.",
+    "# ----- Choosing a mode -----":
+        "# ----- Eleccion de modo -----",
+    "# ----- The cards -----":
+        "# ----- Las tarjetas -----",
 }

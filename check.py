@@ -17,6 +17,18 @@ from core.parametric import general_solution
 from core.scalar import format_scalar
 from core.systems import SystemKind, solve
 from core.verification import verify
+from core.roman import (
+    BadLetter,
+    BadOrder,
+    NotCanonical,
+    NotOneSymbol,
+    difference_of,
+    product_of,
+    read,
+    sum_of,
+    to_roman,
+    to_value,
+)
 from core.vectors import (
     DimensionMismatch,
     UnreadableComponent,
@@ -290,6 +302,36 @@ try:
     check("a rectangular matrix has no inverse", "accepted", "refused")
 except ValueError:
     check("a rectangular matrix has no inverse", "refused", "refused")
+
+print("roman numerals: reading, writing, and the three operations")
+check("XIV is fourteen", to_value("XIV"), 14)
+check("1994 is written", to_roman(1994), "MCMXCIV")
+check("the largest numeral", to_roman(3999), "MMMCMXCIX")
+check("every number from 1 to 3999 round trips", all(
+    to_value(to_roman(n)) == n for n in range(1, 4000)), True)
+check("a subtractive pair is one piece", [(p.text, p.value) for p in read("XIV").pieces],
+      [("X", 10), ("IV", 4)])
+check("XIV + IX", sum_of("XIV", "IX").numeral, "XXIII")
+check("XIV - IX", difference_of("XIV", "IX").numeral, "V")
+times = product_of("X", "V")
+check("X * V by repeated addition", (times.terms, times.numeral), (("X",) * 5, "L"))
+check("the terms are the operation", len(product_of("C", "X").terms), 10)
+below = difference_of("V", "X")
+check("a negative difference has no numeral", (below.value, below.numeral), (-5, ""))
+check("zero has no numeral either", difference_of("V", "V").numeral, "")
+check("nothing above MMMCMXCIX", sum_of("MMM", "M").numeral, "")
+for text, kind in (("IIII", NotCanonical), ("IC", BadOrder), ("A", BadLetter)):
+    try:
+        read(text)
+        check(f"{text} is refused", "accepted", "refused")
+    except kind:
+        check(f"{text} is refused", "refused", "refused")
+check("IIII names its numeral", NotCanonical("IIII", "IV").canonical, "IV")
+try:
+    product_of("XIV", "V")
+    check("multiplying takes one symbol", "accepted", "refused")
+except NotOneSymbol as problem:
+    check("multiplying takes one symbol", problem.numeral, "XIV")
 
 print("exact arithmetic, end to end")
 third = solve(Matrix([[3, 1]]))
