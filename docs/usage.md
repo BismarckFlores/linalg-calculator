@@ -163,6 +163,9 @@ Escrito: deliverables/out/Programa 1_Grupo5.py
 Escrito: deliverables/out/Programa 2_Grupo5.py
   6721 lineas, 28 bloques
   Todo el texto del archivo esta en castellano.
+Escrito: deliverables/out/Programa Matriz Inversa_Grupo5.py
+  6731 lineas, 28 bloques
+  Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Numeros Romanos_Grupo5.py
   6726 lineas, 28 bloques
   Todo el texto del archivo esta en castellano.
@@ -180,6 +183,13 @@ for. Its first lines are the instructions for running it: make a `.venv`,
 `pip install customtkinter`, run the file. That is the only thing any
 deliverable here needs installed, and only to draw — the mathematics inside it
 is standard library too.
+
+**`Programa Matriz Inversa_Grupo5.py`** is the same window, handed in for the
+inverse assignment. Its preamble points at the `Matriz Inversa` tab, under
+`Matrices`: `Inversa A⁻¹` reduces `[ A | I ]` to `[ I | A⁻¹ ]` and checks both
+products, and `Resolver Ax = b` solves a system as `x = A⁻¹ b` and puts the
+answer back into the original A. Its report is `Algebra lineal G5 Programa
+Matriz Inversa.docx`, with its PDF.
 
 **`Programa Numeros Romanos_Grupo5.py`** is the same window again, handed in
 for the Roman numerals assignment. Its preamble points at the `Números Romanos`

@@ -420,6 +420,29 @@ condicionales, bucles y funciones. No emplea NumPy, SciPy ni las funciones de
 algebra lineal de math.""",
         blocks=[*ENGINE, *WINDOW_BLOCKS],
     ),
+    Program(
+        number="Matriz Inversa",
+        title="Inversa de una Matriz y Solucion de A x = b por la Inversa",
+        preamble=WINDOW_HOWTO + """
+
+La inversa esta en la pestana Matriz Inversa de la ventana, dentro del grupo
+Matrices del menu de la izquierda:
+
+  Calcular A^-1                    boton Inversa A^-1. Reduce [ A | I ] por
+                                   Gauss-Jordan hasta [ I | A^-1 ], muestra el
+                                   paso a paso y comprueba A A^-1 = A^-1 A = I
+  Resolver A x = b con la inversa  boton Resolver Ax = b. Calcula x = A^-1 b y
+                                   comprueba A x = b en la A original
+
+La matriz se escribe como coeficientes o como ecuaciones, igual que en las
+demas paginas. Si A no es cuadrada, o no se puede reducir a la identidad, el
+programa lo dice: esa matriz es singular y no tiene inversa.
+
+CustomTkinter solo dibuja. Toda la matematica esta escrita con Python estandar:
+listas anidadas, condicionales, bucles y funciones, con fracciones exactas. No
+emplea NumPy, SciPy ni las funciones de algebra lineal de math.""",
+        blocks=[*ENGINE, *WINDOW_BLOCKS],
+    ),
     # Two assignments handed in as one file: both are pages of the same window.
     Program(
         number="Numeros Romanos",
