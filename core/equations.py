@@ -1,17 +1,18 @@
 """
-Reading an equation the way it is written down: `2x + 3y - z = 5`.
+Leer una ecuacion tal como se escribe: 2x + 3y - z = 5.
 
-What comes out is the same thing a row of an augmented matrix holds, so the
-rest of the project never learns that any text was involved. Both sides are
-read and then tidied into one: unknowns move left, constants move right, and an
-unknown mentioned on both sides is subtracted rather than counted twice.
+Lo que sale es lo mismo que guarda una fila de la matriz aumentada, asi que el
+resto del proyecto nunca se entera de que hubo un texto de por medio. Se leen
+los dos lados y despues se ordenan en uno: las incognitas pasan a la izquierda,
+las constantes a la derecha, y una incognita que aparece en los dos lados se
+resta en vez de contarse dos veces.
 
-The unknowns are whatever the equations turn out to mention. Nobody declares
-them in advance, which is the point: the person writes the system down and the
-number of columns follows from it.
+Las incognitas son las que resulten mencionar las ecuaciones. Nadie las declara
+de antemano, y ese es el sentido: la persona escribe el sistema y el numero de
+columnas sale de ahi.
 
-Like the rest of `core`, this says nothing to anybody. It raises, and
-`ui/prompts.py` decides the Spanish.
+Como el resto de core, esto no le dice nada a nadie. Lanza errores, y
+ui/prompts.py decide el castellano.
 """
 
 import re
@@ -21,10 +22,10 @@ from dataclasses import dataclass
 from .matrix import Matrix
 from .scalar import Scalar, to_scalar
 
-# One term: an optional sign, an optional coefficient written plainly or inside
-# parentheses, an optional `*`, and an optional name. Everything is optional
-# because `x`, `2`, `-3y` and `(1/2)z` are all terms; a match with neither a
-# number nor a name is the one combination that means nothing.
+# Un termino: un signo opcional, un coeficiente opcional escrito tal cual o entre
+# parentesis, un * opcional y un nombre opcional. Todo es opcional porque
+# x, 2, -3y y (1/2)z son todos terminos; una coincidencia que no tiene ni
+# numero ni nombre es la unica combinacion que no significa nada.
 _TERM = re.compile(
     r"(?P<sign>[+-])?"
     r"(?:\((?P<grouped>[^()]*)\)|(?P<number>\d+(?:[.,]\d+)?(?:/\d+(?:[.,]\d+)?)?))?"
@@ -32,17 +33,17 @@ _TERM = re.compile(
     r"(?P<name>[a-z_][a-z0-9_]*)?"
 )
 
-# A name split into its letters and its trailing digits, for sorting.
+# Un nombre partido en sus letras y sus digitos finales, para poder ordenarlo.
 _NAME = re.compile(r"([a-z_]+)(\d*)")
 
 class EquationError(ValueError):
-    """Something in the text of an equation cannot be read."""
+    """Hay algo en el texto de una ecuacion que no se puede leer."""
 
 class MissingEquals(EquationError):
-    """The text does not hold exactly one `=`."""
+    """El texto no tiene exactamente un =."""
 
 class UnreadableTerm(EquationError):
-    """A fragment of a side is not a term. `text` is the fragment itself."""
+    """Un trozo de un lado no es un termino. text es el trozo en cuestion."""
 
     def __init__(self, text: str) -> None:
         super().__init__(f"'{text}' is not a term.")
@@ -50,7 +51,7 @@ class UnreadableTerm(EquationError):
 
 @dataclass(frozen=True)
 class Equation:
-    """One equation, tidied: `terms = constant`, with nothing left on the right."""
+    """Una ecuacion ya ordenada: terminos = constante, sin nada suelto a la derecha."""
 
     terms: dict[str, Scalar]
     constant: Scalar
@@ -58,12 +59,12 @@ class Equation:
 
 def parse_equation(text: str) -> Equation:
     """
-    Read one written equation.
+    Lee una ecuacion escrita.
 
-    Whatever is on the right moves left and whatever is constant moves right, so
-    `2x = 3y + 1` and `2x - 3y = 1` come back identical. A coefficient that
-    cancels to zero is dropped: after `x + y = x + 2` the system does not mention
-    x at all, and pretending otherwise would invent a column.
+    Lo que esta a la derecha pasa a la izquierda y lo que es constante pasa a
+    la derecha, de modo que 2x = 3y + 1 y 2x - 3y = 1 salen identicas. Un
+    coeficiente que se cancela a cero se descarta: despues de x + y = x + 2 el
+    sistema no menciona x, y fingir lo contrario seria inventarse una columna.
     """
     if text.count("=") != 1:
         raise MissingEquals("An equation needs exactly one '='.")
@@ -84,22 +85,24 @@ def parse_equation(text: str) -> Equation:
 
 def unknown_names(equations: Sequence[Equation]) -> list[str]:
     """
-    Every unknown the equations mention, in the order they become columns.
+    Todas las incognitas que mencionan las ecuaciones, en el orden en que van a
+    ser columnas.
 
-    Alphabetical, with trailing digits compared as numbers so that x2 comes
-    before x10. Alphabetical and not order of appearance, because `2y + 3x = 5`
-    should still put x in the first column: that is where a reader looks for it.
+    Por orden alfabetico, con los digitos finales comparados como numeros para
+    que x2 vaya antes que x10. Alfabetico y no por orden de aparicion, porque
+    2y + 3x = 5 tiene que seguir poniendo x en la primera columna: ahi es donde
+    la busca quien lo lee.
     """
     found = {name for equation in equations for name in equation.terms}
     return sorted(found, key=_sort_key)
 
 def to_augmented(equations: Sequence[Equation], names: Sequence[str]) -> Matrix:
     """
-    Lay the equations out as [A | b] against those names.
+    Coloca las ecuaciones como [A | b] frente a esos nombres.
 
-    An unknown that an equation never mentions is a zero in that row, which is
-    what lets somebody write `x + z = 1` and `y = 2` and still get a system of
-    three columns out of it.
+    Una incognita que una ecuacion no menciona es un cero en esa fila, que es
+    lo que permite escribir x + z = 1 e y = 2 y obtener aun asi un sistema de
+    tres columnas.
     """
     return Matrix([
         [equation.terms.get(name, Scalar(0)) for name in names] + [equation.constant]
@@ -108,12 +111,12 @@ def to_augmented(equations: Sequence[Equation], names: Sequence[str]) -> Matrix:
 
 def _parse_side(text: str) -> tuple[dict[str, Scalar], Scalar]:
     """
-    Read one side into its coefficients and its constant.
+    Lee un lado y lo separa en sus coeficientes y su constante.
 
-    Whitespace goes first, so `2 x` and `2x` are the same thing, and the text is
-    lowercased, so `X` and `x` are the same unknown. Then terms are taken left to
-    right until the side is used up; anything the pattern cannot consume is
-    reported with the fragment that stopped it.
+    Primero se quitan los espacios, para que 2 x y 2x sean lo mismo, y se pasa
+    todo a minusculas, para que X y x sean la misma incognita. Despues se van
+    tomando terminos de izquierda a derecha hasta agotar el lado; lo que el
+    patron no consigue leer se informa junto al trozo que lo detuvo.
     """
     packed = re.sub(r"\s+", "", text).lower()
     terms: dict[str, Scalar] = {}
@@ -130,12 +133,12 @@ def _parse_side(text: str) -> tuple[dict[str, Scalar], Scalar]:
         name = match["name"]
 
         if written is None and name is None:
-            # A lone sign. What went wrong is whatever comes after it.
+            # Un signo suelto. Lo que esta mal es lo que venga detras de el.
             raise UnreadableTerm(packed[match.end():] or packed[position:])
 
         try:
-            # A written coefficient is read by `to_scalar`, so `1/3`, `2.5` and
-            # `2,5` mean here exactly what they mean everywhere else.
+            # Un coeficiente escrito lo lee to_scalar, asi que 1/3, 2.5 y 2,5
+            # significan aqui exactamente lo mismo que en todo lo demas.
             magnitude = to_scalar(written) if written is not None else Scalar(1)
         except (TypeError, ValueError):
             raise UnreadableTerm(match.group(0)) from None
@@ -151,7 +154,7 @@ def _parse_side(text: str) -> tuple[dict[str, Scalar], Scalar]:
     return {name: value for name, value in terms.items() if value != 0}, constant
 
 def _sort_key(name: str) -> tuple[str, int]:
-    """Letters first, then trailing digits as a number: x, x1, x2, x10, y."""
+    """Primero las letras, y luego los digitos finales como numero: x, x1, x2, x10, y."""
     match = _NAME.fullmatch(name)
     if match is None:
         return (name, 0)

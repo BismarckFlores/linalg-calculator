@@ -1,12 +1,12 @@
 """
-The window: a third front end over the same engine.
+La ventana: una tercera interfaz sobre el mismo motor.
 
-`deliverables/program1.py` drives `core/` from a terminal, the built file does
-the same on its own, and this package draws it. None of the three holds a line
-of arithmetic: they all call `core/` and hand what comes back to
-`ui/presentation.py` for the wording.
+deliverables/program1.py maneja core desde una terminal, el archivo construido
+hace lo mismo por su cuenta, y este paquete lo dibuja. Ninguno de los tres tiene
+una linea de aritmetica: los tres llaman a core y le pasan lo que reciben a
+ui/presentation.py para las palabras.
 
-Nothing here is ever built into the file handed in. The course wants one
-self-contained script with no dependencies, and this package needs
-CustomTkinter, so `build.py` does not know it exists.
+Nada de aqui entra nunca en el archivo que se entrega. El curso pide un solo
+archivo autocontenido y sin dependencias, y este paquete necesita CustomTkinter,
+asi que build.py ni se entera de que existe.
 """

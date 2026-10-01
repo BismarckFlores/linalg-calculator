@@ -1,16 +1,16 @@
 """
-The two ways a matrix is handed over, in one place.
+Las dos maneras de entregar una matriz, en un solo sitio.
 
-Both pages of this window ask for the same thing in the same two ways — a grid
-of numbers, or the system written out as equations — so the card that asks lives
-here instead of twice. What comes back is a `Typed`: the matrix, the names of
-the unknowns when anything named them, and how many of its columns are
-coefficients rather than constants.
+Las paginas de esta ventana piden lo mismo de las mismas dos formas (una
+cuadricula de numeros, o el sistema escrito como ecuaciones), asi que la tarjeta
+que lo pide vive aqui en vez de repetirse. Lo que devuelve es un Typed: la
+matriz, los nombres de las incognitas cuando algo las nombro, y cuantas de sus
+columnas son coeficientes y no terminos independientes.
 
-The Spanish for what cannot be read lives here for the same reason. It is the
-wording `ui/prompts.py` uses in the terminal, plus the number of the line, which
-the terminal never needs because it has just asked for that one equation and the
-window has all of them on screen at once.
+El castellano de lo que no se puede leer vive aqui por la misma razon. Son las
+mismas palabras que usa ui/prompts.py en la terminal, mas el numero de la linea,
+que la terminal no necesita porque acaba de pedir esa ecuacion y la ventana las
+tiene todas en pantalla a la vez.
 """
 
 from collections.abc import Callable, Sequence
@@ -46,12 +46,12 @@ EXAMPLE_SYSTEM = "x - 2y + z = 0\n2y - 8z = 8\n-4x + 5y + 9z = -9"
 @dataclass(frozen=True)
 class Typed:
     """
-    What somebody handed over, whichever way they wrote it.
+    Lo que alguien entrego, lo haya escrito como lo haya escrito.
 
-    `unknowns` is how many columns hold coefficients, so `unknowns` is where the
-    bar of an augmented matrix goes. It is 0 for a plain matrix typed cell by
-    cell, which is not augmented and has no bar. `names` is empty unless the
-    equations said what the unknowns are called.
+    unknowns es cuantas columnas son coeficientes, asi que es donde va la barra
+    de una matriz aumentada. Vale 0 para una matriz escrita casilla a casilla,
+    que no es aumentada y no lleva barra. names viene vacio salvo que las
+    ecuaciones hayan dicho como se llaman las incognitas.
     """
 
     matrix: Matrix
@@ -60,13 +60,14 @@ class Typed:
 
 class SystemInput(ctk.CTkFrame):
     """
-    The pill, the grids and the text box: everything above the Calcular button.
+    El selector, las cuadriculas y el cuadro de texto: todo lo que va encima del
+    boton de calcular.
 
-    `split` is the difference between the two pages. A page solving `A x = b`
-    wants A and b in separate grids, with b following A row for row; a page
-    reading the form of a matrix wants one grid and no b at all. Typed
-    equations produce an augmented matrix either way, because that is what a
-    system written out is.
+    split es la diferencia entre las dos paginas. Una pagina que resuelve A x = b
+    quiere A y b en cuadriculas separadas, con b siguiendo a A fila por fila; una
+    que lee la forma de una matriz quiere una sola cuadricula y ninguna b. Las
+    ecuaciones escritas producen una matriz aumentada por los dos caminos, porque
+    eso es un sistema escrito entero.
     """
 
     def __init__(
@@ -122,8 +123,8 @@ class SystemInput(ctk.CTkFrame):
             )
             self._b.grid(row=0, column=1, sticky="nw")
 
-        # One grid says nothing about whether its last column is b. Somebody has
-        # to, or a 3x5 augmented matrix reads as five unknowns instead of four.
+        # Una sola cuadricula no dice si su ultima columna es b. Alguien tiene que
+        # decirlo, o una matriz aumentada de 3x5 se lee como cinco incognitas y no cuatro.
         self._augmented: ctk.CTkSwitch | None = None
         if augmentable and not split:
             self._augmented = ctk.CTkSwitch(
@@ -139,7 +140,7 @@ class SystemInput(ctk.CTkFrame):
         self._typed = self._build_equations(example)
 
     def _build_equations(self, example: str) -> ctk.CTkFrame:
-        """The system written out, one equation per line, the way it is on paper."""
+        """El sistema escrito entero, una ecuacion por linea, como se escribe en papel."""
         frame = ctk.CTkFrame(self, fg_color="transparent")
         ctk.CTkLabel(
             frame, text="ECUACIONES", font=theme.font("label"), text_color=theme.MUTED
@@ -152,8 +153,8 @@ class SystemInput(ctk.CTkFrame):
             fg_color=theme.FIELD,
             border_width=1,
             border_color=theme.BORDER,
-            # CTkTextbox annotates text_color as a single colour while accepting
-            # the same (light, dark) pair as everything else, and honouring it.
+            # CTkTextbox declara text_color como un solo color aunque acepta la misma
+            # pareja (claro, oscuro) que todo lo demas, y la respeta.
             text_color=theme.INK,  # type: ignore[arg-type]
             font=theme.font("mono"),
             wrap="none",
@@ -171,17 +172,20 @@ class SystemInput(ctk.CTkFrame):
             anchor="w",
         ).pack(anchor="w", pady=(8, 0))
 
-        # Filled in once the equations have been read, never before: the list of
-        # unknowns is a proof of what was understood, so it has to be earned.
+        # Se rellena cuando las ecuaciones ya se leyeron, nunca antes: la lista de
+        # incognitas es una prueba de lo que se entendio, asi que hay que ganarsela.
         self._found = ctk.CTkLabel(
             frame, text="", font=theme.font("small"), text_color=theme.ACCENT, anchor="w"
         )
         return frame
 
-    # ----- Swapping one way in for the other -----
+    # ----- Cambio de una entrada por la otra -----
 
     def _choose_way_in(self, way_in: str) -> None:
-        """Swap the grids for the text box, or back. Each keeps what was typed."""
+        """
+        Cambia las cuadriculas por el cuadro de texto, o al reves. Cada uno conserva
+        lo que se habia escrito en el.
+        """
         self._way_in = way_in
         if way_in == EQUATIONS:
             self._grids.pack_forget()
@@ -192,7 +196,7 @@ class SystemInput(ctk.CTkFrame):
         self._changed()
 
     def _retyped(self) -> None:
-        """A changed equation invalidates the unknowns that were read from it."""
+        """Cambiar una ecuacion invalida las incognitas que se habian leido de ella."""
         self._found.pack_forget()
         self._changed()
 
@@ -201,7 +205,7 @@ class SystemInput(ctk.CTkFrame):
             self._on_change()
 
     def _a_resized(self, rows: int, _cols: int) -> None:
-        """One equation is one row of A and one entry of b: they cannot drift."""
+        """Una ecuacion es una fila de A y una entrada de b: no pueden descuadrarse."""
         if self._b is not None:
             self._b.set_size(rows, 1)
         self._changed()
@@ -210,15 +214,15 @@ class SystemInput(ctk.CTkFrame):
         self._a.set_size(rows, self._a.size()[1])
         self._changed()
 
-    # ----- Reading it back -----
+    # ----- Lectura de lo escrito -----
 
     def read(self) -> Typed:
         """
-        The matrix, and the names of the unknowns when there are any.
+        La matriz, y los nombres de las incognitas cuando los hay.
 
-        Only typed equations know what the unknowns are called. Numbers in a
-        grid never say, so that route hands back an empty list and
-        `ui/presentation.py` falls back to x, y, z, w.
+        Solo las ecuaciones escritas saben como se llaman las incognitas. Unos
+        numeros en una cuadricula no lo dicen nunca, asi que por ese camino la lista
+        vuelve vacia y presentation.py recurre a x, y, z, w.
         """
         if self._way_in == EQUATIONS:
             return self._read_equations()
@@ -236,12 +240,12 @@ class SystemInput(ctk.CTkFrame):
 
     def _read_equations(self) -> Typed:
         """
-        Every non-blank line parsed, or a Spanish sentence about the first that
-        was not.
+        Todas las lineas no vacias leidas, o una frase en castellano sobre la primera
+        que no se pudo leer.
 
-        `core/equations.py` raises one exception per kind of mistake and says
-        nothing to anybody; the wording is decided here, exactly as
-        `ui/prompts.py` decides it for the terminal.
+        equations.py lanza una excepcion por cada tipo de error y no le dice nada a
+        nadie; la frase se decide aqui, igual que prompts.py la decide para la
+        terminal.
         """
         lines = [line.strip() for line in self._lines.get("1.0", "end").splitlines()]
         lines = [line for line in lines if line]
@@ -282,5 +286,5 @@ class SystemInput(ctk.CTkFrame):
         self._found.pack(anchor="w", pady=(10, 0))
         return Typed(to_augmented(equations, names), names, len(names))
 
-# Anything a page has to catch when it reads what was typed.
+# Todo lo que una pagina tiene que capturar al leer lo que se escribio.
 UNREADABLE = (CellError, ValueError)

@@ -1,13 +1,13 @@
 """
-Programa 1: solving linear systems by row elimination.
+Programa 1: resolver sistemas lineales por eliminacion de filas.
 
-The script the assignment asks for. It only sequences work done elsewhere:
-`prompts` reads, `systems` solves, `verification` checks and `presentation`
-writes. Nothing here calculates anything, and nothing here decides any wording
-beyond the section headings.
+El guion que pide el enunciado. Solo ordena trabajo hecho en otra parte: prompts
+lee, systems resuelve, verification comprueba y presentation escribe. Aqui no se
+calcula nada, y no se decide ninguna palabra mas alla de los titulos de las
+secciones.
 
-The sections are numbered after the requirements they answer, so the output can
-be read next to the assignment sheet point by point.
+Las secciones van numeradas segun los requisitos que responden, para que la
+salida se pueda leer al lado del enunciado punto por punto.
 """
 
 from core.systems import SystemKind, solve
@@ -31,11 +31,11 @@ RULE = "=" * 70
 
 def banner(text: str, wait: bool = True) -> None:
     """
-    A section heading, so each requirement is easy to find in the output.
+    Un titulo de seccion, para localizar facilmente cada requisito en la salida.
 
-    It waits for Enter first, so the section just finished can be read before
-    the next one pushes it off the screen. The first heading of a system has
-    nothing above it to read, so it does not wait.
+    Antes espera a que se pulse Enter, para poder leer la seccion que acaba
+    de terminar antes de que la siguiente la empuje fuera de la pantalla. El
+    primer titulo no espera, porque no hay nada encima que leer.
     """
     if wait:
         pause()
@@ -45,7 +45,7 @@ def banner(text: str, wait: bool = True) -> None:
     print(RULE)
 
 def solve_one_system() -> None:
-    """Read a system, reduce it, classify it, solve it and check the answer."""
+    """Lee un sistema, lo reduce, lo clasifica, lo resuelve y comprueba la respuesta."""
     banner("1. ENTRADA DE DATOS", wait=False)
     augmented, names = ask_system()
     solution = solve(augmented)
@@ -88,7 +88,7 @@ def solve_one_system() -> None:
         print("que comprobar en el sistema original.")
 
 def main() -> None:
-    """Run the program, and offer to solve another system before leaving."""
+    """Ejecuta el programa, y ofrece resolver otro sistema antes de salir."""
     print(RULE)
     print(TITLE)
     print(RULE)
@@ -100,7 +100,7 @@ def main() -> None:
             if not ask_yes_no("¿Resolver otro sistema? (s/n):"):
                 break
     except (EOFError, KeyboardInterrupt):
-        # Ctrl+D or Ctrl+C: leave without a traceback, the run was cut short.
+        # Ctrl+D o Ctrl+C: se sale sin traza de error, la ejecucion se corto.
         print()
 
     print("\nFin del programa.")

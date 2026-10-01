@@ -1,13 +1,13 @@
 """
-The pieces every page is built from.
+Las piezas con las que se construye cada pagina.
 
-CustomTkinter has buttons and entries; it has no matrix. What is here is the
-handful of shapes this calculator needs and the toolkit does not provide — a
-card, a stepper, a grid of cells inside brackets, a matrix drawn read-only —
-each one knowing how to draw itself and nothing else.
+CustomTkinter trae botones y cajas de texto; no trae matrices. Aqui estan las
+pocas formas que esta calculadora necesita y la libreria no da (la tarjeta, el
+contador de filas y columnas, una cuadricula de celdas entre corchetes, una
+matriz ya calculada), cada una sabiendo dibujarse a si misma y nada mas.
 
-No arithmetic lives here. `MatrixEntryGrid.matrix()` hands back a `Matrix` and
-`MatrixDisplay` takes one; what happens in between is `core`'s business.
+Aqui no vive ninguna aritmetica. MatrixEntryGrid.matrix() devuelve una Matrix y
+MatrixDisplay recibe una; lo que pasa en medio es asunto de core.
 """
 
 import re
@@ -25,18 +25,18 @@ from ui.presentation import pretty_label
 from . import theme
 from .theme import Color
 
-# Ten rows and ten columns: the same ceiling the terminal asks for.
+# Diez filas y diez columnas: el mismo tope que pide la version de terminal.
 SIZE_LIMIT = 10
 
-# The two ways of reading a step by step: one at a time, or all of it at once.
+# Las dos maneras de leer un paso a paso: de uno en uno, o todo de una vez.
 ALL_STEPS = "Ver todos los pasos  ▾"
 ONE_STEP = "Ver uno a uno  ▴"
 
 class CellError(ValueError):
-    """A cell of a typed matrix does not hold a number. The message is Spanish."""
+    """Una casilla de una matriz escrita no tiene un numero. El mensaje va en castellano."""
 
 class Card(ctk.CTkFrame):
-    """The rounded white panel every section of a page sits inside."""
+    """El panel blanco redondeado dentro del que va cada seccion de una pagina."""
 
     def __init__(self, master: Any, **kwargs: Any) -> None:
         super().__init__(
@@ -49,7 +49,7 @@ class Card(ctk.CTkFrame):
         )
 
 class PageHeader(ctk.CTkFrame):
-    """The title of a page and the line underneath explaining what it does."""
+    """El titulo de una pagina y la linea de debajo que explica lo que hace."""
 
     def __init__(self, master: Any, glyph: str, title: str, subtitle: str) -> None:
         super().__init__(master, fg_color="transparent")
@@ -69,11 +69,11 @@ class PageHeader(ctk.CTkFrame):
         self._subtitle.pack(anchor="w", pady=(2, 0))
 
     def set_subtitle(self, subtitle: str) -> None:
-        """Explain something else under the same title: one page, two methods."""
+        """Explicar otra cosa bajo el mismo titulo: una pagina, dos metodos."""
         self._subtitle.configure(text=subtitle)
 
 class SectionTitle(ctk.CTkFrame):
-    """The heading of a card, with an optional grey pill on the right."""
+    """El encabezado de una tarjeta, con una etiqueta gris opcional a la derecha."""
 
     def __init__(self, master: Any, text: str, badge: str = "") -> None:
         super().__init__(master, fg_color="transparent")
@@ -100,11 +100,11 @@ class SectionTitle(ctk.CTkFrame):
 
 class Bracket(ctk.CTkCanvas):
     """
-    One half of the `[ ]` a matrix is written inside.
+    Una de las dos mitades de los corchetes [ ] dentro de los que va una matriz.
 
-    Three straight lines on a canvas, which is the one thing in this package
-    that has to be repainted by hand when the theme changes: a canvas holds a
-    colour, not a pair of them.
+    Son tres lineas rectas sobre un lienzo, y es lo unico de este paquete que hay
+    que repintar a mano al cambiar de tema: un lienzo guarda un color, no una
+    pareja de ellos.
     """
 
     def __init__(
@@ -137,7 +137,7 @@ class Bracket(ctk.CTkCanvas):
         self.create_line(spine, height - 2, tip, height - 2, fill=colour, width=2)
 
 class Stepper(ctk.CTkFrame):
-    """`−  3  +`: how many rows or columns a matrix has."""
+    """−  3  +: cuantas filas o cuantas columnas tiene una matriz."""
 
     def __init__(
         self,
@@ -170,7 +170,7 @@ class Stepper(ctk.CTkFrame):
         self._refresh()
 
     def set(self, value: int) -> None:
-        """Move the readout without calling back: for a size that followed another."""
+        """Mueve el numero sin avisar a nadie: para un tamano que siguio a otro."""
         self._value = max(self._minimum, value)
         if self._maximum is not None:
             self._value = min(self._maximum, self._value)
@@ -209,11 +209,11 @@ class Stepper(ctk.CTkFrame):
 
 class MatrixEntryGrid(ctk.CTkFrame):
     """
-    A matrix somebody types into, with the steppers that resize it.
+    Una matriz que alguien escribe, con los contadores que la redimensionan.
 
-    The text of the cells outlives the widgets: growing from 2x2 to 3x3 and back
-    finds the four original numbers still there, because what was typed is kept
-    in a dictionary and the entries are rebuilt around it.
+    El texto de las casillas sobrevive a los propios recuadros: crecer de 2x2 a
+    3x3 y volver encuentra los cuatro numeros originales donde estaban, porque lo
+    escrito se guarda en un diccionario y los recuadros se rehacen alrededor.
     """
 
     def __init__(
@@ -244,9 +244,9 @@ class MatrixEntryGrid(ctk.CTkFrame):
             for j, text in enumerate(row)
         }
 
-        # The header is packed above the body rather than spanning its columns:
-        # a header wider than the matrix would otherwise stretch the cells and
-        # leave the brackets standing away from them.
+        # El encabezado va encima del cuerpo en vez de ocupar sus columnas:
+        # un encabezado mas ancho que la matriz estiraria las casillas y dejaria
+        # los corchetes separados de los numeros.
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.pack(anchor="w", pady=(0, 8))
         ctk.CTkLabel(
@@ -268,10 +268,10 @@ class MatrixEntryGrid(ctk.CTkFrame):
         Bracket(body, "right", background).grid(row=0, column=2, sticky="ns")
         self._build()
 
-    # ----- Reading -----
+    # ----- Lectura -----
 
     def matrix(self) -> Matrix:
-        """What was typed, as a `Matrix`. Raises `CellError` naming a bad cell."""
+        """Lo escrito, como Matrix. Lanza CellError nombrando la casilla que falla."""
         self._capture()
         data = []
         for i in range(self._rows):
@@ -291,10 +291,10 @@ class MatrixEntryGrid(ctk.CTkFrame):
     def size(self) -> tuple[int, int]:
         return self._rows, self._cols
 
-    # ----- Resizing -----
+    # ----- Redimensionado -----
 
     def set_size(self, rows: int, cols: int) -> None:
-        """Resize from outside, for the matrix whose shape follows another one."""
+        """Redimensiona desde fuera, para la matriz cuya forma sigue a la de otra."""
         if (rows, cols) == (self._rows, self._cols):
             return
         self._capture()
@@ -333,15 +333,15 @@ class MatrixEntryGrid(ctk.CTkFrame):
         if self._on_change is not None:
             self._on_change()
 
-    # ----- Drawing -----
+    # ----- Dibujo -----
 
     def _typed(self, _event: object) -> None:
-        """Any keystroke undoes the result: it was computed from other numbers."""
+        """Cualquier tecla deshace el resultado: se calculo con otros numeros."""
         if self._on_change is not None:
             self._on_change()
 
     def _capture(self) -> None:
-        """Remember what is in the entries before they are thrown away."""
+        """Recuerda lo que hay en los recuadros antes de tirarlos."""
         for i, row in enumerate(self._entries):
             for j, entry in enumerate(row):
                 self._texts[(i, j)] = entry.get()
@@ -375,25 +375,25 @@ class MatrixEntryGrid(ctk.CTkFrame):
 
 class FractionCell(ctk.CTkFrame):
     """
-    One entry written the way a fraction is written by hand: one number over
-    another, with a rule between them.
+    Una entrada escrita como se escribe una fraccion a mano: un numero encima
+    del otro, con una raya en medio.
 
-    `1/3` on a single line is what a terminal can manage and what the file
-    handed in prints. A window can do better, and a column of `22/15` and
-    `-17/15` is much easier to read stacked than slashed.
+    1/3 en una sola linea es lo que puede hacer una terminal y lo que imprime el
+    archivo entregado. Una ventana puede hacerlo mejor, y una columna de 22/15 y
+    -17/15 se lee mucho mejor apilada que con barras.
 
-    The rule is a two-pixel frame rather than a line on a canvas: it takes the
-    same (light, dark) colour pair as everything else and follows the theme
-    without anybody repainting it. One pixel would draw nothing at all.
+    La raya es un marco de dos pixeles y no una linea sobre un lienzo: asi toma
+    la misma pareja de colores (claro, oscuro) que todo lo demas y sigue al tema
+    sin que nadie la repinte. Con un pixel no se dibujaria nada.
 
-    Nothing is padded on one side only: the rule has to land on the middle of
-    the cell, because that is where a whole number in the same row sits and the
-    two have to read as being on the same line.
+    Nada lleva relleno de un solo lado: la raya tiene que caer en el centro de la
+    casilla, porque ahi es donde va un numero entero de la misma fila y las dos
+    cosas tienen que leerse como si estuvieran en la misma linea.
 
-    A minus sign belongs to the whole fraction and not to the number on top of
-    it, so it stands to the left of both, on the rule. `-1/4` is one number
-    divided by another and then negated, which is what it looks like this way
-    and does not when the sign is stacked with the numerator.
+    El signo menos es de la fraccion entera y no del numero de arriba, asi que va
+    a la izquierda de los dos, sobre la raya. -1/4 es un numero dividido entre
+    otro y luego cambiado de signo, que es lo que parece asi y no lo que parece
+    cuando el signo va apilado con el numerador.
     """
 
     def __init__(
@@ -419,8 +419,8 @@ class FractionCell(ctk.CTkFrame):
             stack, text=str(abs(value.numerator)), font=theme.font(font),
             text_color=color,
         ).pack(padx=2)
-        # width=1 because a CTkFrame asks for 200 pixels when nobody says
-        # otherwise, and `fill="x"` would then set the width of the whole cell.
+        # width=1 porque un CTkFrame pide 200 pixeles cuando nadie dice otra cosa,
+        # y entonces el fill="x" acabaria fijando el ancho de toda la casilla.
         ctk.CTkFrame(stack, width=1, height=2, fg_color=color, corner_radius=0).pack(
             fill="x", padx=2
         )
@@ -428,20 +428,20 @@ class FractionCell(ctk.CTkFrame):
             stack, text=str(value.denominator), font=theme.font(font), text_color=color
         ).pack(padx=2)
 
-# A fraction is set one size down from the line it stands in, the way it is in
-# print: two digits stacked at full size tower over their own line.
+# Una fraccion se compone un cuerpo menor que la linea en la que va, como en
+# imprenta: dos digitos apilados a tamano completo descuellan sobre su linea.
 SMALLER = {"mono": "mono_small", "mono_small": "mono_tiny"}
 
-# A fraction as `format_scalar` writes one: the only place a slash appears
-# between digits in anything the presentation layer produces.
+# Una fraccion tal como la escribe format_scalar: el unico sitio donde
+# aparece una barra entre digitos en lo que produce la presentacion.
 _FRACTION = re.compile(r"(-?\d+)/(\d+)")
 
-# What starts a line and has to stay in its own column: `f_2:`, `Ecuación 1:`.
-# Bounded on purpose, so a sentence that happens to contain a colon is prose.
+# Lo que abre una linea y va en su propia columna: f_2:, Ecuacion 1:.
+# Acotado a proposito, para que una frase con dos puntos siga siendo prosa.
 _TAG = re.compile(r"^(\s{0,4}\S[^=]{0,12}?:)\s")
 
 def _pieces(text: str) -> list[tuple[str, Scalar | None]]:
-    """The line broken into runs of plain text and the fractions between them."""
+    """La linea partida en tramos de texto llano y las fracciones que hay entre ellos."""
     runs: list[tuple[str, Scalar | None]] = []
     position = 0
     for match in _FRACTION.finditer(text):
@@ -453,13 +453,13 @@ def _pieces(text: str) -> list[tuple[str, Scalar | None]]:
 
 def _unwrap(runs: list[tuple[str, Scalar | None]]) -> list[tuple[str, Scalar | None]]:
     """
-    Drop the brackets that only a line of text needed.
+    Quita los parentesis que solo necesitaba una linea de texto.
 
-    `(1/2)y` is bracketed because `1/2y` on one line could be read as one over
-    two-y. Stacked, the fraction says where it ends by itself and the brackets
-    are noise, so they go — but only where nothing else is leaning on them.
-    Against a digit or another bracket they are still doing the work: `3(-17/12)`
-    would become `3-17/12`, and `(1/2)(23/12)` would run into itself.
+    (1/2)y lleva parentesis porque 1/2y en una sola linea podria leerse como uno
+    entre dos-y. Apilada, la fraccion dice sola donde termina y los parentesis
+    sobran, asi que se van; pero solo donde nada mas se apoya en ellos. Contra un
+    digito u otro parentesis siguen haciendo falta: 3(-17/12) quedaria 3-17/12, y
+    (1/2)(23/12) se juntaria consigo mismo.
     """
     joined = "".join(run for run, fraction in runs if fraction is None)
     tidied = list(runs)
@@ -476,12 +476,12 @@ def _unwrap(runs: list[tuple[str, Scalar | None]]) -> list[tuple[str, Scalar | N
 
 class MathLine(ctk.CTkFrame):
     """
-    One line of text with every fraction in it stacked instead of slashed.
+    Una linea de texto con todas sus fracciones apiladas en vez de con barra.
 
-    The text comes from `ui/presentation.py` already written; this only sets it,
-    breaking it where a fraction appears and standing a `FractionCell` in the
-    gap. Everything between the fractions stays in the monospaced font it was
-    laid out in, so what was lined up inside a run stays lined up.
+    El texto viene ya escrito de presentation.py; aqui solo se compone, partiendolo
+    donde aparece una fraccion y poniendo un FractionCell en el hueco. Todo lo que
+    hay entre fracciones se queda en la tipografia de ancho fijo en la que se
+    coloco, asi que lo que estaba cuadrado dentro de un tramo sigue cuadrado.
     """
 
     def __init__(
@@ -504,19 +504,19 @@ class MathLine(ctk.CTkFrame):
 
 class MathBlock(ctk.CTkFrame):
     """
-    A block of lines the presentation layer laid out, set with its fractions
-    stacked.
+    Un bloque de lineas que coloco la capa de presentacion, compuesto con sus
+    fracciones apiladas.
 
-    Those blocks are lined up by counting characters, which stops being true the
-    moment a fraction takes two lines instead of one. So the alignment is done
-    again here, in a grid: the row name keeps a column of its own and the equals
-    signs keep another.
+    Esos bloques estan cuadrados contando caracteres, y eso deja de ser cierto en
+    cuanto una fraccion ocupa dos lineas en vez de una. Asi que aqui se cuadran
+    otra vez, con una rejilla: el nombre de la fila se queda en su columna y los
+    signos igual en otra.
 
-    `align` is the one thing the grid cannot work out for itself. A system of
-    equations is written with its left sides pushed right, so the equals signs
-    fall under each other; a clearing is written with its lines starting at the
-    same place. Both were true of the text before it got here, and the caller
-    knows which it handed over.
+    align es lo unico que la rejilla no puede deducir sola. Un sistema de
+    ecuaciones se escribe con los lados izquierdos empujados a la derecha, para
+    que los iguales queden uno debajo de otro; un despeje se escribe con sus
+    lineas empezando en el mismo sitio. Las dos cosas eran ciertas del texto
+    antes de llegar aqui, y quien lo entrega sabe cual de las dos es.
     """
 
     def __init__(
@@ -544,7 +544,7 @@ class MathBlock(ctk.CTkFrame):
 
             left, equals, right = line.partition("=")
             if align == "left" or not equals:
-                # Written the way it was written: one flow, its own spacing kept.
+                # Escrito como estaba escrito: de corrido, conservando sus espacios.
                 MathLine(self, line.strip(), font, color).grid(
                     row=row, column=1, columnspan=3, sticky="w", padx=(10, 0)
                 )
@@ -559,7 +559,7 @@ class MathBlock(ctk.CTkFrame):
             MathLine(self, right.strip(), font, color).grid(row=row, column=3, sticky="w")
 
 class MathChip(ctk.CTkFrame):
-    """A chip whose one fact may be a fraction: `x = 1/3`."""
+    """Una etiqueta cuyo unico dato puede ser una fraccion: x = 1/3."""
 
     def __init__(
         self,
@@ -572,7 +572,7 @@ class MathChip(ctk.CTkFrame):
         MathLine(self, text, "mono", color).pack(padx=14, pady=6)
 
 class MatrixDisplay(ctk.CTkFrame):
-    """A matrix the program wrote, in brackets, with an optional bar down it."""
+    """Una matriz escrita por el programa, entre corchetes y con una barra opcional."""
 
     def __init__(
         self,
@@ -588,9 +588,9 @@ class MatrixDisplay(ctk.CTkFrame):
         cells.grid(row=0, column=1, padx=1, pady=4)
         Bracket(self, "right", background).grid(row=0, column=2, sticky="ns")
 
-        # The bar between A and b is one line down the whole matrix, not one per
-        # row: a piece of it in every row would set the height of every row. Two
-        # pixels wide because CustomTkinter draws nothing at all for one.
+        # La barra entre A y b es una sola linea de arriba abajo, no un trozo por
+        # fila: un trozo en cada fila fijaria la altura de todas. Dos pixeles de
+        # ancho porque con uno CustomTkinter no dibuja absolutamente nada.
         bar = bar_after if bar_after is not None and 0 < bar_after < matrix.cols else None
         places: dict[int, int] = {}
         column = 0
@@ -636,11 +636,11 @@ class MatrixDisplay(ctk.CTkFrame):
 
 class ColumnDisplay(ctk.CTkFrame):
     """
-    A column in brackets whose entries are text rather than numbers: the
-    unknowns `x, y, z` of `A x = b`, standing where a vector would.
+    Una columna entre corchetes cuyas entradas son texto y no numeros: las
+    incognitas x, y, z de A x = b, puestas donde iria un vector.
 
-    Every entry goes through `MathLine`, so a fraction written in one is
-    stacked exactly as it would be inside a `MatrixDisplay`.
+    Cada entrada pasa por MathLine, asi que una fraccion escrita en ella se
+    apila igual que dentro de un MatrixDisplay.
     """
 
     def __init__(
@@ -662,16 +662,16 @@ class ColumnDisplay(ctk.CTkFrame):
 
 class Expression(ctk.CTkFrame):
     """
-    Matrices and the symbols between them, written in a row the way an equation
-    between vectors is written: `A · x = b`, `3 · v₁ + 2 · v₂ = b`.
+    Matrices y los simbolos entre ellas, escritos en fila como se escribe una
+    ecuacion entre vectores: A · x = b, 3 · v₁ + 2 · v₂ = b.
 
-    Every piece is centred on its row, so a `+` sits level with the middle of
-    the columns beside it, and a matrix can carry a caption underneath naming
-    it. A long combination is broken with `new_line`, and carries on under the
-    first piece of the line before.
+    Cada pieza va centrada en su fila, asi que un + queda a la altura del centro
+    de las columnas de al lado, y una matriz puede llevar debajo un rotulo con
+    su nombre. Una combinacion larga se parte con new_line y sigue debajo de la
+    primera pieza de la linea anterior.
 
-    Each method returns the expression itself, so one is written as a chain in
-    the same order it is read.
+    Cada metodo devuelve la propia expresion, asi que se escribe en cadena en el
+    mismo orden en que se lee.
     """
 
     def __init__(self, master: Any, background: Color = theme.CARD) -> None:
@@ -716,14 +716,14 @@ class Expression(ctk.CTkFrame):
 
 class RomanNumeral(ctk.CTkFrame):
     """
-    A Roman numeral read out as the sum of its pieces: `XIV = X + IV = 14`.
+    Un numero romano leido como la suma de sus piezas: XIV = X + IV = 14.
 
-    The six subtractive pairs are drawn in the accent colour, because they are
-    the one place where a smaller symbol comes before a larger one and the
-    reason the numeral is not simply read left to right.
+    Las seis parejas de resta van en el color de acento, porque son el unico sitio
+    donde un simbolo menor va antes de uno mayor y la razon de que el numero no se
+    lea simplemente de izquierda a derecha.
 
-    Both pages that show a numeral use this, so `XIV` is set out the same way
-    whether it is being operated on or converted.
+    Las dos paginas que muestran un numero romano usan esto, asi que XIV se
+    presenta igual se este operando o convirtiendo.
     """
 
     def __init__(self, master: Any, numeral: Numeral, width: int = 90) -> None:
@@ -751,7 +751,7 @@ class RomanNumeral(ctk.CTkFrame):
         ).pack(side="left", padx=(12, 0))
 
 class SegmentedControl(ctk.CTkSegmentedButton):
-    """The pill of choices at the top of a page: an operation, or a method."""
+    """La fila de opciones de la parte de arriba de una pagina: una operacion, o un metodo."""
 
     def __init__(
         self,
@@ -777,7 +777,7 @@ class SegmentedControl(ctk.CTkSegmentedButton):
         self.set(values[0])
 
 class PrimaryButton(ctk.CTkButton):
-    """The blue button that starts the calculation."""
+    """El boton azul que lanza el calculo."""
 
     def __init__(self, master: Any, text: str, command: Callable[[], None]) -> None:
         super().__init__(
@@ -793,7 +793,7 @@ class PrimaryButton(ctk.CTkButton):
         )
 
 class ErrorBanner(ctk.CTkLabel):
-    """The red line that appears when what was typed cannot be used."""
+    """La linea roja que aparece cuando lo que se escribio no sirve."""
 
     def __init__(self, master: Any) -> None:
         super().__init__(
@@ -811,7 +811,7 @@ class ErrorBanner(ctk.CTkLabel):
         self._before: Any = None
 
     def appear_before(self, widget: Any) -> None:
-        """Where the banner belongs once it has something to say."""
+        """Donde va el aviso una vez que tiene algo que decir."""
         self._before = widget
 
     def show(self, message: str) -> None:
@@ -826,7 +826,7 @@ class ErrorBanner(ctk.CTkLabel):
         self.pack_forget()
 
 class Chip(ctk.CTkLabel):
-    """A small rounded box for one short fact: `x = 29`, `Dimensión: 2 × 3`."""
+    """Una cajita redondeada para un solo dato corto: x = 29, Dimension: 2 x 3."""
 
     def __init__(
         self,
@@ -848,14 +848,14 @@ class Chip(ctk.CTkLabel):
 
 class StepWalker(ctk.CTkFrame):
     """
-    One elimination, walked one operation at a time.
+    Una eliminacion, recorrida operacion por operacion.
 
-    All of it is `StepLog.snapshot(k)`: the log already holds the matrix after
-    every operation, so moving back and forth recomputes nothing and cannot
-    disagree with what the elimination actually did.
+    Todo esto es StepLog.snapshot(k): el registro ya guarda la matriz despues de
+    cada operacion, asi que ir y venir no recalcula nada y no puede contradecir
+    lo que la eliminacion hizo de verdad.
 
-    The starting matrix counts as a step. It is what the first operation acts
-    on, and a walk that began after it would never show what was typed.
+    La matriz inicial cuenta como paso. Es sobre la que actua la primera
+    operacion, y un recorrido que empezara despues nunca ensenaria lo escrito.
     """
 
     def __init__(
@@ -909,14 +909,14 @@ class StepWalker(ctk.CTkFrame):
 
     def _toggle_all(self) -> None:
         """
-        Swap walking the steps for reading them all at once.
+        Cambia recorrer los pasos por leerlos todos de una vez.
 
-        Somebody following the method wants one operation at a time; somebody
-        checking an answer wants to scroll past the lot. Neither is the right
-        default for the other, so both are here and the choice is one click.
+        Quien sigue el metodo quiere una operacion cada vez; quien comprueba una
+        respuesta quiere pasar la vista por todas. Ninguna de las dos es el modo
+        correcto para la otra, asi que estan las dos y elegir cuesta un clic.
         """
-        # Everything is put back in front of the row of controls, which never
-        # moves: that is what keeps the two views in the same order on screen.
+        # Todo se vuelve a colocar delante de la fila de controles, que no se
+        # mueve: eso es lo que mantiene las dos vistas en el mismo orden.
         if self._list.winfo_ismapped():
             self._list.pack_forget()
             self._operation.pack(fill="x", before=self._navigation)
@@ -940,7 +940,7 @@ class StepWalker(ctk.CTkFrame):
             self._on_step(self.total() - 1, self.total())
 
     def _draw_list(self) -> None:
-        """Every step under the one before it, captioned and drawn."""
+        """Cada paso debajo del anterior, con su titulo y su matriz."""
         for widget in self._list.winfo_children():
             widget.destroy()
 
@@ -960,11 +960,11 @@ class StepWalker(ctk.CTkFrame):
             ).pack(anchor="w", pady=(10, 0))
 
     def total(self) -> int:
-        """How many matrices there are to walk, the starting one included."""
+        """Cuantas matrices hay que recorrer, contando la inicial."""
         return len(self._log) + 1
 
     def go(self, index: int) -> None:
-        """Jump straight to one of them."""
+        """Saltar directamente a una de ellas."""
         self._index = max(0, min(self.total() - 1, index))
         self.show()
 
@@ -972,11 +972,11 @@ class StepWalker(ctk.CTkFrame):
         self.go(self._index + delta)
 
     def caption(self) -> str:
-        """What the operation box says right now."""
+        """Lo que dice ahora mismo la caja de la operacion."""
         return self._caption
 
     def show(self) -> None:
-        """Draw the step the walk stands on."""
+        """Dibuja el paso en el que esta el recorrido."""
         self._caption = (
             self._first_caption
             if self._index == 0
@@ -1015,7 +1015,7 @@ class StepWalker(ctk.CTkFrame):
         )
 
     def _draw_dots(self) -> None:
-        """One dot per step, while there are few enough for it to help."""
+        """Un punto por paso, mientras sean pocos y eso ayude."""
         for widget in self._dots.winfo_children():
             widget.destroy()
         total = self.total()

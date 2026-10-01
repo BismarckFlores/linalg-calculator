@@ -153,8 +153,9 @@ expected. Run it after touching anything in `core/`.
 ## Building the files to hand in
 
 `python build.py` assembles the modules into single self-contained scripts under
-`deliverables/out/`, translating every docstring and comment into Spanish on
-the way. One file per assignment:
+`deliverables/out/`, with a Spanish heading in front of each block. The comments
+are already in Spanish in the modules, so they travel across untouched. One file
+per assignment:
 
 ```
 Escrito: deliverables/out/Programa 1_Grupo5.py
@@ -246,19 +247,7 @@ dos modulos definen el mismo nombre, y en un solo archivo se pisarian
 ```
 
 Each module has a namespace of its own; the file handed in has one. Rename one
-of the two. The build checks this before translating anything.
-
-```
-No se puede construir Programa 2_Grupo5.py:
-falta traducir esto en translations.py
-
-  Rows become columns.
-```
-
-A docstring or comment has no Spanish. Add it to `translations.py`, keyed by
-the exact English text, and build again. This happens on purpose whenever a
-function is added or an English docstring is edited — it is the mechanism that
-keeps English out of the file handed in.
+of the two. The build checks this before assembling anything.
 
 ## Handing it in
 

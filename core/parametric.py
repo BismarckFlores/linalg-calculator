@@ -1,14 +1,14 @@
 """
-The general solution of a system that has infinitely many.
+La solucion general de un sistema que tiene infinitas.
 
-`systems.solve` stops at saying which variables are free. This writes the
-family out: every basic variable — the one holding a pivot — in terms of the
-free ones, which is what the course means by the general solution.
+systems.solve se detiene al decir que variables son libres. Esto escribe la
+familia entera: cada variable basica, la que tiene un pivote, en funcion de las
+libres, que es lo que el curso llama la solucion general.
 
-It reads the reduced form and nothing else. In the reduced form a pivot is 1
-and alone in its column, so the row `x1 + 4*x3 = 1` is already the answer for
-x1 with one sign change, and no back substitution is needed. Handing this an
-unreduced echelon form would be a bug, so it refuses one.
+Lee la forma escalonada reducida y nada mas. En la reducida un pivote es 1 y
+esta solo en su columna, asi que la fila x1 + 4*x3 = 1 ya es el despeje de x1
+con un cambio de signo, y no hace falta sustituir hacia atras. Pasarle una
+escalonada sin reducir seria un error, asi que la rechaza.
 """
 
 from dataclasses import dataclass
@@ -18,7 +18,7 @@ from .scalar import Scalar
 
 @dataclass(frozen=True)
 class Basic:
-    """One basic variable, written in terms of the free ones."""
+    """Una variable basica, escrita en funcion de las libres."""
 
     column: int
     constant: Scalar
@@ -26,20 +26,20 @@ class Basic:
 
 @dataclass(frozen=True)
 class General:
-    """The whole family: the basic variables, and the free ones they lean on."""
+    """La familia entera: las variables basicas y las libres de las que dependen."""
 
     basic: tuple[Basic, ...]
     free: tuple[int, ...]
 
 def general_solution(reduction: Elimination, unknowns: int) -> General:
     """
-    Read the family off the reduced form: every basic variable in terms of the
-    free ones.
+    Lee la familia de la forma escalonada reducida: cada variable basica en
+    funcion de las libres.
 
-    Only the columns of A count as variables; a pivot on the constants column
-    means the system has no solution at all, and there is no family to write.
-    The caller classifies first and only asks when there is something to ask
-    for.
+    Solo las columnas de A cuentan como variables; un pivote en la columna de
+    los terminos independientes significa que el sistema no tiene solucion
+    ninguna, y entonces no hay familia que escribir. Quien llama clasifica
+    primero y solo pregunta cuando hay algo que preguntar.
     """
     if not reduction.reduced:
         raise ValueError("The general solution is read off the reduced form.")

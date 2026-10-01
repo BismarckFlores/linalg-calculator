@@ -1,12 +1,13 @@
 """
-Everything a person reads, written in Spanish.
+Todo lo que lee una persona, escrito en castellano.
 
-The engine returns data and never a sentence; this is where the wording is
-decided, once, so that every front end says exactly the same thing. These
-helpers build strings and nothing else: no `print`, no widgets.
+El motor devuelve datos y nunca una frase; aqui es donde se deciden las
+palabras, una sola vez, para que todas las interfaces digan exactamente lo
+mismo. Estas funciones construyen cadenas de texto y nada mas: ni print ni
+widgets.
 
-The three classifications are worded exactly as the assignment demands them,
-down to the capital letters.
+Las tres clasificaciones estan redactadas tal como las pide el enunciado, hasta
+en las mayusculas.
 """
 
 import re
@@ -19,10 +20,10 @@ from core.steps import StepLog
 from core.systems import Solution, SystemKind
 from core.verification import RowCheck, Verification
 
-# Named after the blackboard for the sizes that fit on it; x5, x6... beyond.
+# Con los nombres del pizarron mientras quepan; a partir de ahi x5, x6...
 UNKNOWN_NAMES = ("x", "y", "z", "w")
 
-# Digits as subscripts, for writing f_12 as f₁₂ where the glyphs are available.
+# Los digitos como subindices, para escribir f_12 como f₁₂ donde se pueda.
 SUBSCRIPTS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 
 CLASSIFICATIONS = {
@@ -33,11 +34,11 @@ CLASSIFICATIONS = {
 
 def unknown_name(column: int, names: Sequence[str] = ()) -> str:
     """
-    The name of the unknown sitting in a 1-based column.
+    El nombre de la incognita que ocupa esa columna, contando desde 1.
 
-    Whatever the person called it, when they wrote the system out as equations
-    and there is a name to use. Otherwise the blackboard default: x, y, z, w,
-    and x5 upwards once those run out.
+    El que le haya puesto quien escribio el sistema, cuando lo escribio como
+    ecuaciones y hay un nombre que usar. Si no, los del pizarron de siempre:
+    x, y, z, w, y de ahi en adelante x5, x6...
     """
     if column <= len(names):
         return names[column - 1]
@@ -47,13 +48,13 @@ def unknown_name(column: int, names: Sequence[str] = ()) -> str:
 
 def render_augmented(matrix: Matrix, unknowns: int, indent: str = "  ") -> str:
     """
-    The augmented matrix with the bar between A and b: `[ 1  -2   1 |  0 ]`.
+    La matriz aumentada con la barra que separa A de b: [ 1  -2   1 |  0 ].
 
-    The bar is drawn here and not in `Matrix.__str__` because only a system
-    knows that its last column means something different from the rest.
+    La barra se dibuja aqui y no en Matrix.__str__ porque solo un sistema
+    sabe que su ultima columna significa algo distinto que las demas.
     """
     texts = [[format_scalar(value) for value in row] for row in matrix.data]
-    # A and b get their own width, so a wide coefficient does not stretch b too.
+    # A y b llevan su propio ancho, para que un coeficiente largo no estire tambien b.
     left_width = max((len(text) for row in texts for text in row[:unknowns]), default=1)
     right_width = max((len(text) for row in texts for text in row[unknowns:]), default=1)
 
@@ -65,7 +66,7 @@ def render_augmented(matrix: Matrix, unknowns: int, indent: str = "  ") -> str:
     return "\n".join(lines)
 
 def render_steps(log: StepLog, unknowns: int) -> str:
-    """The whole elimination, one numbered block per elementary operation."""
+    """La eliminacion completa, un bloque numerado por operacion elemental."""
     if log.is_empty():
         return "No hizo falta ninguna operación: la matriz ya estaba escalonada."
 
@@ -76,38 +77,38 @@ def render_steps(log: StepLog, unknowns: int) -> str:
         )
     return "\n\n".join(blocks)
 
-# A row named at the start of a line, inside a block already lined up in columns.
+# Una fila nombrada al principio de una linea, en un bloque ya alineado.
 _ROW_TAG = re.compile(r"f_(\d+):")
 
 def typographic_rows(block: str) -> str:
     """
-    `f_2:` written `f₂:` without moving anything that was lined up under it.
+    f_2: escrito f₂: sin mover nada de lo que estaba alineado debajo.
 
-    `ui/presentation.py` lays these blocks out in columns, counting characters,
-    and a subscript costs one character less than `f_2` does. The space the
-    underscore used to take is put back after the colon, so the lines that were
-    indented to match still match.
+    presentation.py coloca estos bloques en columnas contando caracteres, y un
+    subindice ocupa un caracter menos que f_2. El hueco que dejaba el guion bajo
+    se devuelve despues de los dos puntos, para que las lineas que estaban
+    sangradas para cuadrar sigan cuadrando.
     """
     return _ROW_TAG.sub(lambda match: f"f{match[1].translate(SUBSCRIPTS)}: ", block)
 
 def pretty_label(label: str) -> str:
     """
-    A step label in typographic notation: `f₂ → f₂ + 3 · f₁`.
+    Una etiqueta de paso en notacion tipografica: f₂ → f₂ + 3 · f₁.
 
-    The same operation the course writes as `f_2 -> f_2 + 3*f_1`, which is what
-    `core/steps.py` produces and what the handed-in file prints. A window has the
-    glyphs for it and a plain transcript cannot be trusted to, so the choice
-    belongs to whoever is drawing rather than to the engine.
+    La misma operacion que el curso escribe como f_2 -> f_2 + 3*f_1, que es lo
+    que produce steps.py y lo que imprime el archivo entregado. Una ventana
+    tiene los caracteres para escribirlo y una transcripcion de texto plano no
+    necesariamente, asi que la decision es de quien dibuja, no del motor.
     """
     text = label.replace("<->", "↔").replace("->", "→").replace("*", " · ")
     return re.sub(r"f_(\d+)", lambda match: "f" + match[1].translate(SUBSCRIPTS), text)
 
 def describe(solution: Solution) -> str:
-    """The classification, in the exact words the assignment asks for."""
+    """La clasificacion, con las palabras exactas que pide el enunciado."""
     return CLASSIFICATIONS[solution.kind]
 
 def render_values(solution: Solution, names: Sequence[str] = ()) -> str:
-    """The value of each unknown, or the free ones when there are infinitely many."""
+    """El valor de cada incognita, o cuales son libres si hay infinitas soluciones."""
     if solution.kind is SystemKind.INCONSISTENT:
         row = _contradictory_row(solution)
         constant = format_scalar(solution.result.elem(row, solution.unknowns + 1))
@@ -134,11 +135,11 @@ def render_values(solution: Solution, names: Sequence[str] = ()) -> str:
     return "\n".join(lines)
 
 def render_equations(solution: Solution, names: Sequence[str] = ()) -> str:
-    """The echelon matrix written back as the system of equations it stands for."""
+    """La matriz escalonada escrita otra vez como el sistema de ecuaciones que representa."""
     return render_system(solution.result, solution.unknowns, names)
 
 def render_system(matrix: Matrix, unknowns: int, names: Sequence[str] = ()) -> str:
-    """Any augmented matrix written as the system of equations it stands for."""
+    """Cualquier matriz aumentada escrita como el sistema de ecuaciones que representa."""
     constants = unknowns + 1
     rows: list[tuple[str, str, str]] = []
 
@@ -156,7 +157,7 @@ def render_system(matrix: Matrix, unknowns: int, names: Sequence[str] = ()) -> s
     return "\n".join(lines)
 
 def render_substitutions(solution: Solution, names: Sequence[str] = ()) -> str:
-    """The clearing, written out line by line the way it is done on paper."""
+    """El despeje, escrito linea a linea como se hace en papel."""
     lines: list[str] = []
 
     for step in solution.substitutions:
@@ -182,14 +183,14 @@ def render_substitutions(solution: Solution, names: Sequence[str] = ()) -> str:
             _substitution(coefficient, value, flip=True)
             for (coefficient, _col), value in zip(step.terms, values)
         ]
-        # A constant of zero is not written down: `x = 0 + 2(16) - 3` is nobody's
-        # handwriting. It is only dropped when something is left to carry the row.
+        # Un termino independiente cero no se escribe: x = 0 + 2(16) - 3 no es letra
+        # de nadie. Solo se quita cuando queda algo que sostenga la linea.
         cleared = _sum(moved) if step.constant == 0 and moved else f"{constant} " + " ".join(moved)
 
         lines.append(f"{head}{name} {symbolic} = {constant}")
         lines.append(f"{indent}{name} {replaced} = {constant}")
-        # Clearing the constant and working the sum out are two lines only when
-        # they say two different things. Nobody writes the same line twice.
+        # Despejar el termino independiente y resolver la suma son dos lineas solo
+        # cuando dicen cosas distintas. Nadie escribe dos veces la misma linea.
         if cleared.strip() != format_scalar(step.value):
             lines.append(f"{indent}{name} = {cleared.strip()}")
         lines.append(f"{indent}{name} = {format_scalar(step.value)}")
@@ -198,7 +199,7 @@ def render_substitutions(solution: Solution, names: Sequence[str] = ()) -> str:
     return "\n".join(lines).rstrip()
 
 def render_general(family: General, names: Sequence[str] = ()) -> str:
-    """`x = 1 + 4z`, one line per basic variable, the names lined up on the equals."""
+    """x = 1 + 4z, una linea por variable basica, con los nombres alineados en el igual."""
     width = max(
         (len(unknown_name(item.column, names)) for item in family.basic),
         default=1,
@@ -210,7 +211,7 @@ def render_general(family: General, names: Sequence[str] = ()) -> str:
             _term(coefficient, unknown_name(column, names))
             for coefficient, column in item.terms
         ]
-        # A constant of zero only goes when something else is left to write.
+        # Una constante cero solo se quita cuando queda otra cosa que escribir.
         if item.constant == 0 and len(pieces) > 1:
             pieces = pieces[1:]
         name = unknown_name(item.column, names)
@@ -220,9 +221,9 @@ def render_general(family: General, names: Sequence[str] = ()) -> str:
 
 def render_linear_sum(weights: Sequence[Scalar], names: Sequence[str]) -> str:
     """
-    `3v₁ - v₂ + (1/2)v₃`: each scalar in front of its name, zeros left out.
+    3v₁ - v₂ + (1/2)v₃: cada escalar delante de su nombre, sin los ceros.
 
-    A sum where every scalar is zero is the zero vector, and is written `0`.
+    Una suma en la que todos los escalares son cero es el vector cero, y se escribe 0.
     """
     return _sum([
         _term(weight, name) for weight, name in zip(weights, names) if weight != 0
@@ -230,14 +231,14 @@ def render_linear_sum(weights: Sequence[Scalar], names: Sequence[str]) -> str:
 
 def render_verification(verification: Verification) -> str:
     """
-    Each equation of the original system with the values put into it.
+    Cada ecuacion del sistema original con los valores sustituidos.
 
-    Two lines per equation: the substitution as it is written, and what each
-    side adds up to. The point is that the reader can follow the arithmetic,
-    not just be told that it worked.
+    Dos lineas por ecuacion: la sustitucion tal como se escribe, y cuanto
+    suma cada lado. La idea es que se pueda seguir la aritmetica, no solo
+    leer que salio bien.
     """
     lines = []
-    # Pad the numbering so equation 9 and equation 10 still line up.
+    # Se rellena la numeracion para que la ecuacion 9 y la 10 sigan cuadrando.
     digits = len(str(len(verification.checks)))
     for check in verification.checks:
         head = f"  Ecuación {check.row:>{digits}}:  "
@@ -258,10 +259,10 @@ def render_verification(verification: Verification) -> str:
 
 def _contradictory_row(solution: Solution) -> int:
     """
-    The 1-based row that reads `0 ... 0 | k` with k not zero.
+    La fila que queda como  0 ... 0 | k  con k distinto de cero, contando desde 1.
 
-    That row is the whole reason an inconsistent system is inconsistent, so the
-    reader is shown it by name rather than told that one exists somewhere.
+    Esa fila es toda la razon por la que un sistema es inconsistente, asi que
+    se le ensena al lector por su nombre en vez de decirle que hay una.
     """
     echelon = solution.result
     for row in range(1, echelon.rows + 1):
@@ -273,17 +274,17 @@ def _contradictory_row(solution: Solution) -> int:
     raise ValueError("An inconsistent system must have a contradictory row.")
 
 def _plural(count: int, singular: str, plural: str) -> str:
-    """'1 pivote' or '3 pivotes', so nothing ever reads as '1 pivote(s)'."""
+    """'1 pivote' o '3 pivotes', para que nunca se lea '1 pivote(s)'."""
     return f"{count} {singular if count == 1 else plural}"
 
 def _substituted(check: RowCheck) -> str:
     """
-    One equation with every unknown replaced by its value: `1(29) - 2(16)`.
+    Una ecuacion con cada incognita sustituida por su valor: 1(29) - 2(16).
 
-    The coefficient is kept even when it is 1, because the point of the line is
-    to show the original equation with numbers standing where the unknowns were.
-    The sign comes out in front instead of staying inside the coefficient, so
-    the row reads as a sum the way it would be written by hand.
+    El coeficiente se mantiene aunque valga 1, porque lo que ensena la linea es
+    la ecuacion original con numeros donde estaban las incognitas. El signo sale
+    delante en vez de quedarse dentro del coeficiente, para que la fila se lea
+    como una suma, igual que se escribiria a mano.
     """
     pieces = []
     for coefficient, value, _col in check.terms:
@@ -294,11 +295,11 @@ def _substituted(check: RowCheck) -> str:
 
 def _sum(pieces: list[str]) -> str:
     """
-    The terms of a sum joined up, with the sign of the first one tidied away.
+    Los terminos de una suma unidos, con el signo del primero arreglado.
 
-    Every term is written with its sign in front so that they can be joined in
-    any order, which leaves the first one carrying a sign nothing precedes: a
-    leading `+ ` goes, and a leading `- ` closes up against its number.
+    Cada termino se escribe con su signo delante para poder unirlos en cualquier
+    orden, lo que deja al primero con un signo que no precede a nada: un + inicial
+    se quita, y un - inicial se pega a su numero.
     """
     if not pieces:
         return "0"
@@ -311,12 +312,12 @@ def _sum(pieces: list[str]) -> str:
 
 def _substitution(coefficient: Scalar, value: Scalar, flip: bool = False) -> str:
     """
-    One term of a clearing, with the value standing where the unknown was.
+    Un termino de un despeje, con el valor puesto donde estaba la incognita.
 
-    A coefficient of 1 is not written, and then the sign of the value becomes
-    the sign of the term: `1*(-17/12)` is written `- 17/12`, the way it would be
-    by hand, and never `+ (-17/12)`. Anything else keeps the brackets, because
-    a `2` against a `16` would read as `216`.
+    Un coeficiente de 1 no se escribe, y entonces el signo del valor pasa a ser
+    el del termino: 1*(-17/12) se escribe - 17/12, como se haria a mano, y nunca
+    + (-17/12). Lo demas conserva los parentesis, porque un 2 pegado a un 16 se
+    leeria como 216.
     """
     negative = (coefficient < 0) != flip
     magnitude = -coefficient if coefficient < 0 else coefficient
@@ -328,13 +329,13 @@ def _substitution(coefficient: Scalar, value: Scalar, flip: bool = False) -> str
 
 def _term(coefficient: Scalar, text: str, flip: bool = False) -> str:
     """
-    One term with its sign in front: `+ y`, `- 3z`, `+ (1/3)x`, `- 2(16)`.
+    Un termino con su signo delante: + y, - 3z, + (1/3)x, - 2(16).
 
-    The multiplication is written by putting the two things next to each other,
-    which is how it is written by hand. That only reads correctly when what
-    follows is a name or a bracket: against a bare number the coefficient would
-    run into it and `2*16` would come out as `216`. Every caller that passes a
-    number passes it in brackets for that reason.
+    La multiplicacion se escribe poniendo las dos cosas juntas, que es como se
+    escribe a mano. Eso solo se lee bien cuando lo que sigue es un nombre o un
+    parentesis: contra un numero suelto el coeficiente se pegaria a el y 2*16
+    saldria como 216. Por eso todo el que pasa un numero lo pasa entre
+    parentesis.
     """
     negative = coefficient < 0
     if flip:

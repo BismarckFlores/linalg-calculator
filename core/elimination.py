@@ -1,14 +1,15 @@
 """
-Gaussian elimination, in its two forms.
+La eliminacion gaussiana, en sus dos formas.
 
-`to_ref` walks the matrix down to a row echelon form: the staircase of zeros,
-with every pivot normalized to 1. `to_rref` keeps going and clears the entries
-*above* each pivot as well, leaving the reduced row echelon form, where a pivot
-is the only non-zero entry in its column.
+to_ref lleva la matriz a una forma escalonada por filas: la escalera de ceros,
+con cada pivote normalizado a 1. to_rref sigue adelante y hace ceros tambien
+*encima* de cada pivote, dejando la forma escalonada reducida, donde un pivote
+es la unica entrada distinta de cero en su columna.
 
-Both run on a single `Worksheet`, so the result and the step by step are two
-readings of the same walk and cannot drift apart. They also share the walk:
-`to_rref` is `to_ref` followed by a second pass, never a second algorithm.
+Las dos corren sobre un solo Worksheet, asi que el resultado y el paso a paso
+son dos lecturas del mismo recorrido y no pueden separarse. Ademas comparten el
+recorrido: to_rref es to_ref seguido de una segunda pasada, nunca un segundo
+algoritmo.
 """
 
 from dataclasses import dataclass
@@ -19,7 +20,7 @@ from .worksheet import Worksheet
 
 @dataclass(frozen=True)
 class Elimination:
-    """What a reduction produced: the result, how it got there, where the pivots are"""
+    """Lo que produjo una reduccion: el resultado, como se llego a el, y donde estan los pivotes"""
 
     original: Matrix
     result: Matrix
@@ -29,30 +30,30 @@ class Elimination:
 
     @property
     def rank(self) -> int:
-        """The number of pivots, which is the rank of the matrix."""
+        """El numero de pivotes, que es el rango de la matriz."""
         return len(self.pivots)
 
     def pivot_columns(self) -> list[int]:
-        """The 1-based columns holding a pivot."""
+        """Las columnas que tienen pivote, contando desde 1."""
         return [col for _row, col in self.pivots]
 
     def free_columns(self) -> list[int]:
-        """The 1-based columns with no pivot: the free variables of a system."""
+        """Las columnas sin pivote, contando desde 1: las variables libres del sistema."""
         held = set(self.pivot_columns())
         return [col for col in range(1, self.result.cols + 1) if col not in held]
 
     def zero_rows(self) -> list[int]:
-        """The 1-based rows that ended up entirely zero."""
+        """Las filas que quedaron todas a cero, contando desde 1."""
         return [i for i in range(1, self.result.rows + 1) if self.result.is_zero_row(i)]
 
 def to_ref(matrix: Matrix, title: str = "") -> Elimination:
     """
-    Reduce to a row echelon form, recording every elementary operation.
+    Reduce a una forma escalonada por filas, registrando cada operacion elemental.
 
-    One pivot per column, normalized to 1, with zeros beneath it. A column that
-    is all zeros from `row` down holds no pivot and is left alone; the same row
-    then goes looking one column further right, which is what makes the
-    staircase uneven when a variable turns out to be free.
+    Un pivote por columna, normalizado a 1, con ceros por debajo. Una columna
+    que esta toda a cero de esa fila hacia abajo no tiene pivote y se deja
+    estar; la misma fila busca entonces una columna mas a la derecha, que es
+    lo que hace que la escalera quede irregular cuando hay variables libres.
     """
     sheet = Worksheet(matrix, title)
     pivots = _forward(sheet)
@@ -60,15 +61,16 @@ def to_ref(matrix: Matrix, title: str = "") -> Elimination:
 
 def to_rref(matrix: Matrix, title: str = "") -> Elimination:
     """
-    Reduce to the reduced row echelon form: Gauss-Jordan.
+    Reduce a la forma escalonada reducida por filas: Gauss-Jordan.
 
-    The same walk down as `to_ref`, and then back up: starting from the pivot
-    furthest to the right, every entry above a pivot is cleared too. What comes
-    out satisfies the two extra conditions of the reduced form, that each
-    leading entry is 1 and is the only non-zero entry in its column.
+    El mismo recorrido de bajada que to_ref, y despues la vuelta hacia arriba:
+    empezando por el pivote de mas a la derecha, se hacen ceros tambien por
+    encima de cada pivote. Lo que sale cumple las dos condiciones de mas de la
+    forma reducida: cada elemento principal es 1 y es el unico distinto de
+    cero en su columna.
 
-    Going back up never moves a pivot, so the positions found on the way down
-    are still the positions on the way out.
+    La vuelta hacia arriba no mueve ningun pivote, asi que las posiciones
+    encontradas en la bajada siguen siendo las posiciones al salir.
     """
     sheet = Worksheet(matrix, title)
     pivots = _forward(sheet)
@@ -76,14 +78,15 @@ def to_rref(matrix: Matrix, title: str = "") -> Elimination:
     return Elimination(matrix, sheet.matrix, sheet.log, tuple(pivots), reduced=True)
 
 def rank(matrix: Matrix) -> int:
-    """How many pivots the echelon form of this matrix has."""
+    """Cuantos pivotes tiene la forma escalonada de esta matriz."""
     return to_ref(matrix).rank
 
 def _forward(sheet: Worksheet) -> list[tuple[int, int]]:
     """
-    The walk down: find a pivot, scale it to 1, clear everything below it.
+    La bajada: busca un pivote, lo lleva a 1 y hace ceros por debajo.
 
-    Returns the pivot positions in the order they were found, which is by row.
+    Devuelve las posiciones de los pivotes en el orden en que se encontraron,
+    que es por filas.
     """
     pivots: list[tuple[int, int]] = []
     row = 1
@@ -108,20 +111,22 @@ def _forward(sheet: Worksheet) -> list[tuple[int, int]]:
 
 def _backward(sheet: Worksheet, pivots: list[tuple[int, int]]) -> None:
     """
-    The walk back up: clear the entries above each pivot, rightmost pivot first.
+    La vuelta hacia arriba: hace ceros por encima de cada pivote, empezando
+    por el de mas a la derecha.
 
-    Right to left matters. A pivot further right has already been isolated by
-    the time it is used to clear the column of a pivot further left, so no
-    operation here can put back a zero that a later one removed.
+    El orden de derecha a izquierda importa. Un pivote de mas a la derecha ya
+    esta aislado cuando se usa para limpiar la columna de uno de mas a la
+    izquierda, asi que ninguna operacion de aqui puede deshacer un cero que
+    otra posterior ya habia conseguido.
 
-    Nothing is scaled: `_forward` left every pivot at 1 already.
+    No se multiplica ninguna fila: _forward ya dejo todos los pivotes en 1.
     """
     for row, col in reversed(pivots):
         for above in range(1, row):
             sheet.add_scaled(above, row, -sheet.matrix.elem(above, col))
 
 def _find_pivot_row(matrix: Matrix, from_row: int, col: int) -> int | None:
-    """The first row at or below `from_row` whose entry in `col` is not zero."""
+    """La primera fila, desde from_row hacia abajo, cuyo elemento en col no es cero."""
     for row in range(from_row, matrix.rows + 1):
         if matrix.elem(row, col) != 0:
             return row

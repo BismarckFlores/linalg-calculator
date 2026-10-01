@@ -1,16 +1,15 @@
 """
-Reading a system from the keyboard.
+Leer un sistema por teclado.
 
-Two ways in, because the same system can be written down two ways. Either the
-equations go in as they are written on paper, `2x + 3y - z = 5`, and the
-coefficients are read out of them; or the size comes first and then every a_ij
-and b_i is named and asked for one at a time.
+Dos maneras de entrarlo, porque el mismo sistema se puede escribir de dos
+formas. O las ecuaciones se escriben como en el papel, 2x + 3y - z = 5, y de
+ahi se sacan los coeficientes; o primero se da el tamano y despues se pide cada
+a_ij y cada b_i por su nombre, uno a uno.
 
-A wrong answer is never fatal: the same question comes back until it gets
-something it can use. This is the only module that calls `input`, and everything
-it says is in Spanish. It returns the augmented matrix [A | b] and the names of
-the unknowns, and nothing else; what to do with them is somebody else's
-decision.
+Una respuesta equivocada nunca corta nada: la misma pregunta vuelve hasta que
+llega algo que sirva. Este es el unico modulo que llama a input, y todo lo que
+dice esta en castellano. Devuelve la matriz aumentada [A | b] y los nombres de
+las incognitas, y nada mas; que hacer con ellos lo decide otro.
 """
 
 import sys
@@ -34,7 +33,7 @@ NUMBER_HELP = "Se admiten enteros, decimales (2.5 o 2,5) y fracciones (1/3)."
 EQUATION_HELP = "Por ejemplo:  2x + 3y - z = 5   o   2x = 3y + 1"
 
 def ask_int(question: str, minimum: int = 1, maximum: int = SIZE_LIMIT) -> int:
-    """Ask for a whole number inside a range, insisting until one arrives."""
+    """Pide un numero entero dentro de un rango, insistiendo hasta conseguirlo."""
     while True:
         answer = input(f"{question} ").strip()
         if not answer:
@@ -51,7 +50,7 @@ def ask_int(question: str, minimum: int = 1, maximum: int = SIZE_LIMIT) -> int:
         return number
 
 def ask_scalar(question: str) -> Scalar:
-    """Ask for one number, accepting integers, decimals and fractions."""
+    """Pide un numero, aceptando enteros, decimales y fracciones."""
     while True:
         answer = input(f"{question} ").strip()
         if not answer:
@@ -63,7 +62,7 @@ def ask_scalar(question: str) -> Scalar:
             print(f"  '{answer}' no es un número. Prueba con 3, -2.5 o 1/3.")
 
 def ask_yes_no(question: str) -> bool:
-    """Ask something that only takes yes or no."""
+    """Pregunta algo que solo admite si o no."""
     while True:
         answer = input(f"{question} ").strip().lower()
         if answer in ("s", "si", "sí"):
@@ -74,11 +73,12 @@ def ask_yes_no(question: str) -> bool:
 
 def pause(message: str = "  [Enter] para continuar...") -> None:
     """
-    Wait for Enter, so one section can be read before the next one arrives.
+    Espera a que se pulse Enter, para poder leer una seccion antes de que
+    llegue la siguiente.
 
-    Only when a person is watching. With the input redirected there is nobody
-    to press anything, so the program runs straight through instead of stopping
-    on a prompt that will never be answered.
+    Solo si hay alguien mirando. Con la entrada redirigida no hay quien pulse
+    nada, asi que el programa corre de largo en vez de quedarse esperando una
+    tecla que nunca va a llegar.
     """
     if not sys.stdin.isatty():
         return
@@ -86,11 +86,11 @@ def pause(message: str = "  [Enter] para continuar...") -> None:
 
 def ask_system() -> tuple[Matrix, list[str]]:
     """
-    Ask how the system is going to be written down, and read it that way.
+    Pregunta como se va a escribir el sistema, y lo lee de esa manera.
 
-    Comes back with [A | b] and the names of the unknowns in column order. The
-    names are empty when the coefficients were given one by one, because then
-    nobody ever said what the unknowns are called.
+    Devuelve [A | b] y los nombres de las incognitas en el orden de las
+    columnas. Los nombres vienen vacios cuando los coeficientes se dieron uno
+    a uno, porque entonces nadie llego a decir como se llaman las incognitas.
     """
     print("Datos del sistema de ecuaciones lineales A x = b")
     print()
@@ -104,12 +104,14 @@ def ask_system() -> tuple[Matrix, list[str]]:
 
 def ask_equations() -> tuple[Matrix, list[str]]:
     """
-    Read the system as equations, one per line, until a blank line ends it.
+    Lee el sistema como ecuaciones, una por linea, hasta que una linea en
+    blanco lo da por terminado.
 
-    The unknowns are whatever the equations turn out to mention, so nobody has
-    to say up front how many there are. What was understood is read back before
-    anything is done with it: a typo in an equation is much easier to catch as a
-    list of unknowns than as a wrong answer three sections later.
+    Las incognitas son las que resulten mencionar las ecuaciones, asi que
+    nadie tiene que decir de antemano cuantas hay. Lo que se entendio se
+    devuelve por pantalla antes de hacer nada con ello: una errata en una
+    ecuacion se pilla mucho mejor viendo la lista de incognitas que viendo un
+    resultado equivocado tres secciones mas adelante.
     """
     while True:
         print()
@@ -134,11 +136,11 @@ def ask_equations() -> tuple[Matrix, list[str]]:
 
 def ask_coefficients() -> Matrix:
     """
-    Ask for the size and then every coefficient, and build [A | b] out of them.
+    Pide el tamano y despues cada coeficiente, y construye [A | b] con ellos.
 
-    The questions go equation by equation, ending each one with its constant
-    term, because that is the order in which the system is written down: a whole
-    equation, then the next.
+    Las preguntas van ecuacion por ecuacion, terminando cada una con su
+    termino independiente, porque es el orden en que se escribe un sistema:
+    una ecuacion entera, y luego la siguiente.
     """
     equations = ask_int("Número de ecuaciones (m):")
     unknowns = ask_int("Número de variables (n):")
@@ -158,11 +160,12 @@ def ask_coefficients() -> Matrix:
 
 def _read_equations() -> list[Equation]:
     """
-    Take equations until a blank line, explaining in Spanish whatever fails.
+    Va tomando ecuaciones hasta una linea en blanco, explicando en castellano
+    lo que falle.
 
-    The parser raises one exception per kind of mistake and says nothing to
-    anybody; the sentence a person reads is decided here, like every other
-    sentence in the program.
+    El analizador lanza una excepcion por cada tipo de error y no le dice nada
+    a nadie; la frase que lee una persona se decide aqui, como todas las demas
+    frases del programa.
     """
     equations: list[Equation] = []
 

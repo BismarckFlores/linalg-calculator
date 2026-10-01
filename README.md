@@ -40,7 +40,6 @@ linalg-calculator/
 │   ├── program1.py       # Programa 1: systems by row elimination
 │   └── out/              # generated single files, not versioned
 ├── build.py              # assembles the single file that gets handed in
-├── translations.py       # Spanish for every docstring and comment it carries
 ├── requirements-gui.txt  # CustomTkinter, needed by the window and nothing else
 └── docs/
     ├── usage.md          # how to run everything, and what it asks for
@@ -69,11 +68,12 @@ theorems and course exercises.
 
 ## Rules
 
-**Code is written in English; the deliverables are written in Spanish.** Every
-identifier, comment, docstring and document in this repository is in English,
-including the exception messages the engine raises. The files handed in to the
-course are the exception: they go to a class taught in Spanish, so their block
-comments and everything they print are in Spanish.
+**Identifiers are English; comments are Spanish.** Every identifier in this
+repository is in English — `to_rref`, `SingularMatrix` — and so are the
+exception messages the engine raises, which are addressed to whoever is writing
+the code. Every comment and docstring is in Spanish, without accents, because
+the file handed in carries them as they are to a class taught in Spanish. The
+documents under `docs/` are in English.
 
 **`core/` does not talk.** No `print`, no message addressed to a person. It
 returns data and raises exceptions aimed at whoever is writing the code. The
@@ -92,7 +92,8 @@ so at the top of its own first page, next to the two commands that install it.
 **Deliverables are generated, not written.** Each file handed in is a single
 self-contained script produced out of the modules in this repository. The
 repository is the source of truth; the handed-in file is a build artefact, and
-`build.py` translates its docstrings and comments into Spanish on the way out.
+`build.py` copies the comments across as they are, adding a Spanish heading in
+front of each block.
 
 ## The engine so far
 

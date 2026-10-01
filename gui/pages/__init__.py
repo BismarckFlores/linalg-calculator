@@ -1,8 +1,8 @@
 """
-One module per page of the window.
+Un modulo por cada pagina de la ventana.
 
-A page owns its own widgets and its own state, knows how to draw the result of
-one calculation, and is created the first time somebody opens it. Switching
-pages hides the old one instead of destroying it, so what was typed is still
-there on the way back.
+Una pagina es duena de sus propios widgets y de su propio estado, sabe dibujar
+el resultado de un calculo, y se crea la primera vez que alguien la abre. Al
+cambiar de pagina, la anterior se oculta en vez de destruirse, asi que lo que se
+habia escrito sigue ahi al volver.
 """

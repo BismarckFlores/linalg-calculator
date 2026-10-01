@@ -1,29 +1,29 @@
 """
-Vectors of R^n, and whether one of them is a combination of others.
+Los vectores de R^n, y si uno de ellos es combinacion de los demas.
 
-A vector is a tuple of exact numbers, and its length is its dimension n.
-Nothing here fixes n in advance: it is whatever the vectors typed turn out to
-have, and every vector of one calculation has to agree with the others.
+Un vector es una tupla de numeros exactos, y su longitud es su dimension n.
+Aqui nada fija n de antemano: es la que tengan los vectores que se escriban, y
+todos los de un mismo calculo tienen que coincidir.
 
-The operations are the component-wise ones:
+Las operaciones son las que se hacen componente a componente:
 
     u + v = (u1 + v1, ..., un + vn)
     u - v = (u1 - v1, ..., un - vn)
     k u   = (k u1, ..., k un)
 
-A vector b is a linear combination of v1, ..., vk when some scalars make
-c1 v1 + ... + ck vk = b. Written component by component that is a system of n
-equations in the k scalars, and its augmented matrix has the vectors standing
-as columns:
+Un vector b es combinacion lineal de v1, ..., vk cuando hay escalares con
+c1 v1 + ... + ck vk = b. Escrito componente a componente, eso es un sistema de n
+ecuaciones con k escalares, y su matriz aumentada lleva los vectores como
+columnas:
 
     [ v1 v2 ... vk | b ]
 
-So the question is answered by solving that system, with the same elimination
-as every other system here. One solution is one way of combining them,
-infinitely many are infinitely many ways, and none means b is not a
-combination of them at all.
+Asi que la pregunta se responde resolviendo ese sistema, con la misma
+eliminacion que cualquier otro de aqui. Una solucion es una manera de
+combinarlos, infinitas son infinitas maneras, y ninguna quiere decir que b no es
+combinacion de ellos.
 
-Like the rest of `core`, this says nothing to anybody.
+Como el resto de core, esto no le dice nada a nadie.
 """
 
 import re
@@ -38,25 +38,25 @@ from .systems import Solution, SystemKind, solve
 
 Vector = tuple[Scalar, ...]
 
-# Components are separated by commas, semicolons or spaces. A decimal takes a
-# point, because a comma already means the next component.
+# Las componentes se separan con comas, punto y coma o espacios. Un decimal lleva
+# punto, porque la coma ya significa que empieza la siguiente componente.
 _SEPARATORS = re.compile(r"[,;\s]+")
 
 class VectorError(ValueError):
-    """Something typed is not a vector, or the vectors do not fit together."""
+    """Lo escrito no es un vector, o los vectores no encajan entre si."""
 
 class EmptyVector(VectorError):
-    """There are no components to read."""
+    """No hay componentes que leer."""
 
 class UnreadableComponent(VectorError):
-    """A component that is not a number. `text` is the piece that was typed."""
+    """Una componente que no es un numero. text es el trozo que se escribio."""
 
     def __init__(self, text: str) -> None:
         super().__init__(f"'{text}' is not a number.")
         self.text = text
 
 class DimensionMismatch(VectorError):
-    """Two vectors that do not live in the same R^n."""
+    """Dos vectores que no estan en el mismo Rn."""
 
     def __init__(self, first: int, second: int) -> None:
         super().__init__(f"A vector of R^{first} and one of R^{second} do not combine.")
@@ -65,11 +65,10 @@ class DimensionMismatch(VectorError):
 
 def parse_vector(text: str) -> Vector:
     """
-    Read `(1, -2, 1/3)` as a vector of R^3.
+    Lee (1, -2, 1/3) como un vector de R3.
 
-    The brackets around the whole vector are optional, and so are brackets
-    around a single component. The dimension is however many components there
-    turn out to be.
+    Los parentesis alrededor del vector son opcionales, y tambien los de una
+    componente suelta. La dimension es la cantidad de componentes que resulten.
     """
     inside = text.strip()
     if len(inside) >= 2 and inside[0] in "([⟨<" and inside[-1] in ")]⟩>":
@@ -80,23 +79,23 @@ def parse_vector(text: str) -> Vector:
     return tuple(_component(piece) for piece in pieces)
 
 def add(u: Vector, v: Vector) -> Vector:
-    """u + v: the components in the same position added together."""
+    """u + v: se suman las componentes que estan en la misma posicion."""
     _same_dimension(u, v)
     return tuple(a + b for a, b in zip(u, v))
 
 def subtract(u: Vector, v: Vector) -> Vector:
-    """u - v: the components of v taken from those of u, position by position."""
+    """u - v: a cada componente de u se le resta la de v en la misma posicion."""
     _same_dimension(u, v)
     return tuple(a - b for a, b in zip(u, v))
 
 def scale(k: Scalar, u: Vector) -> Vector:
-    """k u: every component multiplied by the same scalar."""
+    """k u: cada componente multiplicada por el mismo escalar."""
     return tuple(k * a for a in u)
 
 def linear_sum(weights: Sequence[Scalar], vectors: Sequence[Vector]) -> Vector:
     """
-    c1 v1 + ... + ck vk, worked out as the definition says: scale each vector,
-    then add them one after another.
+    c1 v1 + ... + ck vk, calculado como dice la definicion: se multiplica cada
+    vector por su escalar y despues se suman uno tras otro.
     """
     if len(weights) != len(vectors):
         raise ValueError(f"{len(weights)} scalars were given for {len(vectors)} vectors.")
@@ -108,7 +107,7 @@ def linear_sum(weights: Sequence[Scalar], vectors: Sequence[Vector]) -> Vector:
     return total
 
 def combination_matrix(vectors: Sequence[Vector], target: Vector) -> Matrix:
-    """[ v1 ... vk | b ]: the vectors standing as columns, and b as the last one."""
+    """[ v1 ... vk | b ]: los vectores puestos como columnas, y b como la ultima."""
     if not vectors:
         raise EmptyVector("At least one vector is needed to form a combination.")
     for vector in vectors:
@@ -120,7 +119,7 @@ def combination_matrix(vectors: Sequence[Vector], target: Vector) -> Matrix:
 
 @dataclass(frozen=True)
 class Combination:
-    """Whether b is a combination of the vectors, and the system that decided it."""
+    """Si b es combinacion de los vectores, y el sistema que lo decidio."""
 
     vectors: tuple[Vector, ...]
     target: Vector
@@ -129,17 +128,17 @@ class Combination:
 
     @property
     def is_combination(self) -> bool:
-        """True unless the system has no solution."""
+        """Verdadero salvo que el sistema no tenga solucion."""
         return self.solution.kind is not SystemKind.INCONSISTENT
 
     @property
     def weights(self) -> Vector | None:
         """
-        One choice of scalars that works, or None when there is none.
+        Una eleccion de escalares que funciona, o None si no hay ninguna.
 
-        With a single solution that is the solution. With infinitely many it is
-        the one that sets every free scalar to 0, which leaves each basic scalar
-        equal to the constant of its row in the reduced form.
+        Con una sola solucion, es esa solucion. Con infinitas, es la que pone en 0
+        todos los escalares libres, y entonces cada escalar basico vale la constante
+        de su fila en la forma escalonada reducida.
         """
         if self.solution.kind is SystemKind.UNIQUE:
             return self.solution.values
@@ -152,10 +151,10 @@ class Combination:
 
 def combine(vectors: Sequence[Vector], target: Vector) -> Combination:
     """
-    Decide whether `target` is a linear combination of `vectors`.
+    Decide si target es combinacion lineal de vectors.
 
-    Builds [ v1 ... vk | b ] and solves it. When there are infinitely many
-    solutions the family is written out as well, read off the reduced form.
+    Arma [ v1 ... vk | b ] y lo resuelve. Cuando hay infinitas soluciones
+    escribe tambien la familia, leida de la forma escalonada reducida.
     """
     augmented = combination_matrix(vectors, target)
     solution = solve(augmented)

@@ -1,19 +1,19 @@
 """
-Linear systems, read out of an augmented matrix [A | b].
+Los sistemas lineales, leidos de una matriz aumentada [A | b].
 
-`solve` reduces the augmented matrix by row elimination and classifies the
-system the way Rouche-Frobenius does: compare the rank of the coefficient matrix
-with the rank of the augmented one, and then with the number of unknowns.
+solve reduce la matriz aumentada por eliminacion de filas y clasifica el sistema
+como lo hace Rouche-Frobenius: compara el rango de la matriz de coeficientes con
+el de la aumentada, y despues con el numero de incognitas.
 
-    rank(A) < rank(A|b)                 no solution
-    rank(A) = rank(A|b) < unknowns      infinitely many
-    rank(A) = rank(A|b) = unknowns      exactly one
+    rango(A) < rango(A|b)                 sin solucion
+    rango(A) = rango(A|b) < incognitas    infinitas soluciones
+    rango(A) = rango(A|b) = incognitas    solucion unica
 
-When there is exactly one solution the unknowns are cleared by back
-substitution, from the last to the first, and every one of those steps is kept:
-seeing the echelon matrix and then the clearing is the point of the method.
+Cuando hay solucion unica, las incognitas se despejan hacia atras, de la ultima
+a la primera, y se guarda cada uno de esos pasos: ver la matriz escalonada y
+despues el despeje es el sentido del metodo.
 
-Nothing here writes a sentence for a user: the interface decides the wording.
+Aqui nadie escribe una frase para una persona: la interfaz decide las palabras.
 """
 
 from dataclasses import dataclass
@@ -25,7 +25,7 @@ from .scalar import Scalar
 from .steps import StepLog
 
 class SystemKind(Enum):
-    """The Rouche-Frobenius classification of a system."""
+    """La clasificacion de un sistema segun Rouche-Frobenius."""
 
     INCONSISTENT = "inconsistent"
     UNIQUE = "unique"
@@ -33,7 +33,7 @@ class SystemKind(Enum):
 
 @dataclass(frozen=True)
 class BackSubstitution:
-    """One unknown cleared from the echelon form, and what it took to clear it."""
+    """Una incognita despejada de la forma escalonada, y lo que costo despejarla."""
 
     column: int
     row: int
@@ -43,7 +43,7 @@ class BackSubstitution:
 
 @dataclass(frozen=True)
 class Solution:
-    """What the echelon form says about the system."""
+    """Lo que la forma escalonada dice sobre el sistema."""
 
     kind: SystemKind
     reduction: Elimination
@@ -59,40 +59,44 @@ class Solution:
 
     @property
     def augmented(self) -> Matrix:
-        """The [A | b] the system was handed in as."""
+        """La matriz [A | b] tal como se entrego el sistema."""
         return self.reduction.original
 
     @property
     def result(self) -> Matrix:
-        """The echelon form the elimination ended on."""
+        """La forma escalonada en la que termino la eliminacion."""
         return self.reduction.result
 
     @property
     def coefficients(self) -> Matrix:
-        """A on its own, for putting a solution back into the original system."""
+        """La matriz A sola, para sustituir la solucion en el sistema original."""
         return self.augmented.take_columns(1, self.unknowns)
 
     @property
     def constants(self) -> Matrix:
-        """b on its own, as a single column."""
+        """El vector b solo, como una unica columna."""
         return self.augmented.take_columns(self.unknowns + 1, self.unknowns + 1)
 
     @property
     def rank(self) -> int:
-        """Rank of the augmented matrix."""
+        """Rango de la matriz aumentada."""
         return self.reduction.rank
 
     @property
     def coefficient_rank(self) -> int:
-        """Rank of A: the pivots that fall on an unknown, not on the constants."""
+        """
+        Rango de A: los pivotes que caen sobre una incognita, no sobre los terminos
+        independientes.
+        """
         return sum(1 for _row, col in self.reduction.pivots if col <= self.unknowns)
 
 def solve(augmented: Matrix) -> Solution:
     """
-    Solve the system written as an augmented matrix, last column the constants.
+    Resuelve el sistema escrito como matriz aumentada, con los terminos
+    independientes en la ultima columna.
 
-    The whole walk down to the echelon form is in `solution.log`, and the
-    clearing that follows it is in `solution.substitutions`.
+    Todo el recorrido hasta la forma escalonada esta en solution.log, y el
+    despeje que viene despues esta en solution.substitutions.
     """
     if augmented.rows < 1 or augmented.cols < 2:
         raise ValueError("A system needs at least one equation and one unknown.")
@@ -108,10 +112,10 @@ def solve(augmented: Matrix) -> Solution:
     substitutions: tuple[BackSubstitution, ...] = ()
 
     if reduction.rank > coefficient_rank:
-        # A pivot landed on the constants column: some row reads 0 = k.
+        # Un pivote cayo en la columna de terminos independientes: alguna fila dice 0 = k.
         kind = SystemKind.INCONSISTENT
     elif coefficient_rank < unknowns:
-        # Fewer pivots than unknowns: the ones left over are free.
+        # Menos pivotes que incognitas: las que sobran son libres.
         kind = SystemKind.INFINITE
     else:
         kind = SystemKind.UNIQUE
@@ -127,12 +131,12 @@ def _back_substitute(
     reduction: Elimination, unknowns: int
 ) -> tuple[BackSubstitution, ...]:
     """
-    Walk the echelon form upwards, replacing the unknowns already cleared.
+    Sube por la forma escalonada sustituyendo las incognitas ya despejadas.
 
-    Only ever called for a system with a unique solution, which is what lets it
-    stay this short: every unknown holds a pivot, and every pivot is already 1
-    because `to_ref` normalizes them. The steps come back in the order the work
-    is done, so the last unknown is first.
+    Solo se llama cuando la solucion es unica, que es lo que permite que sea
+    tan corta: cada incognita tiene pivote, y cada pivote ya vale 1 porque
+    to_ref los normaliza. Los pasos salen en el orden en que se hace el
+    trabajo, asi que la ultima incognita va primero.
     """
     echelon = reduction.result
     constants = unknowns + 1

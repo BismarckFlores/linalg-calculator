@@ -1,18 +1,18 @@
 """
-Vectors of R^n: adding them, subtracting them, scaling them, and deciding
-whether one is a linear combination of others.
+Los vectores de R^n: sumarlos, restarlos, multiplicarlos por un escalar, y
+decidir si uno es combinacion lineal de los demas.
 
-The dimension is never asked for. It is however many components the vectors
-typed turn out to have, which is the point the assignment makes of it, and the
-page only insists that every vector of one calculation has the same.
+La dimension no se pregunta nunca. Es la cantidad de componentes que tengan los
+vectores que se escriban, que es lo que el enunciado subraya, y la pagina solo
+exige que todos los de un mismo calculo tengan la misma.
 
-The operations are shown the two ways they are written by hand: as columns side
-by side, and component by component. A combination is shown as the vector
-equation it is, then as the system that equation stands for, then solved with
-the same elimination as the Eliminación Gaussiana page, and finally put back
-together to check that it gives b.
+Las operaciones se muestran de las dos maneras en que se escriben a mano: como
+columnas una al lado de la otra, y componente a componente. Una combinacion se
+plantea como la ecuacion vectorial que es, despues como el sistema que esa
+ecuacion representa, se resuelve con la misma eliminacion de la pagina de
+Eliminacion Gaussiana, y al final se vuelve a armar para comprobar que da b.
 
-The Spanish lives here because no other front end says any of it.
+El castellano vive aqui porque ninguna otra interfaz dice nada de esto.
 """
 
 from typing import Any
@@ -84,17 +84,17 @@ SET_HELP = (
     "tener tantas componentes como b."
 )
 
-# What the boxes hold before anybody types, so the first click shows something.
+# Lo que tienen las cajas antes de escribir, para que el primer clic muestre algo.
 FIRST_VECTOR = "1, -2, 3"
 SECOND_VECTOR = "4, 0, -1/2"
 SCALAR_EXAMPLE = "-3"
 TARGET_EXAMPLE = "7, 4, -3"
 SET_EXAMPLE = "1, -2, -5\n2, 5, 6"
 
-# How many vectors of a combination fit on one line before it wraps.
+# Cuantos vectores de una combinacion caben en una linea antes de partirla.
 TERMS_PER_ROW = 4
 
-# A colour per answer, so it is legible before it is read.
+# Un color por respuesta, para que se entienda antes de leerla.
 ANSWER_COLORS = {
     SystemKind.UNIQUE: theme.GREEN,
     SystemKind.INFINITE: theme.ORANGE,
@@ -104,19 +104,19 @@ ANSWER_COLORS = {
 SUPERSCRIPT_DIGITS = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
 
 def subscript(name: str, index: int) -> str:
-    """`v` and 2 written as `v₂`."""
+    """v y 2 escritos como v₂."""
     return name + str(index).translate(SUBSCRIPTS)
 
 def vector_text(vector: Vector) -> str:
-    """A vector written in a line, the way it is in a text: `(1, -2, 1/3)`."""
+    """Un vector escrito en una linea, como en un texto: (1, -2, 1/3)."""
     return "(" + ", ".join(format_scalar(value) for value in vector) + ")"
 
 def folded(first: Scalar, sign: str, second: Scalar) -> str:
     """
-    `a + b` or `a - b` with the sign of b folded into the operation.
+    a + b o a - b con el signo de b metido en la operacion.
 
-    `2 + (-3)` is written `2 - 3` and `2 - (-3)` is written `2 + 3`, the way
-    it is by hand once the brackets have done their job.
+    2 + (-3) se escribe 2 - 3 y 2 - (-3) se escribe 2 + 3, como se hace a mano
+    una vez que los parentesis han cumplido su funcion.
     """
     if second < 0:
         sign = "-" if sign == "+" else "+"
@@ -124,23 +124,23 @@ def folded(first: Scalar, sign: str, second: Scalar) -> str:
     return f"{format_scalar(first)} {sign} {format_scalar(second)}"
 
 def folded_sign(weight: Scalar) -> str:
-    """A scalar after the first, with its sign as the operation: `+ 2`, `- 1/3`."""
+    """Un escalar despues del primero, con su signo como operacion: + 2, - 1/3."""
     return f"- {format_scalar(-weight)}" if weight < 0 else f"+ {format_scalar(weight)}"
 
 def product(factor: Scalar, value: Scalar) -> str:
     """
-    `k` times one component: `3(2)`, `-3(2)`, `(1/2)(-4)`.
+    k por una componente: 3(2), -3(2), (1/2)(-4).
 
-    The component always goes in brackets, since two numbers next to each other
-    would run together. A whole negative scalar goes in front as it is, the way
-    a line starts by hand; a fraction goes in brackets of its own.
+    La componente va siempre entre parentesis, porque dos numeros juntos se
+    confundirian. Un escalar entero negativo va delante tal cual, como empieza
+    una linea a mano; una fraccion lleva sus propios parentesis.
     """
     if factor.denominator == 1:
         return f"{format_scalar(factor)}({format_scalar(value)})"
     return f"{format_factor(factor)}({format_scalar(value)})"
 
 class VectorsPage(ctk.CTkFrame):
-    """The page of vector operations in R^n and linear combinations."""
+    """La pagina de operaciones con vectores de Rn y de combinaciones lineales."""
 
     def __init__(self, master: Any) -> None:
         super().__init__(master, fg_color="transparent")
@@ -159,7 +159,7 @@ class VectorsPage(ctk.CTkFrame):
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=24)
 
-        # The three fields of the operations, and the two of a combination.
+        # Los tres campos de las operaciones, y los dos de una combinacion.
         self._pair = ctk.CTkFrame(inside, fg_color="transparent")
         self._pair.pack(fill="x")
         self._scalar_row = self._row(self._pair, "k", SCALAR_EXAMPLE, 0, width=90)
@@ -188,8 +188,8 @@ class VectorsPage(ctk.CTkFrame):
             fg_color=theme.FIELD,
             border_width=1,
             border_color=theme.BORDER,
-            # CTkTextbox annotates text_color as a single colour while accepting
-            # the same (light, dark) pair as everything else, and honouring it.
+            # CTkTextbox declara text_color como un solo color aunque acepta la misma
+            # pareja (claro, oscuro) que todo lo demas, y la respeta.
             text_color=theme.INK,  # type: ignore[arg-type]
             font=theme.font("mono"),
             wrap="none",
@@ -209,7 +209,7 @@ class VectorsPage(ctk.CTkFrame):
     def _row(
         self, master: Any, name: str, example: str, row: int, width: int = 360
     ) -> tuple[ctk.CTkLabel, ctk.CTkEntry]:
-        """A name and the box its value is typed into, on one line of a grid."""
+        """Un nombre y la caja donde se escribe su valor, en una fila de una cuadricula."""
         label = ctk.CTkLabel(
             master, text=f"{name} =", font=theme.font("mono"), text_color=theme.MUTED
         )
@@ -241,7 +241,7 @@ class VectorsPage(ctk.CTkFrame):
             anchor="w",
         )
 
-    # ----- Choosing what to calculate -----
+    # ----- Eleccion de lo que se calcula -----
 
     def _choose(self, operation: str) -> None:
         self._operation = operation
@@ -249,8 +249,8 @@ class VectorsPage(ctk.CTkFrame):
         self._clear_output()
         self._error.hide()
 
-        # The error banner was just hidden, so the buttons are the next thing
-        # down, and the fields go straight above them.
+        # El aviso de error se acaba de ocultar, asi que los botones son lo siguiente
+        # hacia abajo, y los campos van justo encima de ellos.
         if operation == COMBINATION:
             self._pair.pack_forget()
             self._set.pack(fill="x", before=self._buttons)
@@ -258,7 +258,7 @@ class VectorsPage(ctk.CTkFrame):
         self._set.pack_forget()
         self._pair.pack(fill="x", before=self._buttons)
 
-        # k u has a scalar and no v; the other two have v and no scalar.
+        # k u tiene escalar y no tiene v; las otras dos tienen v y no tienen escalar.
         scalar = operation == MULTIPLE
         shown, hidden = (
             (self._scalar_row, self._second_row) if scalar else (self._second_row, self._scalar_row)
@@ -272,10 +272,10 @@ class VectorsPage(ctk.CTkFrame):
         if event.keysym != "Return":
             self._clear_output()
 
-    # ----- Reading what was typed -----
+    # ----- Lectura de lo escrito -----
 
     def _read(self, entry: ctk.CTkEntry, name: str) -> Vector:
-        """One vector, or a Spanish sentence about why it is not one."""
+        """Un vector, o una frase en castellano que explica por que no lo es."""
         try:
             vector = parse_vector(entry.get())
         except EmptyVector:
@@ -301,7 +301,7 @@ class VectorsPage(ctk.CTkFrame):
         return value
 
     def _read_set(self, target: Vector) -> list[Vector]:
-        """v₁ to vₖ, one per line, each with as many components as b."""
+        """De v₁ a vₖ, uno por linea, cada uno con tantas componentes como b."""
         lines = [line.strip() for line in self._vectors.get("1.0", "end").splitlines()]
         lines = [line for line in lines if line]
         if not lines:
@@ -329,7 +329,7 @@ class VectorsPage(ctk.CTkFrame):
             vectors.append(vector)
         return vectors
 
-    # ----- Calculating -----
+    # ----- Calculo -----
 
     def _calculate(self) -> None:
         self._clear_output()
@@ -356,7 +356,7 @@ class VectorsPage(ctk.CTkFrame):
             return
         self._error.hide()
 
-    # ----- Sum and difference -----
+    # ----- Suma y resta -----
 
     def _draw_pair(self, u: Vector, v: Vector) -> None:
         adding = self._operation == SUM
@@ -387,7 +387,7 @@ class VectorsPage(ctk.CTkFrame):
         ]
         self._draw_components(rows)
 
-    # ----- A scalar times a vector -----
+    # ----- Un escalar por un vector -----
 
     def _draw_multiple(self, factor: Scalar, u: Vector) -> None:
         result = scale(factor, u)
@@ -413,7 +413,7 @@ class VectorsPage(ctk.CTkFrame):
         self._draw_components(rows)
 
     def _draw_components(self, rows: list[tuple[str, str, Scalar]]) -> None:
-        """The same operation, one component at a time, as three lined-up columns."""
+        """La misma operacion, componente por componente, en tres columnas alineadas."""
         inside = self._card("Componente a componente")
         grid = ctk.CTkFrame(inside, fg_color="transparent")
         grid.pack(anchor="w")
@@ -430,7 +430,7 @@ class VectorsPage(ctk.CTkFrame):
                 row=row, column=4, sticky="w"
             )
 
-    # ----- Linear combination -----
+    # ----- Combinacion lineal -----
 
     def _draw_combination(self, found: Combination) -> None:
         solution = found.solution
@@ -439,7 +439,7 @@ class VectorsPage(ctk.CTkFrame):
         vectors = [subscript("v", index) for index in range(1, count + 1)]
         listed = ", ".join(vectors)
 
-        # The question, written as the vector equation and as the system it is.
+        # La pregunta, escrita como ecuacion vectorial y como el sistema que es.
         inside = self._card("Planteamiento", f"n = {len(found.target)} · k = {count}")
         self._muted(
             inside,
@@ -459,7 +459,7 @@ class VectorsPage(ctk.CTkFrame):
             inside, typographic_rows(render_system(solution.augmented, count, names))
         ).pack(anchor="w", pady=(10, 0))
 
-        # The system, solved by the same elimination as everywhere else.
+        # El sistema, resuelto con la misma eliminacion que en todas partes.
         inside = self._card("Paso a paso")
         StepWalker(
             inside,
@@ -528,7 +528,7 @@ class VectorsPage(ctk.CTkFrame):
         ).pack(anchor="w", pady=(14, 0))
 
     def _draw_check(self, found: Combination, names: list[str], vectors: list[str]) -> None:
-        """The scalars put back: every vector scaled, then all of them added up."""
+        """Los escalares puestos de vuelta: cada vector multiplicado y despues todos sumados."""
         weights = found.weights
         assert weights is not None
         title = (
@@ -572,7 +572,7 @@ class VectorsPage(ctk.CTkFrame):
         checked = verify(found.solution.coefficients, found.solution.constants, weights)
         MathBlock(inside, render_verification(checked), "left").pack(anchor="w", pady=(10, 0))
 
-    # ----- Housekeeping -----
+    # ----- Mantenimiento -----
 
     def _card(self, title: str, badge: str = "") -> ctk.CTkFrame:
         card = Card(self)
@@ -597,7 +597,7 @@ class VectorsPage(ctk.CTkFrame):
         return label
 
     def _clear_output(self) -> None:
-        """A result stops being true the moment anything is retyped."""
+        """Un resultado deja de ser cierto en cuanto se reescribe cualquier cosa."""
         for card in self._output:
             card.destroy()
         self._output = []

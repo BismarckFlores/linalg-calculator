@@ -1,13 +1,13 @@
 """
-The window itself: what there is on the left, the open one on the right.
+La ventana en si: lo que hay a la izquierda, y lo abierto a la derecha.
 
-The sidebar lists what works. A program that has not been written has no row,
-the same way this repository has no module for it: a list of things that do
-nothing is a plan, and a plan does not belong in a menu. Pages are built the
-first time they are opened and kept afterwards, so coming back to one finds the
-matrix that was typed into it still there.
+El menu lateral lista lo que funciona. Un programa que no se ha escrito no tiene
+fila, igual que este repositorio no tiene un modulo para el: una lista de cosas
+que no hacen nada es un plan, y un plan no va en un menu. Las paginas se
+construyen la primera vez que se abren y se conservan, asi que volver a una
+encuentra todavia la matriz que se habia escrito en ella.
 
-Run it from the root of the repository, the same way as the terminal version:
+Se ejecuta desde la raiz del repositorio, igual que la version de terminal:
 
     python -m gui
 """
@@ -31,7 +31,7 @@ from .widgets import Card
 
 @dataclass(frozen=True)
 class Module:
-    """One row of the sidebar."""
+    """Una fila del menu de la izquierda."""
 
     key: str
     glyph: str
@@ -39,21 +39,21 @@ class Module:
 
 @dataclass(frozen=True)
 class Group:
-    """One heading of the sidebar, and the pages that belong under it."""
+    """Un titulo del menu lateral, y las paginas que van debajo de el."""
 
     name: str
     modules: tuple[Module, ...]
 
-# The menu, by the three subjects the course is taught in, and inside each one
-# in the order it is taught: the matrix arithmetic before the elimination that
-# is written in terms of it, and reading the form of a matrix after both, as
-# the check somebody reaches for once one of them is done. Gauss and
-# Gauss-Jordan share a row, because they are two settings of one method and
-# the choice between them belongs inside the page.
+# El menu, por los tres temas en que se ensena el curso, y dentro de cada uno
+# en el orden en que se ensena: las operaciones con matrices antes de la
+# eliminacion que se escribe con ellas, y leer la forma de una matriz despues
+# de las dos, como la comprobacion que se hace al terminar. Gauss y
+# Gauss-Jordan comparten fila, porque son dos ajustes de un mismo metodo y la
+# eleccion entre ellos va dentro de la pagina.
 #
-# Vectores holds one page today. It keeps a heading of its own anyway: the
-# three subjects then read the same way, and a second vector page has somewhere
-# to land.
+# Vectores tiene hoy una sola pagina. Aun asi conserva su propio titulo: los
+# tres temas se leen igual, y una segunda pagina de vectores tiene donde
+# aterrizar.
 GROUPS = (
     Group("Matrices", (
         Module("operations", "⊞", "Operaciones Matriciales"),
@@ -70,17 +70,17 @@ GROUPS = (
     )),
 )
 
-# Every page, in the order the sidebar draws them. The first one opens.
+# Todas las paginas, en el orden en que el menu las dibuja. La primera se abre.
 MODULES = tuple(module for group in GROUPS for module in group.modules)
 
 SIDEBAR_WIDTH = 268
 
-# How far one notch of the wheel moves the page, in units of 30 pixels: about
-# three lines of text, which is what everything else on a desktop does.
+# Cuanto mueve la pagina una muesca de la rueda, en unidades de 30 pixeles:
+# unas tres lineas de texto, que es lo que hace todo lo demas en el escritorio.
 WHEEL_STEP = 3
 
 def scrolls_itself(widget: Any) -> bool:
-    """Whether the thing under the pointer has scrolling of its own to do."""
+    """Si lo que hay bajo el puntero tiene desplazamiento propio que hacer."""
     while widget is not None:
         if isinstance(widget, tkinter.Text) and widget.yview() != (0.0, 1.0):
             return True
@@ -89,12 +89,12 @@ def scrolls_itself(widget: Any) -> bool:
 
 class NavRow(ctk.CTkFrame):
     """
-    One clickable row of the sidebar.
+    Una fila del menu sobre la que se puede pulsar.
 
-    A button would have been shorter, but a button holds one label and this row
-    holds two, the glyph and the name, which have to change colour apart. So it
-    is a frame that listens for a click on itself and on every child, because a
-    click landing on the text is still a click on the row.
+    Un boton habria sido mas corto, pero un boton lleva una sola etiqueta y esta
+    fila lleva dos, el simbolo y el nombre, que tienen que cambiar de color por
+    separado. Asi que es un marco que escucha la pulsacion sobre si mismo y sobre
+    cada hijo, porque una pulsacion sobre el texto sigue siendo sobre la fila.
     """
 
     def __init__(self, master: Any, module: Module, select: Callable[[str], None]) -> None:
@@ -129,7 +129,7 @@ class NavRow(ctk.CTkFrame):
         self.configure(fg_color=theme.FIELD if inside else "transparent")
 
 class Application(ctk.CTk):
-    """The window: a sidebar, a scrolling page, and one theme switch."""
+    """La ventana: un menu, una pagina que se desplaza y un interruptor de tema."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -155,24 +155,25 @@ class Application(ctk.CTk):
         self._wire_wheel()
         self.select(MODULES[0].key)
 
-    # ----- The wheel -----
+    # ----- La rueda del raton -----
 
     def _wire_wheel(self) -> None:
         """
-        Make one notch of the wheel scroll the page, from anywhere in the window.
+        Hace que una muesca de la rueda desplace la pagina desde cualquier punto de
+        la ventana.
 
-        CustomTkinter binds the wheel itself, but it answers only over the
-        scrolling area and moves thirty pixels at a time: resting the pointer on
-        the sidebar or on the equations box swallowed the notch, and a long page
-        took forty of them to walk. This replaces that binding rather than
-        adding to it, so nothing scrolls twice.
+        CustomTkinter ya asocia la rueda, pero solo responde sobre la zona que se
+        desplaza y mueve treinta pixeles cada vez: dejar el puntero sobre el menu o
+        sobre el cuadro de ecuaciones se comia la muesca, y una pagina larga pedia
+        cuarenta. Esto sustituye esa asociacion en vez de sumarse a ella, para que
+        nada se desplace dos veces.
         """
         for sequence in ("<Button-4>", "<Button-5>", "<MouseWheel>"):
             self.unbind_all(sequence)
             self.bind_all(sequence, self._wheel, add=True)
 
     def _wheel(self, event: Any) -> None:
-        """One notch: down the page, unless something under the pointer wants it."""
+        """Una muesca: baja la pagina, salvo que algo bajo el puntero la quiera."""
         if scrolls_itself(event.widget):
             return
         canvas = self._container._parent_canvas
@@ -181,7 +182,7 @@ class Application(ctk.CTk):
         up = event.num == 4 or getattr(event, "delta", 0) > 0
         canvas.yview_scroll(-WHEEL_STEP if up else WHEEL_STEP, "units")
 
-    # ----- The sidebar -----
+    # ----- El menu de la izquierda -----
 
     def _build_sidebar(self) -> None:
         sidebar = Card(self, width=SIDEBAR_WIDTH)
@@ -249,10 +250,10 @@ class Application(ctk.CTk):
         theme.set_dark(dark)
         self._switch.configure(text="◑" if dark else "◐")
 
-    # ----- Opening a page -----
+    # ----- Apertura de una pagina -----
 
     def select(self, key: str) -> None:
-        """Show the page of one module, building it the first time it is asked for."""
+        """Muestra la pagina de un modulo, construyendola la primera vez que se pide."""
         if key == self._open:
             return
         if self._open is not None:
@@ -265,8 +266,8 @@ class Application(ctk.CTk):
         self._rows[key].set_active(True)
         self._open = key
 
-        # A page opens at its own beginning. Keeping the scroll of the page just
-        # left would drop somebody into the middle of one they have not read.
+        # Una pagina se abre por su principio. Conservar el desplazamiento de la que
+        # se acaba de dejar soltaria a alguien en mitad de otra que no ha leido.
         self.update_idletasks()
         self._container._parent_canvas.yview_moveto(0.0)
 
@@ -288,5 +289,5 @@ class Application(ctk.CTk):
         raise KeyError(f"No page is registered for {key!r}.")
 
 def main() -> None:
-    """Open the window and hand control over to it."""
+    """Abre la ventana y le cede el control."""
     Application().mainloop()

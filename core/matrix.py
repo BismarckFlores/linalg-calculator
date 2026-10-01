@@ -1,14 +1,14 @@
 """
-The matrix: a rectangle of exact numbers, and the operations that need no
-explaining.
+La matriz: un rectangulo de numeros exactos, y las operaciones que no necesitan
+explicacion.
 
-Nothing here writes to a step log. A row operation returns a new matrix and says
-nothing about itself; remembering the chain is `worksheet.Worksheet`'s job. That
-way a matrix used for plain arithmetic carries no bookkeeping at all, and a
-matrix being reduced is not a different kind of object.
+Aqui nadie escribe en un registro de pasos. Una operacion de fila devuelve una
+matriz nueva y no dice nada de si misma; acordarse de la cadena es trabajo de
+worksheet.Worksheet. Asi, una matriz usada para aritmetica normal no carga con
+ningun apunte, y una matriz que se esta reduciendo no es un objeto distinto.
 
-Indices are 1-based through `elem`, `row` and the row operations, because that
-is how they are written on paper: a_23 is `elem(2, 3)`.
+Los indices empiezan en 1 en elem, row y las operaciones de fila, porque es como
+se escriben en papel: a_23 es elem(2, 3).
 """
 
 from collections.abc import Sequence
@@ -16,14 +16,14 @@ from collections.abc import Sequence
 from .scalar import NumberLike, Scalar, format_scalar, to_scalar
 
 def _is_row(value: object) -> bool:
-    """A sequence of values, but not a string: str is a Sequence too."""
+    """Una secuencia de valores, pero no un texto: str tambien es una secuencia."""
     return isinstance(value, Sequence) and not isinstance(value, (str, bytes))
 
 class Matrix:
-    """An m x n rectangle of exact rationals."""
+    """Un rectangulo de m x n numeros racionales exactos."""
 
     def __init__(self, data: Sequence[Sequence[NumberLike]]) -> None:
-        """Build from a list of rows: Matrix([[1, 2], [3, 4]]) is 2x2."""
+        """Se construye con una lista de filas: Matrix([[1, 2], [3, 4]]) es 2x2."""
         if not _is_row(data) or not all(_is_row(row) for row in data):
             raise ValueError("A matrix is built from a list of rows.")
 
@@ -37,42 +37,42 @@ class Matrix:
         self.cols: int = len(rows[0]) if rows else 0
 
 
-    # ----- Reading -----
+    # ----- Lectura -----
 
     def elem(self, i: int, j: int) -> Scalar:
-        """The entry a_ij, counting from 1."""
+        """El elemento a_ij, contando desde 1."""
         return self.data[i - 1][j - 1]
 
     def row(self, i: int) -> list[Scalar]:
-        """Row i as a plain list, counting from 1."""
+        """La fila i como lista, contando desde 1."""
         return list(self.data[i - 1])
 
     def column(self, j: int) -> list[Scalar]:
-        """Column j as a plain list, counting from 1."""
+        """La columna j como lista, contando desde 1."""
         return [row[j - 1] for row in self.data]
 
     def diagonal(self) -> list[Scalar]:
-        """The main diagonal, as far as it reaches."""
+        """La diagonal principal, hasta donde llegue."""
         return [self.data[i][i] for i in range(min(self.rows, self.cols))]
 
     def is_square(self) -> bool:
         return self.rows == self.cols
 
     def is_zero_row(self, i: int) -> bool:
-        """Whether row i is entirely zeros: the shape a fibre of `0 = k` takes."""
+        """Si la fila i es toda ceros, que es la forma que toma una fila 0 = k."""
         return all(value == 0 for value in self.data[i - 1])
 
     def size(self) -> tuple[int, int]:
         return self.rows, self.cols
 
-    # ----- Shape -----
+    # ----- Forma -----
 
     def transpose(self) -> "Matrix":
-        """Rows become columns."""
+        """Las filas pasan a ser columnas."""
         return Matrix([[row[j] for row in self.data] for j in range(self.cols)])
 
     def augment(self, other: "Matrix") -> "Matrix":
-        """Glue another matrix to the right: [A | B], and later [A | I]."""
+        """Pega otra matriz a la derecha: [A | B], y mas adelante [A | I]."""
         if self.rows != other.rows:
             raise ValueError(
                 f"Cannot augment: {self.rows} rows on the left, {other.rows} on the right."
@@ -80,12 +80,12 @@ class Matrix:
         return Matrix([left + right for left, right in zip(self.data, other.data)])
 
     def take_columns(self, first: int, last: int) -> "Matrix":
-        """Columns `first` to `last`, both included and counted from 1."""
+        """Las columnas de first a last, ambas incluidas y contando desde 1."""
         if not 1 <= first <= last <= self.cols:
             raise ValueError(f"Columns {first}..{last} fall outside a {self.cols}-wide matrix.")
         return Matrix([row[first - 1:last] for row in self.data])
 
-    # ----- elemtary row operations -----
+    # ----- operaciones elementales por filas -----
 
     def swap_rows(self, i: int, j: int) -> "Matrix":
         """f_i <-> f_j"""
@@ -94,7 +94,7 @@ class Matrix:
         return Matrix(rows)
 
     def scale_row(self, i: int, factor: NumberLike) -> "Matrix":
-        """f_i -> k*f_i, with k not zero: multiplying by zero is not reversible."""
+        """f_i -> k*f_i, con k distinto de cero: multiplicar por cero no tiene vuelta atras."""
         factor = to_scalar(factor)
         if factor == 0:
             raise ValueError("Scaling a row by zero is not an elementary operation.")
@@ -113,7 +113,7 @@ class Matrix:
         ]
         return Matrix(rows)
 
-    # ----- arithmetic -----
+    # ----- aritmetica -----
 
     def __add__(self, other: "Matrix") -> "Matrix":
         if not isinstance(other, Matrix):
@@ -134,7 +134,7 @@ class Matrix:
         ])
 
     def __mul__(self, other: "Matrix | NumberLike") -> "Matrix":
-        """A * B if the shapes agree, A * k for a number."""
+        """A * B si las dimensiones encajan, A * k si el otro es un numero."""
         if isinstance(other, Matrix):
             if self.cols != other.rows:
                 raise ValueError(
@@ -158,7 +158,7 @@ class Matrix:
         return NotImplemented
 
     def __rmul__(self, other: NumberLike) -> "Matrix":
-        """k * A reads better than A * k, and means the same."""
+        """k * A se lee mejor que A * k, y significa lo mismo."""
         return self.__mul__(other)
 
     def __neg__(self) -> "Matrix":
@@ -171,24 +171,24 @@ class Matrix:
                 f"and B is {other.rows}x{other.cols}."
             )
 
-    # ----- building -----
+    # ----- construccion -----
 
     @classmethod
     def zero(cls, rows: int, cols: int) -> Matrix:
-        """The rows x cols matriz of zeros."""
+        """La matriz de ceros de tamano filas x columnas."""
         return cls([[0] * cols for _ in range(rows)])
 
     @classmethod
     def identity(cls, n: int) -> "Matrix":
-        """I_n, with ones down the diagonal."""
+        """La identidad I_n, con unos en la diagonal."""
         return cls([[1 if i == j else 0 for j in range(n)] for i in range(n)])
 
     @classmethod
     def column_vector(cls, values: Sequence[NumberLike]) -> "Matrix":
-        """A single column, which is how a vector b enters the system."""
+        """Una sola columna, que es como entra el vector b al sistema."""
         return cls([[value] for value in values])
 
-    # ----- comparing and printing -----
+    # ----- comparacion e impresion -----
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Matrix):
@@ -196,7 +196,7 @@ class Matrix:
         return self.data == other.data
 
     def __str__(self) -> str:
-        """Aligned on the widest entry, so the columns line up whatever they hold."""
+        """Alineada segun el elemento mas ancho, para que las columnas cuadren siempre."""
         if not self.rows:
             return "[ ]"
         texts = [[format_scalar(value) for value in row] for row in self.data]

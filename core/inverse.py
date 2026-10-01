@@ -1,20 +1,21 @@
 """
-The inverse of a square matrix, found by the elimination already here.
+La inversa de una matriz cuadrada, hallada con la eliminacion que ya hay aqui.
 
-A⁻¹ is the matrix that undoes A: `A A⁻¹ = A⁻¹ A = I`. It is found by reducing
-`[A | I]` to its reduced row echelon form. Every row operation that turns A
-into I does the same thing to I, and what I becomes is exactly A⁻¹. If the left
-block cannot reach I, the matrix has fewer than n pivots and no inverse exists.
+A^-1 es la matriz que deshace A: A A^-1 = A^-1 A = I. Se halla reduciendo
+[A | I] a su forma escalonada reducida. Cada operacion de fila que convierte A
+en I le hace lo mismo a I, y en lo que I se convierte es exactamente A^-1. Si el
+bloque izquierdo no llega a I, la matriz tiene menos de n pivotes y no hay
+inversa.
 
-Once there is an inverse, `A x = b` is solved by multiplying: `x = A⁻¹ b`. That
-is a different road to the answer than the elimination takes, and it only works
-when A is invertible, so a singular system still belongs to `core/systems.py`.
+Una vez que hay inversa, A x = b se resuelve multiplicando: x = A^-1 b. Es un
+camino distinto al de la eliminacion, y solo sirve cuando A es invertible, asi
+que un sistema singular sigue siendo cosa de core/systems.py.
 
-Nothing here is trusted on its own word: both products are worked out and
-compared with the identity, and the solution is put back into `A x`.
+Aqui no se cree nada bajo palabra: se calculan los dos productos y se comparan
+con la identidad, y la solucion se sustituye de vuelta en A x.
 
-Like the rest of `core`, this says nothing to anybody. It returns the matrices
-and raises; the window decides the Spanish.
+Como el resto de core, esto no le dice nada a nadie. Devuelve las matrices y
+lanza errores; la ventana decide el castellano.
 """
 
 from dataclasses import dataclass
@@ -24,18 +25,18 @@ from .matrix import Matrix
 
 
 class SingularMatrix(ValueError):
-    """A square matrix with fewer than n pivots, which has no inverse."""
+    """Una matriz cuadrada con menos de n pivotes, que no tiene inversa."""
 
 
 @dataclass(frozen=True)
 class InverseResult:
     """
-    An inverse and everything it took to find it.
+    Una inversa y todo lo que hizo falta para encontrarla.
 
-    `reduction` is the walk from `[A | I]` to `[I | A⁻¹]`, so the step by step
-    and the answer are two readings of the same elimination. `left_check` and
-    `right_check` are the two products, kept rather than thrown away, because
-    showing them is what proves the answer.
+    reduction es el recorrido de [A | I] a [I | A^-1], asi que el paso a paso y
+    el resultado son dos lecturas de la misma eliminacion. left_check y
+    right_check son los dos productos, guardados en vez de descartados, porque
+    mostrarlos es lo que demuestra el resultado.
     """
 
     original: Matrix
@@ -47,7 +48,7 @@ class InverseResult:
 
 @dataclass(frozen=True)
 class InverseSystem:
-    """A system solved by the inverse: `x = A⁻¹ b`, and `A x` put back."""
+    """Un sistema resuelto con la inversa: x = A^-1 b, y A x sustituido de vuelta."""
 
     inverse_result: InverseResult
     constants: Matrix
@@ -57,17 +58,17 @@ class InverseSystem:
 
 def invert(matrix: Matrix) -> InverseResult:
     """
-    Reduce `[A | I]` and read A⁻¹ off the right half.
+    Reduce [A | I] y lee A^-1 en la mitad derecha.
 
-    The left half reaching I is the invertible matrix theorem in practice: it
-    happens exactly when A has n pivot positions. When it does not, the matrix
-    is singular and there is nothing to return.
+    Que la mitad izquierda llegue a I es el teorema de la matriz invertible en la
+    practica: ocurre exactamente cuando A tiene n posiciones pivote. Cuando no,
+    la matriz es singular y no hay nada que devolver.
     """
     if matrix.rows == 0 or matrix.cols == 0 or not matrix.is_square():
         raise ValueError("The matrix must be nonempty and square.")
 
-    # I is augmented on the right, so every operation that works on A works on
-    # it at the same time. That is the whole method: A becomes I, I becomes A⁻¹.
+    # I se agrega a la derecha, asi que cada operacion que actua sobre A actua
+    # sobre ella a la vez. Ese es todo el metodo: A se vuelve I, e I se vuelve A^-1.
     identity = Matrix.identity(matrix.rows)
     reduction = to_rref(matrix.augment(identity))
 
@@ -78,9 +79,9 @@ def invert(matrix: Matrix) -> InverseResult:
     left_check = matrix * inverse
     right_check = inverse * matrix
 
-    # Both products, not one. AB = I alone is enough for a square matrix by the
-    # theorem, but checking the pair costs one multiplication and answers the
-    # definition instead of relying on it.
+    # Los dos productos, no uno. Para una matriz cuadrada, AB = I basta por el
+    # teorema, pero comprobar la pareja cuesta una multiplicacion y responde a la
+    # definicion en vez de apoyarse en el.
     if left_check != identity or right_check != identity:
         raise ArithmeticError("The inverse failed verification.")
 
@@ -89,12 +90,12 @@ def invert(matrix: Matrix) -> InverseResult:
 
 def solve_with_inverse(matrix: Matrix, constants: Matrix) -> InverseSystem:
     """
-    Solve `A x = b` as `x = A⁻¹ b`, and check it in the original A.
+    Resuelve A x = b como x = A^-1 b, y lo comprueba en la A original.
 
-    Multiplying both sides of `A x = b` by A⁻¹ on the left gives `x = A⁻¹ b`,
-    and since A is invertible that x is the only solution. The check multiplies
-    A by it and compares with b, which trusts neither the inverse nor the
-    elimination that produced it.
+    Multiplicar por A^-1 por la izquierda en los dos lados de A x = b da
+    x = A^-1 b, y como A es invertible esa x es la unica solucion. La
+    comprobacion multiplica A por ella y la compara con b, lo que no confia ni en
+    la inversa ni en la eliminacion que la produjo.
     """
     if constants.size() != (matrix.rows, 1):
         raise ValueError("The constants must be a column with one entry per row.")

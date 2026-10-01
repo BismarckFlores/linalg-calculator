@@ -191,23 +191,23 @@ before it assembles anything and refuses a program where two of them collide.
 It was not hypothetical — two pages both had a `SUBTITLES`, and later two had
 an `EXAMPLE`.
 
-## The translation is keyed by text, and missing one stops the build
+## The comments are written in Spanish, in the repository
 
-The handed-in file has to read in Spanish, comments and docstrings included,
-while the repository stays in English. Keeping two copies of every module would
-guarantee they drift, so instead `translations.py` holds the Spanish for each
-docstring and comment, keyed by the exact English text, and `build.py` swaps one
-for the other as it assembles.
+The file handed in has to read in Spanish, comments and docstrings included.
+That used to be a build step: `translations.py` held the Spanish for every
+docstring and comment, keyed by the exact English text, and `build.py` swapped
+one for the other as it assembled. It worked, and it cost a second copy of
+every sentence, kept in step by a build that refused to run when one went
+missing.
 
-Keying by text is what makes it safe. Edit an English docstring and its Spanish
-is stale — the build then fails naming it, rather than quietly shipping the old
-wording. Add a function and the build fails until its docstring is translated.
-There is no path that ends with English in the file handed in.
+Now the sentences are written in Spanish once, in the modules themselves, and
+`build.py` copies the lines across untouched. There is one text instead of two,
+nothing to keep in step, and what a reader of the repository sees is what the
+person marking the assignment sees.
 
-Comments are found with `tokenize`, not by looking for a `#`, because a `#`
-inside a string is not a comment. Docstrings are replaced from the bottom of the
-file upwards, so changing the length of one cannot move the line numbers of the
-ones not yet reached.
+Identifiers stay in English — `to_rref`, `SingularMatrix`, `render_equations` —
+so the code still reads as code and nothing had to be renamed. The comments
+carry no accents, which is how they already reached the handed-in file.
 
 What stays in English is the text of the exceptions the engine raises. Those
 describe programming mistakes and are addressed to whoever is writing the code;

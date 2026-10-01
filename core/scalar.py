@@ -1,33 +1,33 @@
 """
-The number every matrix entry is stored as: an exact rational.
+El numero en que se guarda cada entrada de una matriz: un racional exacto.
 
-Using `Fraction` instead of `float` is what lets a step print as
-`f_2 -> (1/3)*f_2` and a solution as `x= 1/3`, never as `0.3333333333333333`.
-Rounding never enters the calculation, so the elimination is exact from end to
-end and the results can be checked against the ones done by hand.
+Usar Fraction en vez de float es lo que permite que un paso se imprima como
+f_2 -> (1/3)*f_2 y una solucion como x = 1/3, y nunca como 0.3333333333333333.
+El redondeo no entra nunca en el calculo, asi que la eliminacion es exacta de
+principio a fin y los resultados se pueden comparar con los hechos a mano.
 """
 
 from fractions import Fraction
 
-# What an entry is once it is inside a matrix: always an exact Fraction.
+# Lo que es una entrada una vez dentro de una matriz: siempre una fraccion exacta.
 Scalar = Fraction
 
-# What `to_scalar` knows how to read: a number, or text like "3", "-2.5", "1/3".
+# Lo que to_scalar sabe leer: un numero, o texto como "3", "-2.5", "1/3".
 NumberLike = int | float | Fraction | str
 
 def to_scalar(value: NumberLike) -> Scalar:
-    """Normalize a number or a piece of text into the exact Scalar type."""
+    """Convierte un numero o un texto en el tipo exacto Scalar."""
     if isinstance(value, Fraction):
         return value
 
     if isinstance(value, bool):
-        # bool is a subclass of int, and True as a matrix entry is always a bug.
+        # bool hereda de int, y un True como entrada de una matriz siempre es un error.
         raise TypeError("A boolean is not a valid matrix entry.")
 
     if isinstance(value, int):
         return Fraction(value)
     if isinstance(value, float):
-        # Through str() so 0.1 becomes 1/10 and not a binary approximation.
+        # Pasando por str() para que 0.1 sea 1/10 y no una aproximacion binaria.
         return Fraction(str(value))
     if isinstance(value, str):
         text = value.strip().replace(",", ".")
@@ -42,7 +42,7 @@ def to_scalar(value: NumberLike) -> Scalar:
     raise TypeError(f"Cannot read {value!r} as a number.")
 
 def format_scalar(value: NumberLike) -> str:
-    """Write a scalar the way it goes on the blackboard: 3, -4, 1/3."""
+    """Escribe un numero como se escribe en el pizarron: 3, -4, 1/3."""
     value = to_scalar(value)
     if value.denominator == 1:
         return str(value.numerator)
@@ -50,10 +50,10 @@ def format_scalar(value: NumberLike) -> str:
 
 def format_factor(value: NumberLike) -> str:
     """
-    Write a scalar that multiplies a row inside a step label.
+    Escribe el numero que multiplica a una fila dentro de la etiqueta de un paso.
 
-    Negatives and fractions get parentheses so the label stays readable:
-    `f_3 -> (-1)*f_3` and `f_2 -> (1/3)*f_2`, but `f_1 -> 5*f_1`.
+    Los negativos y las fracciones llevan parentesis para que la etiqueta se
+    lea bien: f_3 -> (-1)*f_3 y f_2 -> (1/3)*f_2, pero f_1 -> 5*f_1.
     """
     value = to_scalar(value)
     text = format_scalar(value)

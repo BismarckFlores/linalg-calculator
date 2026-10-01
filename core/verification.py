@@ -1,13 +1,13 @@
 """
-Putting a solution back where it came from.
+Devolver la solucion al sitio del que salio.
 
-Solving is one thing; showing that the answer holds is another, and it is the
-only check that does not trust the elimination at all. Every equation of the
-*original* system is evaluated with the values found, and the two sides are
-compared exactly — no tolerance, because nothing here was ever rounded.
+Resolver es una cosa; demostrar que la respuesta se cumple es otra, y es la
+unica comprobacion que no confia nada en la eliminacion. Cada ecuacion del
+sistema *original* se evalua con los valores hallados, y los dos lados se
+comparan de forma exacta, sin tolerancia, porque aqui nunca hubo redondeo.
 
-This module knows nothing about how the solution was reached: hand it A, b and
-a list of values and it will tell you, row by row, whether Ax = b.
+Este modulo no sabe nada de como se llego a la solucion: se le dan A, b y una
+lista de valores, y dice, fila por fila, si Ax = b.
 """
 
 from collections.abc import Sequence
@@ -18,7 +18,7 @@ from .scalar import NumberLike, Scalar, to_scalar
 
 @dataclass(frozen=True)
 class RowCheck:
-    """One equation of the original system with the values put back into it."""
+    """Una ecuacion del sistema original con los valores sustituidos en ella."""
 
     row: int
     terms: tuple[tuple[Scalar, Scalar, int], ...]
@@ -27,34 +27,34 @@ class RowCheck:
 
     @property
     def holds(self) -> bool:
-        """Whether this equation came out true."""
+        """Si esta ecuacion se cumple."""
         return self.left == self.right
 
 @dataclass(frozen=True)
 class Verification:
-    """The same check across every equation of the system."""
+    """La misma comprobacion sobre todas las ecuaciones del sistema."""
 
     checks: tuple[RowCheck, ...]
 
     @property
     def holds(self) -> bool:
-        """True only when every single equation came out true."""
+        """Cierto solo cuando se cumplen todas y cada una de las ecuaciones."""
         return all(check.holds for check in self.checks)
 
     def failures(self) -> tuple[RowCheck, ...]:
-        """The equations that did not hold, if any did not."""
+        """Las ecuaciones que no se cumplieron, si alguna no lo hizo."""
         return tuple(check for check in self.checks if not check.holds)
 
 def verify(
     coefficients: Matrix, constants: Matrix, values: Sequence[NumberLike]
 ) -> Verification:
     """
-    Evaluate A x = b row by row with the values found.
+    Evalua A x = b fila por fila con los valores hallados.
 
-    `constants` is b as a single column, the same shape it has inside
-    augmented matrix. Each `RowCheck` keeps its terms as
-    (coefficient, value, column) so an interface can write the substitution out
-    in full instead of only reporting the total.
+    constants es b como una sola columna, la misma forma que tiene dentro de
+    la matriz aumentada. Cada RowCheck guarda sus terminos como
+    (coeficiente, valor, columna) para que la interfaz pueda escribir la
+    sustitucion entera y no solo dar el total.
     """
     if constants.cols != 1:
         raise ValueError(f"The constants must be a single column, got {constants.cols}.")

@@ -1,28 +1,29 @@
 """
-Moving a whole number between base 10 and any base from 2 to 36, working shown.
+Llevar un numero entero de la base 10 a cualquier base del 2 al 36 y de vuelta,
+con el procedimiento a la vista.
 
-From decimal, by repeated division: every division is written out as the
-equation it is, and the remainders are read from the bottom up. To decimal, by
-the linear combination of powers the numeral stands for, written out in full
-and then worked down to a single number.
+Desde decimal, por divisiones sucesivas: cada division se escribe como la
+ecuacion que es, y los residuos se leen de abajo hacia arriba. Hacia decimal,
+por la combinacion lineal de potencias que representa el numero, escrita entera
+y despues resuelta hasta un solo numero.
 
-Each direction checks itself with the other. A number converted to base 2 is
-read back into decimal right under it, which proves the digits without trusting
-the divisions that produced them.
+Cada sentido se comprueba con el otro. Un numero convertido a base 2 se lee de
+vuelta a decimal justo debajo, lo que demuestra las cifras sin fiarse de las
+divisiones que las produjeron.
 
-Binary, octal and hexadecimal are one click away, because they are the ones the
-course asks for. Any other base is typed into a field of its own.
+Binario, octal y hexadecimal estan a un clic, porque son las que pide el curso.
+Cualquier otra base se escribe en un campo propio.
 
-Roman numerals sit on the same pill, and are the one choice that is not a base
-at all: there are no positions and no powers, so neither the divisions nor the
-combination apply. A number is written by taking the largest piece that fits,
-again and again, and read back as the sum of the pieces it is made of.
+Los numeros romanos estan en el mismo selector, y son la unica opcion que no es
+una base: no hay posiciones ni potencias, asi que no valen ni las divisiones ni
+la combinacion. Un numero se escribe tomando la pieza mas grande que quepa, una
+y otra vez, y se lee de vuelta como la suma de las piezas que lo forman.
 
-A negative number is converted the way it is by hand: the digits are those of
-its absolute value, and the minus goes in front of them and in front of the
-whole combination, `-2B₁₆ = -(2·16¹ + 11·16⁰) = -43`.
+Un numero negativo se convierte como se hace a mano: las cifras son las de su
+valor absoluto, y el menos va delante de ellas y delante de toda la
+combinacion, -2B(16) = -(2*16^1 + 11*16^0) = -43.
 
-The Spanish lives here because no other front end says any of it.
+El castellano vive aqui porque ninguna otra interfaz dice nada de esto.
 """
 
 from typing import Any
@@ -79,22 +80,22 @@ DIRECTION_SUBTITLES = {
 CAPTIONS = {TO_BASE: "NÚMERO DECIMAL", TO_DECIMAL: "NÚMERO"}
 BASE_CAPTIONS = {TO_BASE: "CONVERTIR A", TO_DECIMAL: "ESTÁ ESCRITO EN"}
 
-# The bases on offer, by the name somebody picks them by, and the two choices
-# that are not one of them: a field for any other base, and Roman numerals,
-# which have no base number at all. ROMAN stands in for one in the pill.
+# Las bases disponibles, con el nombre con que se eligen, y las dos opciones
+# que no son una base: un campo para cualquier otra, y los numeros romanos,
+# que no tienen numero de base. ROMAN hace de base para ellos en el selector.
 BASE_NAMES = {"Binario (2)": 2, "Octal (8)": 8, "Hexadecimal (16)": 16}
 CUSTOM = "Otra base"
 ROMAN = "Romano"
 ROMAN_BASE = 0
 
-# What the custom field holds before anybody types: a base none of the others is.
+# Lo que tiene el campo de otra base antes de escribir: una base que no es ninguna de las demas.
 CUSTOM_EXAMPLE = "5"
 
-# The number every example is, written in whichever base is showing, so the
-# first click works in all of them.
+# El numero que es cada ejemplo, escrito en la base que este a la vista, para
+# que el primer clic funcione en todas.
 EXAMPLE_NUMBER = 43
 
-# Which digits the bases with a name write with, for when somebody uses another.
+# Que cifras usan las bases con nombre, para cuando alguien escribe otra.
 ALLOWED = {
     2: "En binario solo se usan las cifras 0 y 1.",
     8: "En octal se usan las cifras del 0 al 7.",
@@ -104,20 +105,20 @@ ALLOWED = {
 
 BAD_BASE = f"La base tiene que ser un número entero del {LOWEST_BASE} al {HIGHEST_BASE}."
 
-# Long enough for any number worth converting by hand, short enough to draw.
+# Suficiente para cualquier numero que se convierta a mano, y corto para dibujarlo.
 LENGTH_LIMIT = 32
 
-# How many terms of a combination fit on one line before it wraps.
+# Cuantos terminos de una combinacion caben en una linea antes de partirla.
 TERMS_PER_LINE = 6
 
 SUPERSCRIPTS = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
 
 def written(numeral: str, base: int) -> str:
-    """A numeral with its base written under it: `101011₂`."""
+    """Un numero con su base escrita debajo: 101011₂."""
     return numeral + str(base).translate(SUBSCRIPTS)
 
 def allowed(base: int) -> str:
-    """Which digits a base writes with, said the way a person would."""
+    """Que cifras usa una base, dicho como lo diria una persona."""
     if base in ALLOWED:
         return ALLOWED[base]
     if base <= 10:
@@ -130,7 +131,7 @@ def allowed(base: int) -> str:
     )
 
 def letters_note(base: int) -> str:
-    """What the remainders past 9 are written as, or nothing if there are none."""
+    """Como se escriben los residuos mayores que 9, o nada si no los hay."""
     if base <= 10:
         return ""
     if base == 11:
@@ -141,19 +142,19 @@ def letters_note(base: int) -> str:
     )
 
 def written_digit(remainder: int) -> str:
-    """A remainder as the digit it becomes: 11 is `B`."""
+    """Un residuo como la cifra en que se convierte: 11 es B."""
     return DIGITS[remainder]
 
 def power(base: int, exponent: int) -> str:
-    """A power the way it is written by hand: `2⁵`."""
+    """Una potencia como se escribe a mano: 2⁵."""
     return str(base) + str(exponent).translate(SUPERSCRIPTS)
 
 def wrapped(first: str, pieces: list[str], indent: int) -> str:
     """
-    A sum written out term by term, broken into lines of a few terms each.
+    Una suma escrita termino a termino, partida en lineas de pocos terminos.
 
-    Every line after the first starts under the first term, with the `+` in
-    front, so a long binary number still reads as one expression.
+    Cada linea despues de la primera empieza debajo del primer termino, con el
+    + delante, para que un binario largo se siga leyendo como una sola expresion.
     """
     lines = []
     for start in range(0, len(pieces), TERMS_PER_LINE):
@@ -162,7 +163,7 @@ def wrapped(first: str, pieces: list[str], indent: int) -> str:
     return "\n".join(lines)
 
 class BasesPage(ctk.CTkFrame):
-    """The page that converts a whole number between base 10 and any base from 2 to 36."""
+    """La pagina que convierte un numero entero entre la base 10 y cualquier base del 2 al 36."""
 
     def __init__(self, master: Any) -> None:
         super().__init__(master, fg_color="transparent")
@@ -206,7 +207,7 @@ class BasesPage(ctk.CTkFrame):
             choice, (*BASE_NAMES, CUSTOM, ROMAN), self._choose_base
         ).pack(side="left")
 
-        # Packed only while "Otra base" is the choice.
+        # Solo se muestra mientras la opcion elegida es "Otra base".
         self._custom_field = ctk.CTkFrame(choice, fg_color="transparent")
         ctk.CTkLabel(
             self._custom_field, text="b =", font=theme.font("mono"), text_color=theme.MUTED
@@ -230,7 +231,7 @@ class BasesPage(ctk.CTkFrame):
         PrimaryButton(buttons, "Convertir  →", self._convert).pack(side="right")
         self._error.appear_before(buttons)
 
-    # ----- Choosing what to convert -----
+    # ----- Eleccion de lo que se convierte -----
 
     def _choose_direction(self, direction: str) -> None:
         self._direction = direction
@@ -262,10 +263,10 @@ class BasesPage(ctk.CTkFrame):
 
     def _chosen_base(self) -> int | None:
         """
-        The base picked, or None while the custom field does not hold one.
+        La base elegida, o None mientras el campo de otra base no tenga una valida.
 
-        The field is read as a decimal numeral by the same `from_base` the page
-        is about, so not even the base goes through `int`.
+        El campo se lee como un numero decimal con el mismo from_base del que trata
+        la pagina, asi que ni siquiera la base pasa por int.
         """
         if not self._custom:
             return self._base
@@ -277,11 +278,11 @@ class BasesPage(ctk.CTkFrame):
 
     def _show_example(self) -> None:
         """
-        Put an example in the box, unless somebody has typed their own number.
+        Pone un ejemplo en la caja, salvo que alguien haya escrito su propio numero.
 
-        `43` means nothing in base 2, so switching direction or base with the
-        example still showing swaps it for 43 written in the new base. While the
-        custom field holds no base, the example is left as it is.
+        43 no significa nada en base 2, asi que al cambiar de sentido o de base con
+        el ejemplo todavia a la vista, se cambia por 43 escrito en la base nueva.
+        Mientras el campo de otra base no tenga una valida, el ejemplo se queda igual.
         """
         self._clear_output()
         self._error.hide()
@@ -303,7 +304,7 @@ class BasesPage(ctk.CTkFrame):
         self._example = False
         self._clear_output()
 
-    # ----- Converting -----
+    # ----- Conversion -----
 
     def _convert(self) -> None:
         self._clear_output()
@@ -312,14 +313,14 @@ class BasesPage(ctk.CTkFrame):
         if base is None:
             self._error.show(BAD_BASE)
             return
-        # Roman numerals are not a base, so neither reading nor writing them
-        # goes through the divisions and the powers the rest of the page is.
+        # Los numeros romanos no son una base, asi que ni leerlos ni escribirlos pasa
+        # por las divisiones y las potencias de las que trata el resto de la pagina.
         if base == ROMAN_BASE:
             self._convert_roman(text)
             return
 
         read_in = 10 if self._direction == TO_BASE else base
-        # The sign is not a digit, so it does not count towards the limit.
+        # El signo no es una cifra, asi que no cuenta para el limite.
         if len("".join(text.split()).lstrip("+-")) > LENGTH_LIMIT:
             self._error.show(f"El número puede tener como mucho {LENGTH_LIMIT} cifras.")
             return
@@ -349,12 +350,12 @@ class BasesPage(ctk.CTkFrame):
 
     def _convert_roman(self, text: str) -> None:
         """
-        Decimal to Roman and back, which is the one conversion with no base.
+        De decimal a romano y de vuelta, la unica conversion que no tiene base.
 
-        Towards Roman the number is read in base 10 by the same `from_base` as
-        everything else, and only then written; back from Roman it is read as
-        the sum of its pieces. What cannot be written is said rather than
-        raised: there is no numeral for zero, for a negative or above MMMCMXCIX.
+        Hacia el romano, el numero se lee en base 10 con el mismo from_base que todo
+        lo demas, y solo despues se escribe; de vuelta se lee como la suma de sus
+        piezas. Lo que no se puede escribir se dice en vez de lanzarse: no hay numero
+        romano para el cero, para un negativo ni por encima de MMMCMXCIX.
         """
         try:
             if self._direction == TO_BASE:
@@ -380,10 +381,10 @@ class BasesPage(ctk.CTkFrame):
         except RomanError as problem:
             self._error.show(roman_complaint(problem))
 
-    # ----- To Roman, and back -----
+    # ----- Hacia el romano, y de vuelta -----
 
     def _draw_to_roman(self, result: Written) -> None:
-        """The number written piece by piece, each one taken from what is left."""
+        """El numero escrito pieza a pieza, cada una tomada de lo que queda."""
         self._draw_answer(written(str(result.value), 10), result.numeral)
 
         card = self._add_card()
@@ -425,11 +426,11 @@ class BasesPage(ctk.CTkFrame):
             theme.ACCENT,
         ).pack(anchor="w")
 
-        # The pieces are not trusted with their own answer: read it back.
+        # No se confia en las piezas para su propio resultado: se lee de vuelta.
         self._draw_roman_check(read(result.numeral), result.value)
 
     def _draw_from_roman(self, numeral: Numeral) -> None:
-        """A numeral read as the sum of its pieces, which is all it ever was."""
+        """Un numero romano leido como la suma de sus piezas, que es lo que siempre fue."""
         self._draw_answer(numeral.text, written(str(numeral.value), 10))
 
         card = self._add_card()
@@ -450,7 +451,7 @@ class BasesPage(ctk.CTkFrame):
         ).pack(anchor="w", pady=(10, 0))
 
     def _draw_roman_check(self, numeral: Numeral, value: int) -> None:
-        """The numeral just written, read back, which has to give the number again."""
+        """El numero recien escrito, leido de vuelta, que tiene que dar otra vez el numero."""
         card = self._add_card()
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
@@ -462,7 +463,7 @@ class BasesPage(ctk.CTkFrame):
         )
         RomanNumeral(inside, numeral).pack(anchor="w", pady=(14, 0))
 
-    # ----- From decimal -----
+    # ----- Desde decimal -----
 
     def _draw_to_base(self, result: ToBase) -> None:
         self._draw_answer(written(str(result.value), 10), written(result.numeral, result.base))
@@ -515,7 +516,7 @@ class BasesPage(ctk.CTkFrame):
             inside, f"{digits}   →   {written(result.numeral, result.base)}", theme.ACCENT
         ).pack(anchor="w")
 
-        # The divisions are not trusted with their own answer: read it back.
+        # No se confia en las divisiones para su propio resultado: se lee de vuelta.
         self._draw_combination(
             from_base(result.numeral, result.base),
             "Comprobación",
@@ -523,7 +524,7 @@ class BasesPage(ctk.CTkFrame):
             "el número del que se partió.",
         )
 
-    # ----- To decimal -----
+    # ----- Hacia decimal -----
 
     def _draw_to_decimal(self, number: FromBase) -> None:
         self._draw_answer(written(number.numeral, number.base), written(str(number.value), 10))
@@ -536,7 +537,7 @@ class BasesPage(ctk.CTkFrame):
         self._draw_positions(number)
 
     def _draw_combination(self, number: FromBase, title: str, note: str) -> None:
-        """The numeral written out as a sum of powers, and worked down to one number."""
+        """El numero escrito como suma de potencias, y resuelto hasta un solo numero."""
         card = self._add_card()
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
@@ -545,8 +546,8 @@ class BasesPage(ctk.CTkFrame):
             note += " El signo menos multiplica a toda la combinación."
         self._muted(inside, note)
 
-        # A negative numeral wraps each stage in -( ... ), so the sign is seen
-        # to apply to the whole sum and not to its first term.
+        # Un numero negativo envuelve cada etapa en -( ... ), para que se vea que el
+        # signo se aplica a toda la suma y no solo a su primer termino.
         opening, closing = ("-(", ")") if number.negative else ("", "")
         left = written(number.numeral, number.base) + " = "
         pad = " " * (len(left) - 2) + "= "
@@ -575,7 +576,7 @@ class BasesPage(ctk.CTkFrame):
                 Chip(chips, f"{letter} = {value}", theme.MUTED).pack(side="left", padx=(0, 8))
 
     def _draw_positions(self, number: FromBase) -> None:
-        """The same combination as a table: one row per digit, from the left."""
+        """La misma combinacion en forma de tabla: una fila por cifra, desde la izquierda."""
         card = self._add_card()
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
@@ -613,10 +614,10 @@ class BasesPage(ctk.CTkFrame):
                 row=total + 2, column=3, sticky="e", padx=(0, 32), pady=(4, 0)
             )
 
-    # ----- Pieces shared by both directions -----
+    # ----- Piezas comunes a los dos sentidos -----
 
     def _draw_answer(self, given: str, found: str) -> None:
-        """The conversion in one line, large, before the working that justifies it."""
+        """La conversion en una linea, en grande, antes del procedimiento que la justifica."""
         card = self._add_card()
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
@@ -667,7 +668,7 @@ class BasesPage(ctk.CTkFrame):
         return card
 
     def _clear_output(self) -> None:
-        """A conversion stops being true the moment the number or the base changes."""
+        """Una conversion deja de ser cierta en cuanto cambia el numero o la base."""
         for card in self._output:
             card.destroy()
         self._output = []

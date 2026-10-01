@@ -1,18 +1,19 @@
 """
-Solving A x = b, by Gaussian elimination or by Gauss-Jordan.
+Resolver A x = b, por eliminacion gaussiana o por Gauss-Jordan.
 
-The two methods share this page because they share the walk: `to_ref` stops at
-the staircase, `to_rref` keeps going and clears above every pivot as well.
-Which one was used changes the step by step and the last matrix; it does not
-change the classification, which counts pivots, nor the values, which the two
-paths agree on exactly because nothing is ever rounded.
+Los dos metodos comparten esta pagina porque comparten el recorrido: to_ref se
+detiene en la escalera y to_rref sigue y hace ceros tambien encima de cada
+pivote. Cual se uso cambia el paso a paso y la ultima matriz; no cambia la
+clasificacion, que cuenta pivotes, ni los valores, en los que los dos caminos
+coinciden exactamente porque nunca se redondea nada.
 
-The system is also shown as what it is in matrix form, A x = b, and a unique
-solution is checked twice: by the product A x, worked with the same matrix
-multiplication as the Operaciones Matriciales page, and equation by equation.
+El sistema se muestra tambien como lo que es en forma matricial, A x = b, y una
+solucion unica se comprueba dos veces: con el producto A x, hecho con la misma
+multiplicacion de matrices de la pagina de Operaciones Matriciales, y ecuacion
+por ecuacion.
 
-Not a line of the wording is decided here. `ui/presentation.py` writes the
-sentences for the terminal and the window alike; this page arranges them.
+Aqui no se decide ni una palabra. ui/presentation.py escribe las frases para la
+terminal y para la ventana por igual; esta pagina las coloca.
 """
 
 from dataclasses import replace
@@ -58,14 +59,14 @@ from ..widgets import (
 GAUSS = "Gauss"
 JORDAN = "Gauss-Jordan"
 
-# One page and one title; only the line underneath changes with the method,
-# because where the walk stops is the whole difference between the two.
+# Una pagina y un titulo; solo cambia la linea de debajo segun el metodo,
+# porque donde se detiene el recorrido es toda la diferencia entre los dos.
 SUBTITLES = {
     GAUSS: "Resolver A x = b · forma escalonada por operaciones elementales de fila.",
     JORDAN: "Resolver A x = b · forma escalonada reducida, con cada pivote solo en su columna.",
 }
 
-# A colour per classification, so the answer is legible before it is read.
+# Un color por clasificacion, para ver la respuesta antes de leerla.
 KIND_COLORS = {
     SystemKind.UNIQUE: theme.GREEN,
     SystemKind.INFINITE: theme.ORANGE,
@@ -73,7 +74,7 @@ KIND_COLORS = {
 }
 
 class GaussPage(ctk.CTkFrame):
-    """The page that solves a system and walks through how it was solved."""
+    """La pagina que resuelve un sistema y recorre como se resolvio."""
 
     def __init__(self, master: Any) -> None:
         super().__init__(master, fg_color="transparent")
@@ -110,14 +111,14 @@ class GaussPage(ctk.CTkFrame):
         PrimaryButton(self._buttons, "Calcular  →", self._calculate).pack(side="right")
         self._error.appear_before(self._buttons)
 
-    # ----- The two methods -----
+    # ----- Los dos metodos -----
 
     def _choose_method(self, method: str) -> None:
         self._method = method
         self._header.set_subtitle(SUBTITLES[method])
         self._clear_output()
 
-    # ----- Solving -----
+    # ----- Resolucion -----
 
     def _calculate(self) -> None:
         self._clear_output()
@@ -135,9 +136,9 @@ class GaussPage(ctk.CTkFrame):
             to_rref(augmented) if self._method == JORDAN else solution.reduction
         )
 
-        # The same order the assignment numbers its requirements in: the walk,
-        # the equivalent system, the classification, the solution, the check.
-        # The matrix form goes first, because it is the system being solved.
+        # El mismo orden en el que el enunciado numera sus requisitos: el recorrido,
+        # el sistema equivalente, la clasificacion, la solucion y la comprobacion.
+        # La forma matricial va primero, porque es el sistema que se esta resolviendo.
         self._draw_matrix_equation(solution)
         self._draw_steps()
         self._draw_equivalent(solution)
@@ -149,10 +150,10 @@ class GaussPage(ctk.CTkFrame):
                 self._draw_substitutions(solution)
             self._draw_verification(solution)
 
-    # ----- The matrix form -----
+    # ----- La forma matricial -----
 
     def _draw_matrix_equation(self, solution: Solution) -> None:
-        """The system as one equation between matrices: A times the unknowns is b."""
+        """El sistema como una sola ecuacion entre matrices: A por las incognitas es b."""
         card = self._add_card()
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
@@ -183,10 +184,10 @@ class GaussPage(ctk.CTkFrame):
             .matrix(solution.constants, "b")
         ).pack(anchor="w")
 
-    # ----- The step by step -----
+    # ----- El paso a paso -----
 
     def _draw_steps(self) -> None:
-        """The walk, in a card that keeps its own count in the heading."""
+        """El recorrido, en una tarjeta que lleva su propia cuenta en el encabezado."""
         assert self._elimination is not None
         card = self._add_card()
         inside = ctk.CTkFrame(card, fg_color="transparent")
@@ -204,16 +205,17 @@ class GaussPage(ctk.CTkFrame):
         )
         self._walker.pack(fill="x")
 
-    # ----- The answer -----
+    # ----- La respuesta -----
 
     def _draw_equivalent(self, solution: Solution) -> None:
         """
-        The matrix the walk ended on, read back as the system it stands for.
+        La matriz en la que termino el recorrido, leida otra vez como el sistema que
+        representa.
 
-        `render_equations` reads whichever matrix the solution's reduction ended
-        on, and in Gauss-Jordan that is not the matrix `solve` walked to. Handing
-        it a copy of the solution pointed at this page's own elimination is what
-        keeps the equations and the step by step showing the same thing.
+        render_equations lee la matriz en la que termino la reduccion de la solucion,
+        y en Gauss-Jordan esa no es la matriz que recorrio solve. Pasarle una copia
+        de la solucion apuntando a la eliminacion de esta pagina es lo que hace que
+        las ecuaciones y el paso a paso ensenen lo mismo.
         """
         assert self._elimination is not None
         card = self._add_card()
@@ -301,8 +303,8 @@ class GaussPage(ctk.CTkFrame):
                     wraplength=560,
                 ).pack(anchor="w", pady=(12, 0))
         else:
-            # Prose, not a block lined up in columns: pretty_label can write
-            # the row name in full here without pushing anything out of line.
+            # Es prosa, no un bloque alineado en columnas: pretty_label puede escribir
+            # aqui el nombre de la fila entero sin descuadrar nada.
             ctk.CTkLabel(
                 inside,
                 text=pretty_label(render_values(solution, self._names)),
@@ -311,8 +313,8 @@ class GaussPage(ctk.CTkFrame):
                 justify="left",
                 anchor="w",
             ).pack(anchor="w", pady=(14, 0))
-            # Requirement 7 still has an answer when there is nothing to check:
-            # saying so beats a card that quietly fails to appear.
+            # El requisito 7 tiene respuesta aunque no haya nada que comprobar:
+            # decirlo es mejor que una tarjeta que simplemente no aparece.
             ctk.CTkLabel(
                 inside,
                 text=(
@@ -327,12 +329,11 @@ class GaussPage(ctk.CTkFrame):
 
     def _pivot_columns(self, solution: Solution) -> str:
         """
-        The columns of A that hold a pivot, which is what Gauss-Jordan is read
-        off.
+        Las columnas de A que tienen pivote, que es lo que se lee de Gauss-Jordan.
 
-        Only the columns of A: a pivot can also land on the constants column,
-        and that one is not a column of the system but the reason an
-        inconsistent system is inconsistent. The classification already says so.
+        Solo las columnas de A: un pivote puede caer tambien en la columna de los
+        terminos independientes, y esa no es una columna del sistema sino la razon
+        de que un sistema incompatible lo sea. Eso ya lo dice la clasificacion.
         """
         assert self._elimination is not None
         held = [
@@ -344,14 +345,14 @@ class GaussPage(ctk.CTkFrame):
 
     def _draw_general(self, solution: Solution) -> None:
         """
-        The family of solutions, written out: every basic variable in terms of
-        the free ones.
+        La familia de soluciones, escrita entera: cada variable basica en funcion
+        de las libres.
 
-        It is read from the reduced form even when the method chosen was Gauss,
-        because that is where a pivot is alone in its column and the row is
-        already the answer. The family is the same either way — the road taken
-        cannot change which values solve a system — so nothing is smuggled in by
-        reducing a second time behind the scenes.
+        Se lee de la forma escalonada reducida aunque el metodo elegido sea Gauss,
+        porque es ahi donde un pivote esta solo en su columna y la fila ya es el
+        despeje. La familia es la misma por los dos caminos (el camino no cambia
+        que valores resuelven un sistema), asi que reducir otra vez por detras no
+        mete nada de contrabando.
         """
         family = general_solution(to_rref(solution.augmented), solution.unknowns)
         card = self._add_card()
@@ -394,8 +395,8 @@ class GaussPage(ctk.CTkFrame):
         inside.pack(fill="x", padx=24, pady=22)
         SectionTitle(inside, "Comprobación en el sistema original").pack(fill="x", pady=(0, 6))
 
-        # The first check is the matrix form itself: the product A x, worked with
-        # the same multiplication the Operaciones Matriciales page uses.
+        # La primera comprobacion es la propia forma matricial: el producto A x, hecho con
+        # la misma multiplicacion que usa la pagina de Operaciones Matriciales.
         x = Matrix.column_vector(solution.values)
         product = solution.coefficients * x
         holds = product == solution.constants
@@ -430,7 +431,7 @@ class GaussPage(ctk.CTkFrame):
         checked = verify(solution.coefficients, solution.constants, solution.values)
         MathBlock(inside, render_verification(checked), "left").pack(anchor="w")
 
-    # ----- Housekeeping -----
+    # ----- Mantenimiento -----
 
     def _add_card(self) -> Card:
         card = Card(self)
@@ -439,7 +440,10 @@ class GaussPage(ctk.CTkFrame):
         return card
 
     def _clear_output(self) -> None:
-        """Everything below the input card stops being true as soon as it changes."""
+        """
+        Todo lo que hay debajo de la tarjeta de entrada deja de ser cierto en cuanto
+        esa entrada cambia.
+        """
         for card in self._output:
             card.destroy()
         self._output = []

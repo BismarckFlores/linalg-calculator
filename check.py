@@ -1,8 +1,10 @@
 """
-Smoke test for the engine. Run it from the repository root: python check.py
+Prueba de humo del motor. Se ejecuta desde la raiz del repositorio:
+python check.py
 
-It is not a test suite, it is a transcription check: if every line prints what
-it says it should, the modules of `core/` are wired together correctly.
+No es una bateria de pruebas, es una comprobacion de transcripcion: si cada
+linea imprime lo que dice que deberia, los modulos de core estan bien
+conectados entre si.
 """
 
 from fractions import Fraction
@@ -42,7 +44,7 @@ from core.worksheet import Worksheet
 
 
 def show(value: object) -> str:
-    """Whatever a check produced, written on one line and without reprs."""
+    """Lo que haya producido una comprobacion, en una linea y sin reprs."""
     if isinstance(value, Matrix):
         return " / ".join(str(value).splitlines())
     if isinstance(value, Fraction):
@@ -55,7 +57,7 @@ def show(value: object) -> str:
 
 
 def check(name: str, got: object, expected: object) -> None:
-    """Print one line per claim, and stop at the first one that is wrong."""
+    """Imprime una linea por afirmacion, y para en la primera que este mal."""
     if got == expected:
         print(f"  ok   {name}: {show(got)}")
         return

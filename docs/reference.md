@@ -500,7 +500,6 @@ the deliverables that open a window.
 | --- | --- |
 | `check.py` | Runs the engine end to end and prints one line per claim. Run it after touching `core/`. |
 | `build.py` | Assembles the handed-in files. `PROGRAMS` lists what gets built, each with a preamble and its blocks; `ENGINE` is what they share, `WINDOW_BLOCKS` and `CONSOLE_BLOCKS` what each adds. `GROUP_NUMBER` and each program's `number` name the output; an assignment with a name instead of a number uses the name. `clashes` refuses a program whose blocks define the same global twice. |
-| `translations.py` | `DOCSTRINGS` and `COMMENTS`, keyed by the exact English text. A missing entry stops the build. |
 | `requirements-gui.txt` | CustomTkinter. Needed by `gui/` and by nothing else. |
 
 ## Conventions worth knowing before changing anything

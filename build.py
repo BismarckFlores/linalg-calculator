@@ -1,47 +1,45 @@
 """
-Build the single file the course is handed.
+Construye el archivo unico que se entrega al curso.
 
-The assignment wants one self-contained `.py`, but a project split into modules
-is what is worth writing. So the file handed in is not written by hand: it is
-assembled here out of the modules, in dependency order, with the imports between
-them dropped because everything ends up in one namespace anyway.
+El enunciado pide un solo .py autocontenido, pero lo que vale la pena escribir
+es un proyecto repartido en modulos. Asi que el archivo que se entrega no se
+escribe a mano: se arma aqui con los modulos, en orden de dependencia, y se
+quitan los imports entre ellos porque de todas formas todo acaba en un mismo
+espacio de nombres.
 
-The repository is the source of truth. Never edit the generated file: edit the
-module and build again.
+El repositorio es la fuente de la verdad. Nunca se edita el archivo generado: se
+edita el modulo y se vuelve a construir.
 
-Run:  python build.py
+Se ejecuta con:  python build.py
 """
 
 import ast
-import io
 import sys
-import tokenize
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from translations import COMMENTS, DOCSTRINGS
 
 # ---------------------------------------------------------------------
-# What the handed-in file is. The cover page is a separate document, so
-# only these two things have to be right here.
+# Que es el archivo que se entrega. La portada es un documento aparte, asi
+# que aqui solo tienen que estar bien estas dos cosas.
 # ---------------------------------------------------------------------
 
 GROUP_NUMBER = "5"
 
 # ---------------------------------------------------------------------
-# The blocks, in the order they have to appear, each with the Spanish
-# heading that documents it in the handed-in file.
+# Los bloques, en el orden en que tienen que aparecer, cada uno con el
+# titulo que lo documenta dentro del archivo entregado.
 # ---------------------------------------------------------------------
 
 @dataclass(frozen=True)
 class Block:
     """
-    One section of the file handed in, and where its code comes from.
+    Una seccion del archivo que se entrega, y de donde sale su codigo.
 
-    Almost always a module of this repository. The exception is the handful of
-    lines nobody writes in the repository because nothing there needs them:
-    joining separate modules into one namespace makes a statement true that was
-    not, and a block like that carries its own `code` and its own `imports`.
+    Casi siempre es un modulo de este repositorio. La excepcion son las pocas
+    lineas que nadie escribe en el repositorio porque alli no hacen falta: juntar
+    modulos separados en un mismo espacio de nombres vuelve cierta una frase que
+    no lo era, y un bloque asi lleva su propio code y sus propios imports.
     """
 
     source: str = ""
@@ -53,11 +51,11 @@ class Block:
 @dataclass(frozen=True)
 class Program:
     """
-    One assignment of the course, and the single file it is handed in as.
+    Una tarea del curso, y el archivo unico con que se entrega.
 
-    The number and the title are the assignment's, not this repository's: the
-    file is named the way the submission has to be named, `Programa N_GrupoX.py`.
-    An assignment that has a name instead of a number takes the name there.
+    El numero y el titulo son los de la tarea, no los de este repositorio: el
+    archivo se llama como tiene que llamarse la entrega, Programa N_GrupoX.py.
+    Una tarea que tiene nombre en vez de numero lleva el nombre ahi.
     """
 
     number: int | str
@@ -160,7 +158,7 @@ ENGINE: list[Block] = [
     ),
 ]
 
-# ----- What each of the two programs adds on top of the engine -----
+# ----- Lo que cada programa anade encima del motor -----
 
 CONSOLE_BLOCKS: list[Block] = [
     Block(
@@ -368,8 +366,9 @@ WINDOW_BLOCKS: list[Block] = [
     ),
 ]
 
-# How to run a file that opens a window: the one thing any deliverable here
-# needs installed. Each program adds a paragraph saying what its maths is.
+# Como ejecutar un archivo que abre una ventana: lo unico que hay que instalar
+# para cualquier entrega de aqui. Cada programa anade un parrafo con su
+# matematica.
 WINDOW_HOWTO = """COMO EJECUTARLO
 ---------------
 Este programa abre una ventana, y para dibujarla usa CustomTkinter, que no
@@ -443,7 +442,7 @@ listas anidadas, condicionales, bucles y funciones, con fracciones exactas. No
 emplea NumPy, SciPy ni las funciones de algebra lineal de math.""",
         blocks=[*ENGINE, *WINDOW_BLOCKS],
     ),
-    # Two assignments handed in as one file: both are pages of the same window.
+    # Dos tareas entregadas en un solo archivo: las dos son paginas de la misma ventana.
     Program(
         number="Numeros Romanos",
         title="Suma, Resta y Multiplicacion de Numeros Romanos",
@@ -503,12 +502,12 @@ LOCAL_PACKAGES = ("core", "ui", "gui", "deliverables")
 
 def header(program: Program) -> str:
     """
-    What the file says about itself: which program it is and how to run it.
+    Lo que el archivo dice de si mismo: que programa es y como se ejecuta.
 
-    The cover page is a separate document, so nothing here names anybody. It is
-    a raw docstring because the Windows instructions carry a path, and a
-    backslash inside an ordinary string is an escape sequence Python complains
-    about.
+    La portada es un documento aparte, asi que aqui no se nombra a nadie. Es un
+    docstring en crudo porque las instrucciones de Windows llevan una ruta, y una
+    barra invertida dentro de una cadena normal es una secuencia de escape de la
+    que Python se queja.
     """
     return f'''r"""
 PROGRAMA {program.number} - Grupo {GROUP_NUMBER}
@@ -520,9 +519,9 @@ Asignatura: Algebra Lineal (MTM0120)
 """'''
 
 def is_local_import(node: ast.stmt) -> bool:
-    """Whether this import points at another module of this project."""
+    """Si este import apunta a otro modulo de este proyecto."""
     if isinstance(node, ast.ImportFrom):
-        if node.level > 0:  # from .matrix import ...
+        if node.level > 0:  # from .matrix import ..., o sea, un import de aqui
             return True
         root = (node.module or "").split(".")[0]
         return root in LOCAL_PACKAGES
@@ -531,7 +530,7 @@ def is_local_import(node: ast.stmt) -> bool:
     return False
 
 def is_type_checking_block(node: ast.stmt) -> bool:
-    """`if TYPE_CHECKING:` only exists to help a type checker; drop it."""
+    """if TYPE_CHECKING: solo existe para el verificador de tipos; se quita."""
     return (
         isinstance(node, ast.If)
         and isinstance(node.test, ast.Name)
@@ -539,7 +538,7 @@ def is_type_checking_block(node: ast.stmt) -> bool:
     )
 
 def imports_only_type_checking(node: ast.stmt) -> bool:
-    """`from typing import TYPE_CHECKING` goes when its block goes."""
+    """from typing import TYPE_CHECKING se va cuando se va su bloque."""
     return (
         isinstance(node, ast.ImportFrom)
         and node.module == "typing"
@@ -548,93 +547,30 @@ def imports_only_type_checking(node: ast.stmt) -> bool:
 
 def last_line(node: ast.stmt) -> int:
     """
-    The last line a statement covers.
+    La ultima linea que ocupa una sentencia.
 
-    `end_lineno` is optional in the AST because a hand-built tree may not carry
-    positions, but everything here comes from `ast.parse`, where it is always
-    set. Falling back to the first line keeps the type checker happy without
-    inventing a case that can happen.
+    end_lineno es opcional en el AST porque un arbol construido a mano puede no
+    llevar posiciones, pero aqui todo viene de ast.parse, donde siempre esta. Caer
+    de vuelta en la primera linea deja contento al verificador de tipos sin
+    inventar un caso que pueda ocurrir.
     """
     return node.end_lineno or node.lineno
 
-def translate_comments(source: str, missing: list[str]) -> str:
-    """
-    Swap every `#` comment for its Spanish.
-
-    The comments are found with `tokenize` rather than by looking for a `#`,
-    because a `#` inside a string is not a comment and must not be touched.
-    Line count never changes, so nothing downstream has to be renumbered.
-    """
-    lines = source.splitlines()
-    tokens = tokenize.generate_tokens(io.StringIO(source).readline)
-
-    for token in tokens:
-        if token.type != tokenize.COMMENT:
-            continue
-        row, column = token.start
-        spanish = COMMENTS.get(token.string)
-        if spanish is None:
-            missing.append(token.string)
-            continue
-        lines[row - 1] = lines[row - 1][:column] + spanish
-
-    return "\n".join(lines)
-
-def as_docstring(text: str, indent: str) -> list[str]:
-    """Write a piece of text back out as a triple-quoted docstring."""
-    if "\n" not in text:
-        return [f'{indent}"""{text}"""']
-    body = [f"{indent}{line}".rstrip() for line in text.splitlines()]
-    return [f'{indent}"""', *body, f'{indent}"""']
-
-def translate_docstrings(source: str, missing: list[str]) -> str:
-    """
-    Swap every function and class docstring for its Spanish.
-
-    Module docstrings are skipped: `split_module` drops those, and the Spanish
-    block heading written by this file takes their place. Replacements are
-    applied from the bottom up so that changing the length of one docstring
-    cannot move the line numbers of the ones not yet reached.
-    """
-    lines = source.splitlines()
-    edits: list[tuple[int, int, list[str]]] = []
-
-    for node in ast.walk(ast.parse(source)):
-        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-            continue
-        english = ast.get_docstring(node)
-        if english is None:
-            continue
-        spanish = DOCSTRINGS.get(english)
-        if spanish is None:
-            missing.append(english.splitlines()[0])
-            continue
-        quote = node.body[0]
-        indent = " " * quote.col_offset
-        edits.append((quote.lineno - 1, last_line(quote), as_docstring(spanish, indent)))
-
-    for start, end, replacement in sorted(edits, reverse=True):
-        lines[start:end] = replacement
-
-    return "\n".join(lines)
-
 def named(alias: ast.alias) -> str:
-    """`numpy as np` or just `sys`, whichever the import wrote."""
+    """numpy as np, o solo sys, segun lo que escribiera el import."""
     return f"{alias.name} as {alias.asname}" if alias.asname else alias.name
 
-def split_module(
-    path: Path, plain: set[str], grouped: dict[str, set[str]], missing: list[str]
-) -> str:
+def split_module(path: Path, plain: set[str], grouped: dict[str, set[str]]) -> str:
     """
-    Take one module apart, adding its imports to the shared collections and
-    returning the code it defines, translated into Spanish.
+    Desarma un modulo: anade sus imports a las colecciones comunes y devuelve el
+    codigo que define.
 
-    Whole lines are kept verbatim so that every comment survives; only the
-    ranges belonging to the module docstring and to the imports are cut out.
+    Las lineas se conservan tal cual, para que no se pierda ningun comentario;
+    solo se recortan los tramos del docstring del modulo y de los imports. El
+    codigo ya esta en castellano, asi que aqui no se traduce nada: lo unico que
+    se le anade al archivo entregado es el titulo de cada bloque.
     """
     source = path.read_text(encoding="utf-8")
-    source = translate_comments(source, missing)
-    source = translate_docstrings(source, missing)
     lines = source.splitlines()
     tree = ast.parse(source)
     cut: set[int] = set()
@@ -659,9 +595,9 @@ def split_module(
             if isinstance(node, ast.Import):
                 plain.update(named(alias) for alias in node.names)
             elif node.module:
-                # Gathered by module, so two files asking for different names
-                # out of the same one end up on a single line. A missing module
-                # means `from . import x`, which `is_local_import` already took.
+                # Agrupados por modulo, para que dos archivos que piden nombres
+                # distintos del mismo acaben en una sola linea. Que no haya
+                # modulo significa from . import x, que is_local_import ya tomo.
                 grouped.setdefault(node.module, set()).update(
                     named(alias) for alias in node.names
                 )
@@ -670,7 +606,7 @@ def split_module(
     return body.strip("\n")
 
 def render_imports(plain: set[str], grouped: dict[str, set[str]]) -> str:
-    """Every import the file needs, merged, deduplicated and in order."""
+    """Todos los imports que necesita el archivo, juntos, sin repetir y en orden."""
     lines = [f"import {name}" for name in sorted(plain)]
     lines.extend(
         f"from {module} import {', '.join(sorted(names))}"
@@ -679,7 +615,7 @@ def render_imports(plain: set[str], grouped: dict[str, set[str]]) -> str:
     return "\n".join(lines)
 
 def block_heading(title: str, description: str) -> str:
-    """The Spanish comment that documents one block of the handed-in file."""
+    """El comentario que documenta un bloque del archivo entregado."""
     lines = [RULE, f"# BLOQUE: {title}", "#"]
     lines.extend(f"# {line}".rstrip() for line in description.splitlines())
     lines.append(RULE)
@@ -687,13 +623,13 @@ def block_heading(title: str, description: str) -> str:
 
 def clashes(program: Program) -> list[str]:
     """
-    Every global name that two blocks of one program both define.
+    Todo nombre global que definan dos bloques del mismo programa.
 
-    In the repository each module has a namespace of its own, so two of them
-    can each have a `SUBTITLES` and never meet. Assembled into one file they
-    share a single namespace, the later one silently replaces the earlier, and
-    the page that relied on the first breaks only when it is opened. So the
-    build refuses instead.
+    En el repositorio cada modulo tiene su propio espacio de nombres, asi que dos
+    de ellos pueden tener cada uno su SUBTITLES y no encontrarse nunca. Juntos en
+    un solo archivo comparten un unico espacio, el segundo pisa al primero sin
+    decir nada, y la pagina que dependia del primero se rompe solo al abrirla.
+    Por eso la construccion se niega.
     """
     owners: dict[str, str] = {}
     found: list[str] = []
@@ -714,29 +650,27 @@ def clashes(program: Program) -> list[str]:
                 owners.setdefault(name, block.source)
     return found
 
-def build(program: Program) -> tuple[str, list[str]]:
-    """Assemble one whole file, and report anything left untranslated."""
+def build(program: Program) -> str:
+    """Arma un archivo entero, bloque por bloque."""
     plain: set[str] = set()
     grouped: dict[str, set[str]] = {}
     blocks: list[str] = []
-    missing: list[str] = []
 
     for block in program.blocks:
         plain.update(block.imports)
         body = (
             block.code
             if block.code
-            else split_module(Path(block.source), plain, grouped, missing)
+            else split_module(Path(block.source), plain, grouped)
         )
         blocks.append(f"{block_heading(block.title, block.description)}\n\n{body}")
 
-    text = "\n\n\n".join(
+    return "\n\n\n".join(
         [header(program), render_imports(plain, grouped), *blocks]
     ) + "\n"
-    return text, missing
 
 def write(program: Program) -> None:
-    """Build one program, check that it compiles, and say where it landed."""
+    """Construye un programa, comprueba que compila, y dice donde quedo."""
     repeated = clashes(program)
     if repeated:
         print(f"No se puede construir {program.filename()}:")
@@ -745,14 +679,7 @@ def write(program: Program) -> None:
             print(f"  {clash}")
         sys.exit(1)
 
-    text, missing = build(program)
-
-    if missing:
-        print(f"No se puede construir {program.filename()}:")
-        print("falta traducir esto en translations.py\n")
-        for text_in_english in missing:
-            print(f"  {text_in_english}")
-        sys.exit(1)
+    text = build(program)
 
     try:
         compile(text, "<entregable>", "exec")
@@ -770,7 +697,7 @@ def write(program: Program) -> None:
     print("  Todo el texto del archivo esta en castellano.")
 
 def main() -> None:
-    """Build every program that can be handed in."""
+    """Construye todos los programas que se pueden entregar."""
     for program in PROGRAMS:
         write(program)
 

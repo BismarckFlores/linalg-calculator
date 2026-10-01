@@ -1,48 +1,48 @@
 """
-Roman numerals, and the arithmetic the course asks for on them.
+Los numeros romanos, y la aritmetica que el curso pide con ellos.
 
-A Roman numeral is a sum of symbols written from the largest to the smallest,
-with six pairs where a smaller symbol in front of a larger one means a
-subtraction: IV, IX, XL, XC, CD and CM. So XIV is X + IV, which is 10 + 4.
+Un numero romano es una suma de simbolos escritos de mayor a menor, con seis
+parejas en las que un simbolo menor delante de uno mayor significa una resta:
+IV, IX, XL, XC, CD y CM. Asi, XIV es X + IV, que es 10 + 4.
 
-The Romans wrote no zero and no negative numbers, and no symbol above M, so
-only 1 to 3999 can be written at all. Anything outside that is not a numeral
-that exists, and this says so instead of inventing one.
+Los romanos no escribieron el cero ni los numeros negativos, ni tuvieron simbolo
+por encima de M, asi que solo se puede escribir del 1 al 3999. Lo que quede
+fuera no es un numero que exista, y esto lo dice en vez de inventarlo.
 
-Adding and subtracting work on the values: read both numerals, operate, and
-write the answer back as a numeral. Multiplying works the same way, and also
-keeps the repeated addition it was taught as — X * V is X + X + X + X + X —
-one term per unit of the right-hand number, for whoever wants to see it.
+Sumar y restar se hace sobre los valores: se leen los dos numeros, se opera y la
+respuesta se vuelve a escribir en romano. Multiplicar funciona igual, y ademas
+conserva la suma repetida con que se ensena (X * V es X + X + X + X + X), un
+sumando por cada unidad del numero de la derecha, para quien quiera verla.
 
-Like the rest of `core`, this says nothing to anybody. It returns the working
-and raises, and the window decides the Spanish.
+Como el resto de core, esto no le dice nada a nadie. Devuelve el procedimiento y
+lanza errores, y la ventana decide el castellano.
 """
 
 from dataclasses import dataclass
 
-# Every piece a numeral is built from, largest first, with the six subtractive
-# pairs among them. Reading and writing both walk this list in order, which is
-# what makes the canonical form the only one either of them produces.
+# Cada pieza con que se construye un numero romano, de mayor a menor, con las
+# seis parejas de resta incluidas. Leer y escribir recorren esta lista en orden,
+# que es lo que hace que solo produzcan la escritura canonica.
 PIECES = (
     ("M", 1000), ("CM", 900), ("D", 500), ("CD", 400),
     ("C", 100), ("XC", 90), ("L", 50), ("XL", 40),
     ("X", 10), ("IX", 9), ("V", 5), ("IV", 4), ("I", 1),
 )
 
-# The seven symbols, which is what "one digit" means for the multiplication.
+# Los siete simbolos, que es lo que significa un solo digito en la multiplicacion.
 SYMBOLS = ("I", "V", "X", "L", "C", "D", "M")
 
-# MMMCMXCIX. There is no symbol for 5000, so nothing above this can be written.
+# MMMCMXCIX. No hay simbolo para 5000, asi que nada mayor se puede escribir.
 LARGEST = 3999
 
 class RomanError(ValueError):
-    """Something is not a Roman numeral, or cannot be written as one."""
+    """Algo no es un numero romano, o no se puede escribir como tal."""
 
 class EmptyRoman(RomanError):
-    """There is nothing to read."""
+    """No hay nada que leer."""
 
 class BadLetter(RomanError):
-    """A character that is not a Roman symbol. `letter` is that character."""
+    """Un caracter que no es un simbolo romano. letter es ese caracter."""
 
     def __init__(self, letter: str) -> None:
         super().__init__(f"'{letter}' is not a Roman symbol.")
@@ -50,10 +50,10 @@ class BadLetter(RomanError):
 
 class NotCanonical(RomanError):
     """
-    Roman letters that add up, but are not how the number is written.
+    Letras romanas que suman, pero no son como se escribe el numero.
 
-    `IIII` is four ones and `VV` is two fives; both say a number that has a
-    numeral of its own, and `canonical` is that numeral.
+    IIII son cuatro unos y VV son dos cincos; las dos dicen un numero que tiene
+    su propio numeral, y canonical es ese numeral.
     """
 
     def __init__(self, numeral: str, canonical: str) -> None:
@@ -63,10 +63,10 @@ class NotCanonical(RomanError):
 
 class BadOrder(RomanError):
     """
-    Roman letters in an order that spells nothing: `IC`, `XM`, `VX`.
+    Letras romanas en un orden que no escribe nada: IC, XM, VX.
 
-    The six subtractive pairs are the only case where a smaller symbol comes
-    before a larger one, and anything else never was a numeral.
+    Las seis parejas de resta son el unico caso en que un simbolo menor va antes
+    de uno mayor, y cualquier otro orden nunca fue un numero romano.
     """
 
     def __init__(self, numeral: str) -> None:
@@ -74,7 +74,7 @@ class BadOrder(RomanError):
         self.numeral = numeral
 
 class OutOfRange(RomanError):
-    """A value with no numeral: zero, negative, or above `LARGEST`."""
+    """Un valor sin numero romano: cero, negativo, o mayor que LARGEST."""
 
     def __init__(self, value: int) -> None:
         super().__init__(f"{value} cannot be written in Roman numerals.")
@@ -82,19 +82,19 @@ class OutOfRange(RomanError):
 
 @dataclass(frozen=True)
 class Piece:
-    """One piece of a numeral as it is read: `IX` is 9, and subtracts."""
+    """Una pieza de un numero romano tal como se lee: IX vale 9, y resta."""
 
     text: str
     value: int
 
     @property
     def subtractive(self) -> bool:
-        """Whether this piece is one of the six pairs, `IX` rather than `X`."""
+        """Si esta pieza es una de las seis parejas, IX en vez de X."""
         return len(self.text) == 2
 
 @dataclass(frozen=True)
 class Taken:
-    """One piece taken while writing a number: `1994` takes M, and 994 is left."""
+    """Una pieza tomada al escribir un numero: 1994 toma M, y quedan 994."""
 
     text: str
     value: int
@@ -103,7 +103,7 @@ class Taken:
 
 @dataclass(frozen=True)
 class Written:
-    """A number written in Roman, and the pieces taken to write it, in order."""
+    """Un numero escrito en romano, y las piezas que se tomaron, en orden."""
 
     value: int
     numeral: str
@@ -111,7 +111,7 @@ class Written:
 
 @dataclass(frozen=True)
 class Numeral:
-    """A numeral, its value, and the pieces it was read as."""
+    """Un numero romano, su valor, y las piezas en que se leyo."""
 
     text: str
     value: int
@@ -120,12 +120,13 @@ class Numeral:
 @dataclass(frozen=True)
 class Operation:
     """
-    One operation done on two numerals, with everything it took to do it.
+    Una operacion hecha con dos numeros romanos, con todo lo que hizo falta.
 
-    `terms` is the repeated addition of a multiplication, one term per time the
-    left number is added; a sum or a difference has none. `numeral` is
-    the answer written in Roman, or empty when the answer has no numeral, which
-    is the whole of what a zero or a negative result means here.
+    terms es la suma repetida de una multiplicacion, un sumando por cada vez que
+    se suma el numero de la izquierda; una suma o una resta no tiene ninguno.
+    numeral es la respuesta escrita en romano, o una cadena vacia cuando la
+    respuesta no tiene numero romano, que es justo lo que significa un resultado
+    cero o negativo.
     """
 
     left: Numeral
@@ -137,31 +138,31 @@ class Operation:
 
     @property
     def writable(self) -> bool:
-        """Whether the answer is a number the Romans could write down."""
+        """Si la respuesta es un numero que los romanos podian escribir."""
         return bool(self.numeral)
 
 def to_value(text: str) -> int:
     """
-    Read a numeral as the sum its symbols stand for. `XIV` is 10 + 4.
+    Lee un numero romano como la suma que representan sus simbolos. XIV es 10 + 4.
 
-    Only the canonical spelling is accepted: the value is written back out and
-    compared with what was read, so `IIII` is refused for `IV`, and `IC` for
-    being an order that never spelled anything.
+    Solo se acepta la escritura canonica: el valor se vuelve a escribir y se
+    compara con lo leido, asi que IIII se rechaza a favor de IV, y IC por ser un
+    orden que nunca escribio nada.
     """
     return read(text).value
 
 def to_roman(value: int) -> str:
-    """The numeral alone, for whoever does not need the working."""
+    """Solo el numero romano, para quien no necesita el procedimiento."""
     return write(value).numeral
 
 def write(value: int) -> Written:
     """
-    Write a number as a numeral, taking the largest piece that fits, again and
-    again: 1994 takes M, then CM, then XC, then IV.
+    Escribe un numero en romano tomando la pieza mas grande que quepa, una y otra
+    vez: 1994 toma M, luego CM, luego XC y luego IV.
 
-    Every piece taken is kept with what was left before and after it, which is
-    the same subtraction done on paper and the whole of why the answer is what
-    it is.
+    De cada pieza tomada se guarda lo que quedaba antes y lo que queda despues,
+    que es la misma resta que se hace en papel y todo el motivo de que el
+    resultado sea el que es.
     """
     if not 1 <= value <= LARGEST:
         raise OutOfRange(value)
@@ -178,8 +179,8 @@ def write(value: int) -> Written:
 
 def read(text: str) -> Numeral:
     """
-    A numeral with its value and the pieces it was read as, for showing the
-    working. Raises `EmptyRoman`, `BadLetter` or `NotCanonical`.
+    Un numero romano con su valor y las piezas en que se leyo, para mostrar el
+    procedimiento. Lanza EmptyRoman, BadLetter, BadOrder o NotCanonical.
     """
     numeral = "".join(text.split()).upper()
     if not numeral:
@@ -197,9 +198,9 @@ def read(text: str) -> Numeral:
             value += amount
             position += len(piece)
 
-    # Walking the pieces in order only ever spells the canonical form. Letters
-    # left over never fitted anywhere, so the order itself is wrong; letters
-    # that all fitted but write back differently are a spelling nobody used.
+    # Recorrer las piezas en orden solo escribe la forma canonica. Las letras que
+    # sobran no encajaron en ninguna parte, asi que el orden esta mal; las letras
+    # que encajaron pero se reescriben distinto son una escritura que nadie uso.
     if position != len(numeral):
         raise BadOrder(numeral)
     if to_roman(value) != numeral:
@@ -208,27 +209,28 @@ def read(text: str) -> Numeral:
     return Numeral(numeral, value, tuple(pieces))
 
 def sum_of(left: str, right: str) -> Operation:
-    """`XIV + IX`: both are read, the values are added, the sum is written back."""
+    """XIV + IX: se leen los dos, se suman los valores y el total se escribe en romano."""
     return _operate(read(left), read(right), "+")
 
 def difference_of(left: str, right: str) -> Operation:
     """
-    `XIV - IX`: the same, taking one value from the other.
+    XIV - IX: lo mismo, restando un valor del otro.
 
-    A difference of zero or less has no numeral, and the operation says so
-    rather than raising: that the Romans wrote no zero is the answer.
+    Una diferencia de cero o menos no tiene numero romano, y la operacion lo dice
+    en vez de lanzar un error: que los romanos no escribieran el cero es la
+    respuesta.
     """
     return _operate(read(left), read(right), "-")
 
 def product_of(left: str, right: str) -> Operation:
     """
-    One numeral times another, keeping the repeated addition it stands for:
-    `X * V` is X + X + X + X + X, which is L.
+    Un numero romano por otro, conservando la suma repetida que representa:
+    X * V es X + X + X + X + X, que es L.
 
-    `terms` carries one copy of the left numeral per unit of the right one, so
-    it is the sum itself and not a picture of it. A large right-hand number
-    makes a long list — `X * MMM` is three thousand terms — and it is for the
-    caller to decide how much of it is worth showing.
+    terms lleva una copia del numero de la izquierda por cada unidad del de la
+    derecha, asi que es la suma misma y no un dibujo de ella. Un numero grande a
+    la derecha hace una lista larga (X * MMM son tres mil sumandos) y es quien
+    llama quien decide cuanto vale la pena mostrar.
     """
     first, second = read(left), read(right)
     product = _operate(first, second, "*")

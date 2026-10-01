@@ -1,20 +1,20 @@
 """
-Is this matrix in echelon form? What does it reduce to? Where are its pivots?
+Esta matriz, esta escalonada? A que se reduce? Donde estan sus pivotes?
 
-The page for the definitions themselves. It takes a matrix as it stands, checks
-the five numbered properties one by one and marks the leading entries; then it
-reduces it, step by step, and points at the pivot positions the reduced form
-puts on show.
+La pagina de las definiciones mismas. Toma una matriz tal como esta, comprueba
+una por una las cinco propiedades numeradas y marca las entradas principales;
+despues la reduce, paso a paso, y senala las posiciones pivote que la forma
+reducida deja a la vista.
 
-The reduction is not decoration. A pivot position is defined as a place holding
-a leading entry once the matrix is in reduced echelon form, so answering "where
-are the pivots" means reducing, and a page that reduced without showing the work
-would be asking to be taken on trust.
+La reduccion no es un adorno. Una posicion pivote se define como el lugar que
+ocupa una entrada principal una vez que la matriz esta en forma escalonada
+reducida, asi que responder donde estan los pivotes es reducir, y una pagina que
+redujera sin ensenar el trabajo estaria pidiendo que se la creyera.
 
-The Spanish for the five properties lives here and not in `ui/presentation.py`
-because no other front end says it: the terminal program answers a different
-assignment. The day one does, the wording moves there, which is exactly what
-happened to the classification.
+El castellano de las cinco propiedades vive aqui y no en ui/presentation.py
+porque ninguna otra interfaz lo dice: el programa de terminal responde a otra
+tarea. El dia que alguna lo diga, las palabras se mudan alli, que es justo lo
+que le paso a la clasificacion.
 """
 
 from typing import Any
@@ -42,8 +42,8 @@ from ..widgets import (
 )
 from .gauss import KIND_COLORS
 
-# The five properties, worded as the course words them and numbered as it
-# numbers them: the first three make an echelon form, the last two a reduced one.
+# Las cinco propiedades, dichas como las dice el curso y numeradas como
+# las numera: las tres primeras dan la forma escalonada, las dos la reducida.
 PROPERTIES = {
     1: "Todas las filas distintas de cero están arriba de las filas de ceros.",
     2: "La entrada principal de cada fila está en una columna a la derecha de la\n"
@@ -53,7 +53,7 @@ PROPERTIES = {
     5: "Cada entrada principal 1 es la única entrada distinta de cero en su columna.",
 }
 
-# Why a property failed, said by pointing at the entry that breaks it.
+# Por que fallo una propiedad, senalando la entrada que la rompe.
 FAILURES = {
     1: "La fila {row} no es de ceros y está debajo de una fila que sí lo es.",
     2: "La entrada principal de la fila {row} está en la columna {column}, que no\n"
@@ -69,7 +69,7 @@ CLOSED = "Ver por qué  ▾"
 OPEN = "Ocultar  ▴"
 
 class EchelonPage(ctk.CTkFrame):
-    """The page that reads the form of a matrix, and then reduces it."""
+    """La pagina que lee la forma de una matriz y despues la reduce."""
 
     def __init__(self, master: Any) -> None:
         super().__init__(master, fg_color="transparent")
@@ -109,7 +109,7 @@ class EchelonPage(ctk.CTkFrame):
         PrimaryButton(buttons, "Analizar  →", self._analyse).pack(side="right")
         self._error.appear_before(buttons)
 
-    # ----- Reading the matrix -----
+    # ----- Lectura de la matriz -----
 
     def _analyse(self) -> None:
         self._clear_output()
@@ -120,8 +120,8 @@ class EchelonPage(ctk.CTkFrame):
             return
 
         self._error.hide()
-        # A matrix typed cell by cell is a plain matrix and has no bar; one that
-        # came from equations is augmented, and the bar goes after the unknowns.
+        # Una matriz escrita casilla a casilla no es aumentada y no lleva barra;
+        # una que viene de ecuaciones si, y la barra va tras las incognitas.
         self._bar = typed.unknowns or None
         reduction = to_rref(typed.matrix)
 
@@ -132,16 +132,16 @@ class EchelonPage(ctk.CTkFrame):
             typed.matrix, reduction, solve(typed.matrix) if self._bar else None
         )
 
-    # ----- The five properties -----
+    # ----- Las cinco propiedades -----
 
     def _draw_form(self, form: Form) -> None:
         """
-        The answer on one line, with the reasoning folded away behind it.
+        La respuesta en una linea, con el razonamiento plegado detras.
 
-        Two verdicts are what somebody wants at a glance. The five properties
-        are what they want when the answer is no and they need to know which
-        one it was. Only the first of those has earned a place on the screen by
-        default; the second is one click away and stays out of the road.
+        Los dos veredictos son lo que alguien quiere de un vistazo. Las cinco
+        propiedades son lo que quiere cuando la respuesta es no y necesita saber
+        cual fallo. Solo lo primero se ha ganado estar en pantalla por defecto; lo
+        segundo queda a un clic y no estorba.
         """
         card = self._add_card()
         inside = ctk.CTkFrame(card, fg_color="transparent")
@@ -186,7 +186,7 @@ class EchelonPage(ctk.CTkFrame):
         self._toggle.pack(anchor="w", pady=(12, 0))
 
     def _toggle_details(self) -> None:
-        """Fold the five properties out, or back away."""
+        """Despliega las cinco propiedades, o las vuelve a plegar."""
         if self._details.winfo_ismapped():
             self._details.pack_forget()
             self._toggle.configure(text=CLOSED)
@@ -195,7 +195,7 @@ class EchelonPage(ctk.CTkFrame):
             self._toggle.configure(text=OPEN)
 
     def _verdict(self, master: ctk.CTkFrame, text: str, holds: bool) -> None:
-        """One of the two answers, coloured by itself so it reads at a glance."""
+        """Una de las dos respuestas, con su propio color para leerla de un vistazo."""
         Chip(
             master,
             f"{'✓' if holds else '✗'}  {text}",
@@ -203,7 +203,7 @@ class EchelonPage(ctk.CTkFrame):
         ).pack(side="left", padx=(0, 8))
 
     def _property(self, master: ctk.CTkFrame, form: Form, number: int) -> None:
-        """One numbered property: whether it holds, and where it broke if not."""
+        """Una propiedad numerada: si se cumple, y donde se rompio si no."""
         condition = form.condition(number)
         row = ctk.CTkFrame(master, fg_color="transparent")
         row.pack(fill="x", pady=3)
@@ -245,15 +245,16 @@ class EchelonPage(ctk.CTkFrame):
                 anchor="w",
             ).pack(anchor="w")
 
-    # ----- Putting it into the reduced form -----
+    # ----- Paso a la forma escalonada reducida -----
 
     def _draw_reduction(self, reduction: Elimination) -> None:
         """
-        The walk to the reduced form, one elementary operation at a time.
+        El recorrido hasta la forma reducida, una operacion elemental cada vez.
 
-        The same algorithm the elimination page runs, shown here because this
-        page has to reduce anyway: the pivot positions it reports below are the
-        leading entries of the matrix this walk ends on.
+        Es el mismo algoritmo que corre la pagina de eliminacion, y se ensena aqui
+        porque esta pagina tiene que reducir de todas formas: las posiciones pivote
+        que informa mas abajo son las entradas principales de la matriz en la que
+        termina este recorrido.
         """
         card = self._add_card()
         inside = ctk.CTkFrame(card, fg_color="transparent")
@@ -281,7 +282,7 @@ class EchelonPage(ctk.CTkFrame):
             on_step=lambda index, total: counter.set_badge(f"{index + 1} / {total}"),
         ).pack(fill="x")
 
-    # ----- The pivots, which live in the reduced form -----
+    # ----- Los pivotes, que viven en la forma reducida -----
 
     def _draw_pivots(
         self, matrix: Matrix, reduction: Elimination, solution: Solution | None
@@ -304,8 +305,8 @@ class EchelonPage(ctk.CTkFrame):
         ).pack(anchor="w", pady=(0, 14))
 
         positions = reduction.pivots
-        # The columns that are coefficients: all of them for a plain matrix, all
-        # but the last for an augmented one, whose last column is b.
+        # Las columnas que son coeficientes: todas en una matriz cualquiera, todas
+        # menos la ultima en una aumentada, cuya ultima columna es b.
         width = self._bar or matrix.cols
         columns = [column for _row, column in positions if column <= width]
         free = [column for column in range(1, width + 1) if column not in set(columns)]
@@ -338,12 +339,12 @@ class EchelonPage(ctk.CTkFrame):
         free: list[int],
     ) -> None:
         """
-        What the pivots say about the system an augmented matrix stands for.
+        Lo que dicen los pivotes del sistema que representa una matriz aumentada.
 
-        It is the existence theorem read off the pivots, and nothing more: a
-        system has a solution exactly when the column of b holds no pivot, and
-        only one when every column of A holds one. The words for the kind are
-        the assignment's, from `ui/presentation.py`, like everywhere else.
+        Es el teorema de existencia leido en los pivotes, y nada mas: un sistema
+        tiene solucion exactamente cuando la columna de b no tiene pivote, y una
+        sola cuando todas las columnas de A lo tienen. Las palabras de la
+        clasificacion son las del enunciado, de presentation.py, como en todo lo demas.
         """
         headline = ctk.CTkFrame(master, fg_color="transparent")
         headline.pack(anchor="w", pady=(0, 4))
@@ -387,7 +388,7 @@ class EchelonPage(ctk.CTkFrame):
         positions: tuple[tuple[int, int], ...],
         column: int = 0,
     ) -> None:
-        """One matrix with the pivot positions picked out, under its own caption."""
+        """Una matriz con sus posiciones pivote resaltadas, bajo su propio titulo."""
         holder = ctk.CTkFrame(master, fg_color="transparent")
         holder.grid(row=0, column=column, sticky="nw", padx=(0, 40))
         ctk.CTkLabel(
@@ -400,7 +401,7 @@ class EchelonPage(ctk.CTkFrame):
             anchor="w"
         )
 
-    # ----- Housekeeping -----
+    # ----- Mantenimiento -----
 
     def _add_card(self) -> Card:
         card = Card(self)
@@ -409,11 +410,11 @@ class EchelonPage(ctk.CTkFrame):
         return card
 
     def _clear_output(self) -> None:
-        """A verdict about a matrix stops meaning anything once it is retyped."""
+        """Un veredicto sobre una matriz deja de significar nada al reescribirla."""
         for card in self._output:
             card.destroy()
         self._output = []
 
 def _listed(columns: list[int]) -> str:
-    """`1, 3, 5`, or the word for none of them."""
+    """1, 3, 5, o la palabra para ninguna de ellas."""
     return ", ".join(str(column) for column in columns) if columns else "ninguna"

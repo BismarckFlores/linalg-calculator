@@ -1,11 +1,11 @@
 """
-Matrix arithmetic: A + B, A - B, A x B, k*A and the transpose.
+Aritmetica de matrices: A + B, A - B, A x B, k*A y la traspuesta.
 
-Everything on this page is one call into `core/matrix.py`. The only work done
-here is deciding which shapes are allowed to meet — and that check is repeated
-rather than left to the engine on purpose: `Matrix` raises in English at
-whoever wrote the code, and the person in front of the window needs a sentence
-in Spanish naming the two sizes that did not agree.
+Todo lo de esta pagina es una llamada a core/matrix.py. Lo unico que se decide
+aqui es que tamanos pueden encontrarse, y esa comprobacion se repite a proposito
+en vez de dejarsela al motor: Matrix lanza un error en ingles dirigido a quien
+escribio el codigo, y la persona que esta delante de la ventana necesita una
+frase en castellano que nombre los dos tamanos que no coincidieron.
 """
 
 from typing import Any
@@ -28,7 +28,7 @@ from ..widgets import (
     SegmentedControl,
 )
 
-# Every operation: the pill it is chosen by, and the line under the pills.
+# Cada operacion: el boton con el que se elige, y la linea que va debajo.
 OPERATIONS = (
     ("A + B", "Suma de matrices, entrada por entrada."),
     ("A − B", "Resta de matrices, entrada por entrada."),
@@ -40,7 +40,7 @@ OPERATIONS = (
 NEEDS_B = ("A + B", "A − B", "A × B")
 
 class OperationsPage(ctk.CTkFrame):
-    """The page of basic matrix arithmetic."""
+    """La pagina de aritmetica basica con matrices."""
 
     def __init__(self, master: Any) -> None:
         super().__init__(master, fg_color="transparent")
@@ -125,7 +125,7 @@ class OperationsPage(ctk.CTkFrame):
         PrimaryButton(buttons, "Calcular  →", self._calculate).pack(side="right")
         self._error.appear_before(buttons)
 
-    # ----- Choosing an operation -----
+    # ----- Eleccion de la operacion -----
 
     def _choose(self, operation: str) -> None:
         self._operation = operation
@@ -152,7 +152,10 @@ class OperationsPage(ctk.CTkFrame):
         self._clear_result()
 
     def _fit_b(self) -> None:
-        """B follows A: the same size to add, as many rows as A has columns to multiply."""
+        """
+        B sigue a A: el mismo tamano para sumar, tantas filas como columnas tenga A
+        para multiplicar.
+        """
         rows, cols = self._a.size()
         _b_rows, b_cols = self._b.size()
         if self._operation in ("A + B", "A − B"):
@@ -160,7 +163,7 @@ class OperationsPage(ctk.CTkFrame):
         elif self._operation == "A × B":
             self._b.set_size(cols, b_cols)
 
-    # ----- Calculating -----
+    # ----- Calculo -----
 
     def _calculate(self) -> None:
         self._clear_result()
@@ -174,7 +177,7 @@ class OperationsPage(ctk.CTkFrame):
         self._show(result, caption)
 
     def _compute(self) -> tuple[Matrix, str]:
-        """The chosen operation, or a Spanish complaint about the sizes."""
+        """La operacion elegida, o una queja en castellano sobre los tamanos."""
         a = self._a.matrix()
         rows, cols = self._a.size()
 
@@ -210,7 +213,7 @@ class OperationsPage(ctk.CTkFrame):
             )
         return a * b, "Resultado  C = A × B"
 
-    # ----- Showing the result -----
+    # ----- Presentacion del resultado -----
 
     def _show(self, matrix: Matrix, caption: str) -> None:
         self._result = Card(self)
@@ -224,7 +227,7 @@ class OperationsPage(ctk.CTkFrame):
         MatrixDisplay(inside, matrix).pack(anchor="w")
 
     def _clear_result(self) -> None:
-        """A result stops being true the moment anything is retyped."""
+        """Un resultado deja de ser cierto en cuanto se reescribe cualquier cosa."""
         if self._result is not None:
             self._result.destroy()
             self._result = None

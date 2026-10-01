@@ -1,14 +1,14 @@
 """
-The step by step: every elementary row operation, with the matrix before it and
-the matrix after it.
+El paso a paso: cada operacion elemental de fila, con la matriz de antes y la de
+despues.
 
-A `StepLog` is a chain of row-equivalent matrices. `snapshot(k)` gives the k-th
-link, `snapshot(0)` being the matrix you started from, and that single method is
-the whole 'anterior / siguiente' of any interface: the terminal walks it with
-Enter, the window walks it with two buttons, and neither needs to recompute
-anything.
+Un StepLog es una cadena de matrices equivalentes por filas. snapshot(k) da el
+eslabon k-esimo, y snapshot(0) es la matriz de la que se partio; ese unico
+metodo es todo el 'anterior / siguiente' de cualquier interfaz: la terminal lo
+recorre con Enter, la ventana con dos botones, y ninguna necesita recalcular
+nada.
 
-The labels are written in the notation the course uses: `f_2 -> f_2 + 3*f_1`.
+Las etiquetas van en la notacion que usa el curso: f_2 -> f_2 + 3*f_1.
 """
 
 from collections.abc import Iterator
@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 from .scalar import NumberLike, format_factor
 
 if TYPE_CHECKING:
-    # Only the type checker needs this; importing it at runtime would be circular.
+    # Solo lo necesita el verificador de tipos; importarlo en ejecucion seria circular.
     from .matrix import Matrix
 
 def label_swap(i: int, j: int) -> str:
@@ -30,7 +30,7 @@ def label_scale(i: int, factor: NumberLike) -> str:
     return f"f_{i} -> {format_factor(factor)}*f_{i}"
 
 def label_add_scaled(i: int, j: int, factor: NumberLike) -> str:
-    """f_i -> f_i + k*f_j, dropping the factor when it is exactly 1 or -1."""
+    """f_i -> f_i + k*f_j, omitiendo el factor cuando vale exactamente 1 o -1."""
     if factor == 1:
         return f"f_{i} -> f_{i} + f_{j}"
     if factor == -1:
@@ -39,7 +39,7 @@ def label_add_scaled(i: int, j: int, factor: NumberLike) -> str:
 
 @dataclass(frozen=True)
 class Step:
-    """One elementary operation: what it looked like before, what it did, after."""
+    """Una operacion elemental: como estaba antes, que se hizo, y como quedo."""
 
     before: "Matrix"
     label: str
@@ -47,7 +47,7 @@ class Step:
     note: str = ""
 
     def render(self) -> list[str]:
-        """The step drawn as `before --[ label ]-> after`."""
+        """El paso dibujado como  antes --[ etiqueta ]-> despues."""
         return _side_by_side(
             str(self.before).splitlines(),
             f"--[ {self.label} ]->",
@@ -58,7 +58,7 @@ class Step:
         return "\n".join(self.render())
 
 class StepLog:
-    """The starting matrix and every operation applied to it, in order."""
+    """La matriz inicial y todas las operaciones que se le aplicaron, en orden."""
 
     def __init__(self, initial: "Matrix", title: str = "") -> None:
         self.initial = initial
@@ -66,12 +66,12 @@ class StepLog:
         self._steps: list[Step] = []
 
     def record(self, before: "Matrix", label: str, after: "Matrix", note: str = "") -> "Matrix":
-        """Append one operation and hand back its result, so calls can chain."""
+        """Anade una operacion y devuelve su resultado, para poder encadenar llamadas."""
         self._steps.append(Step(before, label, after, note))
         return after
 
     def annotate(self, text: str) -> None:
-        """Attach a remark to the step just recorded, for an interface to show."""
+        """Anade una nota al paso recien registrado, para que la interfaz la muestre."""
         if not self._steps:
             raise ValueError("There is no step to annotate yet.")
         last = self._steps[-1]
@@ -83,15 +83,15 @@ class StepLog:
 
     @property
     def result(self) -> "Matrix":
-        """Where the chain ends: the initial matrix if nothing was applied."""
+        """Donde termina la cadena: la matriz inicial si no se aplico nada."""
         return self._steps[-1].after if self._steps else self.initial
 
     def snapshot(self, index: int) -> "Matrix":
         """
-        The matrix after `index` operations; `snapshot(0)` is the initial one.
+        La matriz despues de index operaciones; snapshot(0) es la inicial.
 
-        This is what a 'previous / next' control calls, and the only reason the
-        log keeps the matrices instead of just the labels.
+        Es lo que llama un control de 'anterior / siguiente', y la unica razon
+        por la que el registro guarda las matrices y no solo las etiquetas.
         """
         if not 0 <= index <= len(self._steps):
             raise IndexError(f"There are {len(self._steps)} steps, none at index {index}.")
@@ -100,7 +100,7 @@ class StepLog:
         return self._steps[index - 1].after
 
     def is_empty(self) -> bool:
-        """True when the matrix was already in its final form."""
+        """Cierto cuando la matriz ya estaba en su forma final."""
         return not self._steps
 
     def __len__(self) -> int:
@@ -113,7 +113,7 @@ class StepLog:
         return self._steps[index]
 
     def summary(self) -> str:
-        """Just the numbered operations, no matrices."""
+        """Solo las operaciones numeradas, sin matrices."""
         if self.is_empty():
             return "No operations."
         return "\n".join(
@@ -121,7 +121,7 @@ class StepLog:
         )
 
     def render(self) -> list[str]:
-        """The whole trace, one block per step."""
+        """La traza completa, un bloque por paso."""
         lines: list[str] = []
         if self.title:
             lines.extend([self.title, ""])
@@ -141,7 +141,7 @@ class StepLog:
         return "\n".join(self.render())
 
 def _pad_block(lines: list[str], height: int) -> list[str]:
-    """Centre a block of lines inside `height` rows, padding above and below."""
+    """Centra un bloque de lineas en una altura dada, rellenando arriba y abajo."""
     missing = height - len(lines)
     if missing <= 0:
         return list(lines)
@@ -149,7 +149,7 @@ def _pad_block(lines: list[str], height: int) -> list[str]:
     return [""] * above + list(lines) + [""] * (missing - above)
 
 def _side_by_side(left: list[str], middle: str, right: list[str]) -> list[str]:
-    """Two matrices with the operation between them, on the middle row."""
+    """Dos matrices con la operacion entre ellas, en la fila central."""
     height = max(len(left), len(right), 1)
     left = _pad_block(left, height)
     right = _pad_block(right, height)

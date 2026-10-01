@@ -1,18 +1,18 @@
 """
-Adding, subtracting and multiplying Roman numerals, working shown.
+Sumar, restar y multiplicar numeros romanos, con el procedimiento a la vista.
 
-Every operation is done on what the numerals are worth: each one is read as the
-sum of its pieces, the two values are operated, and the answer is written back
-as a numeral. A multiplication can also show the repeated addition it stands
-for — the notation the assignment asks for — which is a switch, because it is
-the working rather than the answer.
+Toda operacion se hace sobre lo que valen los numeros: cada uno se lee como la
+suma de sus piezas, se operan los dos valores, y la respuesta se vuelve a
+escribir en romano. Una multiplicacion puede mostrar ademas la suma repetida que
+representa, que es la notacion que pide el enunciado, y va en un interruptor
+porque es el procedimiento y no la respuesta.
 
-Two things the Romans did not write come up as answers rather than as errors:
-zero and negative numbers, and anything above MMMCMXCIX. The page says which
-one it is and gives the value in our numbers, because that a difference cannot
-be written is the answer to `V - X`.
+Dos cosas que los romanos no escribieron aparecen como respuestas y no como
+errores: el cero y los negativos, y todo lo que pase de MMMCMXCIX. La pagina
+dice cual de las dos es y da el valor en nuestros numeros, porque que una resta
+no se pueda escribir es la respuesta a V - X.
 
-The Spanish lives here because no other front end says any of it.
+El castellano vive aqui porque ninguna otra interfaz dice nada de esto.
 """
 
 from typing import Any
@@ -59,34 +59,34 @@ ROMAN_SUBTITLES = {
     "como una suma repetida: X × V es X + X + X + X + X.",
 }
 
-# The sign each operation is written with, and the call that does it.
+# El signo con que se escribe cada operacion, y la llamada que la hace.
 ROMAN_SIGNS = {PLUS: "+", MINUS: "−", TIMES: "×"}
 ROMAN_OPERATIONS = {PLUS: sum_of, MINUS: difference_of, TIMES: product_of}
 
-# What the boxes hold before anybody types, so the first click shows something.
+# Lo que tienen las cajas antes de escribir, para que el primer clic muestre algo.
 FIRST_EXAMPLE = "XIV"
 SECOND_EXAMPLE = "IX"
 
-# What each symbol is worth, said once under the boxes.
+# Lo que vale cada simbolo, dicho una vez debajo de las casillas.
 ROMAN_HELP = (
     "Símbolos: I = 1, V = 5, X = 10, L = 50, C = 100, D = 500, M = 1000.\n"
     "Se escriben del mayor al menor, y las únicas restas son IV, IX, XL, XC, CD y CM."
 )
 SUM_NOTATION = "Notación de suma"
 
-# A thousand X's on screen say nothing that the first few do not; M × M would
-# ask for exactly that, and X × MMM for three thousand.
+# Mil X en pantalla no dicen nada que no digan las primeras; M × M pediria
+# exactamente eso, y X × MMM tres mil.
 TERMS_SHOWN = 30
 
-# How many terms of the repeated addition fit on one line before it wraps.
+# Cuantos sumandos de la suma repetida caben en una linea antes de partirla.
 ROMAN_TERMS_PER_LINE = 10
 
 def roman_complaint(problem: RomanError) -> str:
     """
-    What to say about a numeral that could not be read.
+    Que decir de un numero romano que no se pudo leer.
 
-    Both pages that take a Roman numeral raise the same errors, and somebody
-    who wrote `IIII` deserves the same sentence on either of them.
+    Las dos paginas que reciben un numero romano lanzan los mismos errores, y
+    quien escribio IIII merece la misma frase en cualquiera de las dos.
     """
     if isinstance(problem, EmptyRoman):
         return "Escribe un número romano."
@@ -105,7 +105,7 @@ def roman_complaint(problem: RomanError) -> str:
     return str(problem)
 
 class RomanPage(ctk.CTkFrame):
-    """The page that adds, subtracts and multiplies Roman numerals."""
+    """La pagina que suma, resta y multiplica numeros romanos."""
 
     def __init__(self, master: Any) -> None:
         super().__init__(master, fg_color="transparent")
@@ -133,8 +133,8 @@ class RomanPage(ctk.CTkFrame):
         self._sign.grid(row=0, column=1, padx=16)
         self._second = self._box(boxes, 2, SECOND_EXAMPLE)
 
-        # Only a multiplication has a sum to write out, so the switch lives with
-        # it and is on by default: writing it out is what the assignment asks.
+        # Solo una multiplicacion tiene una suma que escribir, asi que el interruptor
+        # va con ella y viene encendido: escribirla es lo que pide el enunciado.
         self._as_sum = ctk.CTkSwitch(
             inside,
             text=SUM_NOTATION,
@@ -163,7 +163,7 @@ class RomanPage(ctk.CTkFrame):
         self._error.appear_before(self._buttons)
 
     def _box(self, master: Any, column: int, example: str) -> ctk.CTkEntry:
-        """One of the two numerals, typed in capitals whatever the keyboard sends."""
+        """Uno de los dos numeros, escrito en mayusculas escriba lo que escriba el teclado."""
         entry = ctk.CTkEntry(
             master,
             width=200,
@@ -182,7 +182,7 @@ class RomanPage(ctk.CTkFrame):
         entry.grid(row=0, column=column)
         return entry
 
-    # ----- Choosing an operation -----
+    # ----- Eleccion de la operacion -----
 
     def _choose(self, operation: str) -> None:
         self._operation = operation
@@ -201,7 +201,7 @@ class RomanPage(ctk.CTkFrame):
         entry.insert(0, text)
 
     def _typed(self, event: Any) -> None:
-        """Roman numerals are capitals, so lowercase is corrected as it is typed."""
+        """Los numeros romanos van en mayusculas, asi que la minuscula se corrige al escribir."""
         if event.keysym == "Return":
             return
         entry = event.widget.master
@@ -213,7 +213,7 @@ class RomanPage(ctk.CTkFrame):
                 entry.icursor(position)
         self._clear_output()
 
-    # ----- Calculating -----
+    # ----- Calculo -----
 
     def _calculate(self) -> None:
         self._clear_output()
@@ -234,10 +234,10 @@ class RomanPage(ctk.CTkFrame):
         if done.writable:
             self._draw_check(done)
 
-    # ----- The answer -----
+    # ----- La respuesta -----
 
     def _draw_answer(self, done: Operation) -> None:
-        """The operation in one line, in Roman above and in our numbers below."""
+        """La operacion en una linea, en romano arriba y en nuestros numeros abajo."""
         inside = self._card("Resultado")
         sign = ROMAN_SIGNS[self._operation]
 
@@ -264,11 +264,10 @@ class RomanPage(ctk.CTkFrame):
 
     def _draw_unwritable(self, inside: Any, done: Operation) -> None:
         """
-        Why an answer has no numeral, which is an answer and not a failure.
+        Por que una respuesta no tiene numero romano, que es una respuesta y no un fallo.
 
-        Zero and the negatives had no symbol at all, and neither did anything
-        above MMMCMXCIX, so the value is given in our numbers and the reason is
-        named.
+        El cero y los negativos no tenian simbolo, y tampoco lo tenia nada por encima
+        de MMMCMXCIX, asi que se da el valor en nuestros numeros y se dice el motivo.
         """
         if done.value <= 0:
             reason = (
@@ -286,10 +285,10 @@ class RomanPage(ctk.CTkFrame):
         )
         self._muted(inside, reason)
 
-    # ----- How each numeral is read -----
+    # ----- Como se lee cada numero -----
 
     def _draw_reading(self, done: Operation) -> None:
-        """Each numeral broken into its pieces, which is how its value is read."""
+        """Cada numero partido en sus piezas, que es como se lee su valor."""
         inside = self._card("Cómo se lee cada número")
         self._muted(
             inside,
@@ -302,19 +301,18 @@ class RomanPage(ctk.CTkFrame):
     def _draw_pieces(self, inside: Any, numeral: Numeral) -> None:
         RomanNumeral(inside, numeral).pack(anchor="w", pady=(0, 10))
 
-    # ----- The repeated addition -----
+    # ----- La suma repetida -----
 
     def _draw_terms(self, done: Operation) -> None:
         """
-        The multiplication written as the sum it stands for.
+        La multiplicacion escrita como la suma que representa.
 
-        `X × V` is X added five times, so the terms are what the operation is,
-        not a picture of it. A product that would need hundreds of terms shows
-        the first few and says how many there are, because the rest say the
-        same thing.
+        X * V es X sumado cinco veces, asi que los sumandos son la operacion misma y
+        no un dibujo de ella. Un producto que necesitaria cientos de sumandos muestra
+        los primeros y dice cuantos son, porque los demas dicen lo mismo.
 
-        The card only appears while the switch is on: it is the working, and
-        somebody who wants the product does not need three thousand terms.
+        La tarjeta solo aparece mientras el interruptor esta encendido: es el
+        procedimiento, y quien solo quiere el producto no necesita tres mil sumandos.
         """
         inside = self._card("Notación de suma", f"{len(done.terms)} sumandos")
         self._muted(
@@ -344,15 +342,15 @@ class RomanPage(ctk.CTkFrame):
             anchor="w",
         ).pack(anchor="w", pady=(12, 0))
 
-    # ----- Reading the answer back -----
+    # ----- La lectura de vuelta -----
 
     def _draw_check(self, done: Operation) -> None:
         """
-        The answer read back, which checks the writing against the reading.
+        La respuesta leida de vuelta, que comprueba la escritura contra la lectura.
 
-        The value was turned into a numeral; reading that numeral has to give
-        the value again, and it is done with the same code the operands went
-        through rather than with the number that produced it.
+        El valor se convirtio en numero romano; leer ese numero tiene que dar otra vez
+        el valor, y se hace con el mismo codigo por el que pasaron los operandos, no
+        con el numero que lo produjo.
         """
         inside = self._card("Comprobación")
         back = read(done.numeral)
@@ -366,7 +364,7 @@ class RomanPage(ctk.CTkFrame):
             anchor="w", pady=(4, 0)
         )
 
-    # ----- Housekeeping -----
+    # ----- Mantenimiento -----
 
     def _card(self, title: str, badge: str = "") -> ctk.CTkFrame:
         card = Card(self)
@@ -386,7 +384,7 @@ class RomanPage(ctk.CTkFrame):
         return label
 
     def _clear_output(self) -> None:
-        """A result stops being true the moment either numeral is retyped."""
+        """Un resultado deja de ser cierto en cuanto se cambia cualquiera de los dos numeros."""
         for card in self._output:
             card.destroy()
         self._output = []

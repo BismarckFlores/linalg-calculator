@@ -1,19 +1,19 @@
 """
-The inverse of a matrix, and a system solved with it.
+La inversa de una matriz, y un sistema resuelto con ella.
 
-`[A | I]` is reduced to `[I | A⁻¹]` by the same Gauss-Jordan as the elimination
-page, so the walk shown here is the walk that produced the answer. Both
-products are drawn afterwards, because `A A⁻¹ = A⁻¹ A = I` is the definition
-and not a formality.
+[A | I] se reduce a [I | A^-1] con el mismo Gauss-Jordan de la pagina de
+eliminacion, asi que el recorrido que se ve aqui es el que produjo la respuesta.
+Los dos productos se dibujan despues, porque A A^-1 = A^-1 A = I es la
+definicion y no un tramite.
 
-The second mode takes `A x = b` the other way round from the elimination page:
-it multiplies by the inverse, `x = A⁻¹ b`, and then checks `A x` against b.
-When A is singular the page says so and sends the reader to Eliminación
-Gaussiana, which classifies a system that this method cannot touch.
+El segundo modo toma A x = b al reves que la pagina de eliminacion: multiplica
+por la inversa, x = A^-1 b, y despues comprueba A x contra b. Cuando A es
+singular, la pagina lo dice y manda a Eliminacion Gaussiana, que clasifica un
+sistema que este metodo no puede tocar.
 
-Each mode keeps its own input card, so switching between them does not throw
-away what was typed in the other. The Spanish lives here because no other front
-end says any of it.
+Cada modo conserva su propia tarjeta de entrada, asi que pasar de uno a otro no
+tira lo que se habia escrito en el anterior. El castellano vive aqui porque
+ninguna otra interfaz dice nada de esto.
 """
 
 from typing import Any
@@ -32,7 +32,7 @@ from ..widgets import (
 )
 
 
-# The two modes: the inverse on its own, and the inverse put to work.
+# Los dos modos: la inversa sola, y la inversa puesta a trabajar.
 INVERSE_MODES = ("Inversa A⁻¹", "Resolver Ax = b")
 INVERSE_SUBTITLES = {
     INVERSE_MODES[0]: "Calcular A⁻¹ · transformar [ A | I ] en [ I | A⁻¹ ] por Gauss-Jordan.",
@@ -41,7 +41,7 @@ INVERSE_SUBTITLES = {
 
 
 class InversePage(ctk.CTkFrame):
-    """The page that inverts a matrix and solves a system with the inverse."""
+    """La pagina que invierte una matriz y resuelve un sistema con la inversa."""
 
     def __init__(self, master: Any) -> None:
         super().__init__(master, fg_color="transparent")
@@ -58,9 +58,9 @@ class InversePage(ctk.CTkFrame):
         card.pack(fill="x")
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=24)
-        # One input card per mode, built once and swapped by packing. A matrix
-        # typed for the inverse is still there after a detour through the
-        # system, which is what somebody comparing the two roads expects.
+        # Una tarjeta de entrada por modo, construida una vez y cambiada al mostrarla.
+        # Una matriz escrita para la inversa sigue ahi despues de pasar por el
+        # sistema, que es lo que espera quien compara los dos caminos.
         self._input_holder = ctk.CTkFrame(inside, fg_color="transparent")
         self._input_holder.pack(fill="x")
         self._inputs = {
@@ -78,8 +78,8 @@ class InversePage(ctk.CTkFrame):
             )
             for mode in INVERSE_MODES
         }
-        # No size limit here: inverting is one reduction, and the only real
-        # ceiling is how long the arithmetic takes.
+        # Sin limite de tamano aqui: invertir es una sola reduccion, y el unico techo
+        # real es lo que tarde la aritmetica.
         self._input = self._inputs[self._mode]
         self._input.pack(fill="x")
         self._hint = ctk.CTkLabel(
@@ -96,10 +96,10 @@ class InversePage(ctk.CTkFrame):
         PrimaryButton(self._buttons, "Calcular  →", self._calculate).pack(side="right")
         self._error.appear_before(self._buttons)
 
-    # ----- Choosing a mode -----
+    # ----- Eleccion de modo -----
 
     def _choose_mode(self, mode: str) -> None:
-        """Swap the input card, and with it the hint that only one mode needs."""
+        """Cambia la tarjeta de entrada, y con ella el aviso que solo un modo necesita."""
         self._clear_output()
         self._error.hide()
         self._input.pack_forget()
@@ -112,15 +112,15 @@ class InversePage(ctk.CTkFrame):
         else:
             self._hint.pack_forget()
 
-    # ----- Calculating -----
+    # ----- Calculo -----
 
     def _calculate(self) -> None:
         """
-        Read the matrix, invert it, and draw the cards that follow from it.
+        Lee la matriz, la invierte y dibuja las tarjetas que salen de ahi.
 
-        Equations give a whole augmented matrix, so A is its first `unknowns`
-        columns and b is the rest: the same typing produces both the matrix to
-        invert and the system to solve with it.
+        Las ecuaciones dan una matriz aumentada entera, asi que A son sus primeras
+        unknowns columnas y b es el resto: lo mismo que se escribe produce la matriz
+        que se invierte y el sistema que se resuelve con ella.
         """
         self._clear_output()
         self._error.hide()
@@ -166,10 +166,10 @@ class InversePage(ctk.CTkFrame):
             self._draw_solution(solved)
         self._draw_verification(result, solved)
 
-    # ----- The cards -----
+    # ----- Las tarjetas -----
 
     def _draw_system(self, solved: InverseSystem) -> None:
-        """The system in matrix form, before anything is done to it."""
+        """El sistema en forma matricial, antes de hacerle nada."""
         matrix = solved.inverse_result.original
         inside = self._section("Ecuación matricial  A x = b", f"A es {matrix.rows} × {matrix.cols}")
         unknowns = [unknown_name(column, self._names) for column in range(1, matrix.cols + 1)]
@@ -183,7 +183,7 @@ class InversePage(ctk.CTkFrame):
         ).pack(anchor="w")
 
     def _draw_steps(self, result: InverseResult) -> None:
-        """The reduction of `[A | I]`, one operation at a time, bar included."""
+        """La reduccion de [A | I], operacion por operacion, con la barra incluida."""
         card = Card(self)
         card.pack(fill="x", pady=(16, 0))
         self._output.append(card)
@@ -201,13 +201,13 @@ class InversePage(ctk.CTkFrame):
         self._walker.pack(fill="x")
 
     def _draw_inverse(self, result: InverseResult) -> None:
-        """A⁻¹ itself, which is the right half of the matrix the walk ended on."""
+        """La propia A^-1, que es la mitad derecha de la matriz en que termino el recorrido."""
         inside = self._section("Resultado  A⁻¹", f"Dimensión: {result.inverse.rows} × {result.inverse.cols}")
         Chip(inside, "A es invertible", theme.GREEN).pack(anchor="w", pady=(0, 14))
         MatrixDisplay(inside, result.inverse).pack(anchor="w")
 
     def _draw_solution(self, solved: InverseSystem) -> None:
-        """`x = A⁻¹ b` as the product it is, and then value by value."""
+        """x = A^-1 b como el producto que es, y despues valor por valor."""
         inside = self._section("Solución  x = A⁻¹b")
         (
             Expression(inside)
@@ -226,10 +226,10 @@ class InversePage(ctk.CTkFrame):
 
     def _draw_verification(self, result: InverseResult, solved: InverseSystem | None) -> None:
         """
-        Both products against the identity, and `A x` against b.
+        Los dos productos contra la identidad, y A x contra b.
 
-        The definition asks for `A A⁻¹` and `A⁻¹ A`, so both are drawn rather
-        than one with a note that the other holds too.
+        La definicion pide A A^-1 y A^-1 A, asi que se dibujan los dos en vez de uno
+        con una nota de que el otro tambien se cumple.
         """
         inside = self._section("Comprobación en la matriz original")
         (
@@ -262,10 +262,10 @@ class InversePage(ctk.CTkFrame):
             ).pack(anchor="w")
             Chip(inside, "A x = b  ✓", theme.GREEN).pack(anchor="w", pady=(12, 0))
 
-    # ----- Housekeeping -----
+    # ----- Mantenimiento -----
 
     def _section(self, title: str, badge: str = "") -> ctk.CTkFrame:
-        """A card with its heading, kept so the next calculation can clear it."""
+        """Una tarjeta con su titulo, guardada para que el siguiente calculo la borre."""
         card = Card(self)
         card.pack(fill="x", pady=(16, 0))
         self._output.append(card)
@@ -275,7 +275,7 @@ class InversePage(ctk.CTkFrame):
         return inside
 
     def _clear_output(self) -> None:
-        """A result stops being true the moment the matrix is retyped."""
+        """Un resultado deja de ser cierto en cuanto se cambia la matriz."""
         for card in self._output:
             card.destroy()
         self._output = []
