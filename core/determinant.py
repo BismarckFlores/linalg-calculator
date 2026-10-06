@@ -300,6 +300,16 @@ def by_lu(matrix: Matrix) -> Factorization:
         value,
     )
 
+def drawn_terms(expansion: Cofactors) -> int:
+    """
+    Cuantos sumandos tiene el desarrollo entero, contando los de sus menores.
+
+    Es la medida del arbol: cada sumando es un bloque con su matriz, su signo y
+    su cuenta, asi que esto es lo que costaria dibujarlo. Crece como n!, y por
+    eso hay un tamano a partir del cual no se dibuja sino que se avisa.
+    """
+    return len(expansion.terms) + sum(drawn_terms(term.minor) for term in expansion.terms)
+
 def determinant(matrix: Matrix) -> Scalar:
     """
     El determinante a secas, por el camino mas corto, sin guardar nada.

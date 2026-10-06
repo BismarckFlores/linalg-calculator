@@ -22,7 +22,6 @@ import customtkinter as ctk
 
 from core.determinant import (
     COFACTOR_LIMIT,
-    FULL,
     ROW,
     Cofactors,
     Summand,
@@ -31,6 +30,7 @@ from core.determinant import (
     by_cofactors,
     by_lu,
     costs,
+    drawn_terms,
 )
 from core.matrix import NotSquare
 from core.scalar import format_factor, format_scalar
@@ -65,11 +65,12 @@ DETERMINANT_SUBTITLES = {
 # que alli se resuelve reduciendo a una triangular.
 EXAMPLE_MATRIX = (("1", "-4", "2"), ("-2", "8", "-9"), ("-1", "7", "0"))
 
-# Hasta este orden el desglose entero cabe en pantalla: una 4 x 4 son cuatro
-# menores de 3 x 3 y doce de 2 x 2. De ahi para arriba se recorta, porque el
-# arbol crece como n! y dibujarlo entero no lo leeria nadie (ni lo aguantaria la
-# pantalla: un 6 x 6 completo agota los recursos del servidor grafico).
-FULL_DEPTH_UP_TO = 4
+# Cuantos sumandos se pueden dibujar de una vez. Es un numero medido, no una
+# corazonada: treinta se dibujan en unos cuatro segundos y cuarenta y tres
+# revientan el servidor grafico (BadAlloc al pedir el pixmap, o BadValue porque
+# el lienzo se pasa del alto que admite X). El arbol crece como n!, asi que esta
+# frontera se cruza enseguida: una 5 x 5 entera son 43 sumandos.
+RENDER_LIMIT = 30
 
 # Mas alla de esto, calcular el otro metodo solo para comprobar costaria mas que
 # todo lo demas junto: 8! son 40320 menores.
@@ -182,9 +183,9 @@ class DeterminantPage(ResultsPage):
         crece sin parar.
         """
         line = (
-            f"Cofactores: {cost.cofactor:,} multiplicaciones (del orden de n!).   "
-            f"LU: {cost.lu:,} (del orden de n³/3)."
-        ).replace(",", " ")
+            f"Cofactores: {_thousands(cost.cofactor)} multiplicaciones (del orden de n!).   "
+            f"LU: {_thousands(cost.lu)} (del orden de n³/3)."
+        )
         if cost.order <= 2:
             return line + "\nCon este tamaño los dos son inmediatos: det A = ad − bc."
         if cost.advised == "cofactores":
@@ -193,10 +194,10 @@ class DeterminantPage(ResultsPage):
             )
         if cost.order >= COFACTOR_LIMIT:
             return line + (
-                f"\nLU es unas {cost.times:,} veces más barato. Por cofactores, una matriz de "
+                f"\nLU es unas {_thousands(cost.times)} veces más barato. Por cofactores, una matriz de "
                 "25 × 25 pediría unas 1.5 × 10²⁵ multiplicaciones: ni una computadora que "
                 "haga un billón por segundo terminaría en 500 000 años."
-            ).replace(",", " ")
+            )
         return line + f"\nLU es unas {cost.times} veces más barato, y la distancia crece con n."
 
     # ----- Calcular -----
@@ -214,8 +215,7 @@ class DeterminantPage(ResultsPage):
             if self._method == COFACTORES and matrix.rows > COFACTOR_LIMIT:
                 raise ValueError(
                     f"Una matriz {matrix.rows} × {matrix.rows} por cofactores pide "
-                    f"{costs(matrix.rows).cofactor:,} multiplicaciones. Usa LU."
-                    .replace(",", " ")
+                    f"{_thousands(costs(matrix.rows).cofactor)} multiplicaciones. Usa LU."
                 )
         except NotSquare as problem:
             self._error.show(
@@ -231,9 +231,9 @@ class DeterminantPage(ResultsPage):
         self._advise()
 
         if self._method == COFACTORES:
-            expansion = by_cofactors(matrix, _depth(matrix.rows))
+            expansion, whole = self._drawable(matrix)
             self._draw_answer(expansion.value, matrix.rows)
-            self._draw_cofactors(expansion)
+            self._draw_cofactors(expansion, whole)
         else:
             factorization = by_lu(matrix)
             self._draw_answer(factorization.value, matrix.rows)
@@ -275,7 +275,28 @@ class DeterminantPage(ResultsPage):
 
     # ----- Por cofactores -----
 
-    def _draw_cofactors(self, expansion: Cofactors) -> None:
+    def _drawable(self, matrix: Any) -> tuple[Cofactors, Cofactors | None]:
+        """
+        El desglose mas hondo que se puede dibujar, y el entero cuando no cabe.
+
+        Se mide el arbol completo; si pasa de lo que la ventana aguanta, se baja
+        un nivel y se vuelve a medir, hasta dar con el mas hondo que cabe. Lo que
+        se devuelve en segundo lugar es el arbol entero, para poder decir de que
+        tamano era lo que no se dibujo.
+        """
+        whole = by_cofactors(matrix)
+        if drawn_terms(whole) <= RENDER_LIMIT:
+            return whole, None
+
+        drawable = by_cofactors(matrix, 1)
+        depth = 2
+        while True:
+            deeper = by_cofactors(matrix, depth)
+            if drawn_terms(deeper) > RENDER_LIMIT:
+                return drawable, whole
+            drawable, depth = deeper, depth + 1
+
+    def _draw_cofactors(self, expansion: Cofactors, whole: Cofactors | None = None) -> None:
         """
         El desarrollo entero, nivel por nivel, hasta el orden 2.
 
@@ -297,7 +318,31 @@ class DeterminantPage(ResultsPage):
             "tachar su fila y su columna. Cada menor se desarrolla igual, hasta llegar a "
             "una matriz 2 × 2, que se resuelve con ad − bc.",
         ).pack_configure(pady=(0, 14))
+        if whole is not None:
+            self._warn_about_size(inside, expansion, whole)
         self._draw_expansion(inside, expansion, "det A")
+
+    def _warn_about_size(self, master: Any, drawable: Cofactors, whole: Cofactors) -> None:
+        """
+        Que el arbol entero no cabe, con los dos tamanos para que se vea por que.
+
+        Nunca se dibuja a medias en silencio: el desglose que falta es el
+        procedimiento, y quien lo esta leyendo tiene que saber que se corto y
+        donde. Los valores no cambian, solo deja de verse como se obtuvieron.
+        """
+        Chip(
+            master,
+            f"Árbol demasiado grande para dibujarlo entero",
+            theme.ORANGE,
+        ).pack(anchor="w", pady=(0, 8))
+        self._muted(
+            master,
+            f"El desglose completo son {_thousands(drawn_terms(whole))} sumandos en "
+            f"{_levels(whole)} niveles, y la ventana no aguanta esa altura. Se dibujan "
+            f"{_levels(drawable)} niveles ({_thousands(drawn_terms(drawable))} sumandos); "
+            "los menores que quedan sin romper muestran su valor, calculado por el mismo "
+            "método.",
+        ).pack_configure(pady=(0, 14))
 
     def _draw_expansion(self, master: Any, expansion: Cofactors, name: str) -> None:
         """Un determinante y lo que hay debajo de el, sea una suma o una regla."""
@@ -475,16 +520,9 @@ class DeterminantPage(ResultsPage):
 
 
 
-def _depth(order: int) -> int:
-    """
-    Cuantos niveles del desglose se dibujan para una matriz de este orden.
-
-    Hasta 4 x 4, todos. Mas arriba se recorta: con 5 x 5 se ensenan dos niveles,
-    que ya son veinte sumandos, y de 6 x 6 en adelante solo el primero.
-    """
-    if order <= FULL_DEPTH_UP_TO:
-        return FULL
-    return 2 if order == FULL_DEPTH_UP_TO + 1 else 1
+def _thousands(number: int) -> str:
+    """Un numero largo con sus miles separados por un espacio: 40 320."""
+    return f"{number:,}".replace(",", " ")
 
 def _levels(expansion: Cofactors) -> int:
     """Cuantos niveles de desglose tiene este desarrollo, contandose a si mismo."""

@@ -335,11 +335,18 @@ written out as `ad − bc` and ends the recursion. That nesting is the step by
 step here: the answer only appears once the last minor has been broken all the
 way down. The badge counts the levels.
 
-A 4 × 4 is drawn whole — four minors of 3 × 3 and twelve of 2 × 2. Above that
-the drawing is capped, since the tree grows like n!: a 5 × 5 shows two levels
-and anything larger one, and a minor left unbroken says so instead of
-pretending. The cap is not cosmetic: a 6 × 6 drawn in full exhausts the X
-server's resources.
+How much of that tree fits is measured, not guessed. The page counts the
+summands the full expansion would draw and, when there are more than thirty,
+takes the deepest expansion that stays under it and **says so**: *"El desglose
+completo son 169 sumandos en 5 niveles, y la ventana no aguanta esa altura. Se
+dibujan 3 niveles (17 sumandos)."* Each minor left unbroken repeats the point
+where it stands, with its value.
+
+Thirty is where the drawing actually breaks, not a round number: thirty
+summands take about four seconds, and forty-three kill the X server — `BadAlloc`
+asking for a pixmap, or `BadValue` because the canvas passes the height X
+allows. A 4 × 4 is twelve summands and is always drawn whole; a 5 × 5 is
+fifty-one and never is.
 
 **LU** reduces with row replacements, which do not change the determinant,
 keeping each multiplier in L. The reduction runs on a `Worksheet`, like every
