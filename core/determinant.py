@@ -28,7 +28,8 @@ from dataclasses import dataclass
 
 from .matrix import Matrix
 from .scalar import Scalar
-from .steps import label_add_scaled, label_swap
+from .steps import StepLog
+from .worksheet import Worksheet
 
 # Hasta este tamano, un desarrollo por cofactores todavia termina en un instante.
 # Mas alla, 7! = 5040 menores de orden 6 y subiendo: es justo lo que el enunciado
@@ -106,19 +107,6 @@ ROW = "fila"
 COLUMN = "columna"
 
 @dataclass(frozen=True)
-class RowStep:
-    """
-    Un paso de la reduccion: un reemplazo de fila, o un intercambio.
-
-    La etiqueta se escribe con las mismas funciones que el resto del proyecto,
-    asi que un paso de aqui se lee igual que uno de la eliminacion: f_3 -> f_3 +
-    4*f_1, con el signo ya plegado en la operacion.
-    """
-
-    label: str
-    swap: bool
-
-@dataclass(frozen=True)
 class Factorization:
     """
     La factorizacion PA = LU, y el determinante que se lee en la diagonal de U.
@@ -126,6 +114,11 @@ class Factorization:
     `swaps` cuenta los intercambios de fila, que son los que cambian el signo.
     Cuando no hubo ninguno, P es la identidad y la factorizacion es la A = LU de
     las diapositivas.
+
+    `log` es el registro de la reduccion, el mismo que lleva cualquier otra
+    eliminacion del proyecto: la matriz de partida y, por cada operacion, la que
+    quedo despues. Con el, la ventana recorre la reduccion paso a paso sin tener
+    que recalcular nada.
     """
 
     matrix: Matrix
@@ -133,7 +126,7 @@ class Factorization:
     upper: Matrix
     permutation: Matrix
     swaps: int
-    steps: tuple[RowStep, ...]
+    log: StepLog
     diagonal: tuple[Scalar, ...]
     value: Scalar
 
@@ -205,44 +198,49 @@ def by_lu(matrix: Matrix) -> Factorization:
     Una columna entera de ceros desde el pivote hacia abajo deja un cero en la
     diagonal de U, y entonces el determinante es cero: no hay nada que arreglar
     y la reduccion sigue hasta el final igual.
+
+    La reduccion corre sobre un Worksheet, que es donde una operacion elemental
+    ocurre y queda apuntada a la vez. Asi, el paso a paso de esta pagina es el
+    mismo objeto que el de la eliminacion, y no puede contar una historia
+    distinta de la que produjo L y U.
     """
     _require_square(matrix)
     order = matrix.rows
 
-    upper = [list(row) for row in matrix.data]
+    sheet = Worksheet(matrix, "Factorizacion LU")
     lower = [[Scalar(1) if i == j else Scalar(0) for j in range(order)] for i in range(order)]
     permutation = [[Scalar(1) if i == j else Scalar(0) for j in range(order)] for i in range(order)]
-    steps: list[RowStep] = []
     swaps = 0
 
-    for column in range(order):
-        pivot = _pivot_row(upper, column)
+    for column in range(1, order + 1):
+        pivot = _pivot_row(sheet.matrix, column)
         if pivot is None:
             continue
         if pivot != column:
-            upper[column], upper[pivot] = upper[pivot], upper[column]
-            permutation[column], permutation[pivot] = permutation[pivot], permutation[column]
+            sheet.swap(column, pivot)
+            permutation[column - 1], permutation[pivot - 1] = (
+                permutation[pivot - 1], permutation[column - 1]
+            )
             # Los multiplicadores ya guardados viajan con su fila: pertenecen a la
             # ecuacion, no al lugar que ocupaba antes del intercambio.
-            for before in range(column):
-                lower[column][before], lower[pivot][before] = (
-                    lower[pivot][before], lower[column][before]
+            for before in range(column - 1):
+                lower[column - 1][before], lower[pivot - 1][before] = (
+                    lower[pivot - 1][before], lower[column - 1][before]
                 )
             swaps += 1
-            steps.append(RowStep(label_swap(column + 1, pivot + 1), True))
 
-        for row in range(column + 1, order):
-            if upper[row][column] == 0:
+        for row in range(column + 1, order + 1):
+            entry = sheet.matrix.elem(row, column)
+            if entry == 0:
                 continue
-            factor = upper[row][column] / upper[column][column]
-            lower[row][column] = factor
-            for col in range(column, order):
-                upper[row][col] -= factor * upper[column][col]
+            factor = entry / sheet.matrix.elem(column, column)
+            lower[row - 1][column - 1] = factor
             # Restar factor veces la fila del pivote es sumar -factor veces, que es
             # como lo escribe el resto del proyecto y como se escribe a mano.
-            steps.append(RowStep(label_add_scaled(row + 1, column + 1, -factor), False))
+            sheet.add_scaled(row, column, -factor)
 
-    diagonal = tuple(upper[i][i] for i in range(order))
+    upper = sheet.matrix
+    diagonal = tuple(upper.elem(i, i) for i in range(1, order + 1))
     value = Scalar(-1) ** swaps
     for entry in diagonal:
         value *= entry
@@ -250,10 +248,10 @@ def by_lu(matrix: Matrix) -> Factorization:
     return Factorization(
         matrix,
         Matrix(lower),
-        Matrix(upper),
+        upper,
         Matrix(permutation),
         swaps,
-        tuple(steps),
+        sheet.log,
         diagonal,
         value,
     )
@@ -297,10 +295,10 @@ def best_line(matrix: Matrix) -> tuple[str, int]:
         return COLUMN, best_col + 1
     return ROW, best_row + 1
 
-def _pivot_row(rows: list[list[Scalar]], column: int) -> int | None:
+def _pivot_row(matrix: Matrix, column: int) -> int | None:
     """La primera fila de esta columna hacia abajo con una entrada no nula."""
-    for row in range(column, len(rows)):
-        if rows[row][column] != 0:
+    for row in range(column, matrix.rows + 1):
+        if matrix.elem(row, column) != 0:
             return row
     return None
 

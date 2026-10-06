@@ -276,7 +276,9 @@ the `minor` and its value, the `cofactor` and the `amount` it contributes.
 Entries equal to zero are left out: their minor is never computed.
 
 **`Factorization`** — `matrix`, `lower`, `upper`, `permutation`, the number of
-`swaps`, the `steps`, the `diagonal` of U and the `value`. `permuted` is true
+`swaps`, the `log` of the reduction, the `diagonal` of U and the `value`. The
+log is a `StepLog` like any other elimination's, so the window walks it with
+`StepWalker` and nothing is recomputed. `permuted` is true
 when rows had to be swapped, which is when `P` stops being the identity.
 
 **`Costs`** — `order`, `cofactor` and `lu` multiplication counts, `advised`,

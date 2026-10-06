@@ -32,7 +32,7 @@ from core.determinant import (
     costs,
 )
 from core.scalar import format_factor, format_scalar
-from ui.presentation import SUBSCRIPTS, SUPERSCRIPTS, pretty_label
+from ui.presentation import SUBSCRIPTS, SUPERSCRIPTS
 
 from .. import theme
 from ..entry import UNREADABLE, SystemInput
@@ -47,6 +47,7 @@ from ..widgets import (
     PrimaryButton,
     SectionTitle,
     SegmentedControl,
+    StepWalker,
 )
 
 COFACTORES = "Cofactores"
@@ -318,8 +319,7 @@ class DeterminantPage(ctk.CTkFrame):
 
     def _draw_lu(self, lu: Factorization) -> None:
         """La reduccion, las dos matrices, y la diagonal que da el determinante."""
-        name = "P A = L U" if lu.permuted else "A = L U"
-        inside = self._card(f"Factorización  {name}", f"{len(lu.steps)} operaciones")
+        inside, counter = self._titled_card("Paso a paso", " ")
         self._muted(
             inside,
             "Se hacen ceros debajo de cada pivote con reemplazos de fila, que no cambian "
@@ -330,17 +330,16 @@ class DeterminantPage(ctk.CTkFrame):
                 if lu.permuted
                 else " No hizo falta ningún intercambio, así que P es la identidad."
             ),
-        ).pack_configure(pady=(0, 12))
+        ).pack_configure(pady=(0, 14))
+        StepWalker(
+            inside,
+            lu.log,
+            first_caption="Matriz A",
+            on_step=lambda index, total: counter.set_badge(f"{index + 1} / {total}"),
+        ).pack(fill="x")
 
-        for step in lu.steps:
-            ctk.CTkLabel(
-                inside,
-                text="  " + pretty_label(step.label),
-                font=theme.font("mono"),
-                text_color=theme.ORANGE if step.swap else theme.MUTED,
-                anchor="w",
-            ).pack(anchor="w")
-
+        name = "P A = L U" if lu.permuted else "A = L U"
+        inside = self._card(f"Factorización  {name}")
         written = Expression(inside)
         if lu.permuted:
             written.matrix(lu.permutation, "P").symbol("·")
@@ -403,13 +402,25 @@ class DeterminantPage(ctk.CTkFrame):
     # ----- Mantenimiento -----
 
     def _card(self, title: str, badge: str = "") -> ctk.CTkFrame:
+        """Una tarjeta con su titulo, guardada para que el siguiente calculo la borre."""
+        inside, _heading = self._titled_card(title, badge)
+        return inside
+
+    def _titled_card(self, title: str, badge: str = "") -> tuple[ctk.CTkFrame, SectionTitle]:
+        """
+        Lo mismo, devolviendo tambien el titulo.
+
+        El paso a paso lleva la cuenta en su insignia (3 / 7), asi que necesita
+        poder escribir en ella cada vez que alguien se mueve de paso.
+        """
         card = Card(self)
         card.pack(fill="x", pady=(16, 0))
         self._output.append(card)
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(inside, title, badge).pack(fill="x", pady=(0, 12))
-        return inside
+        heading = SectionTitle(inside, title, badge)
+        heading.pack(fill="x", pady=(0, 12))
+        return inside, heading
 
     def _muted(self, master: Any, text: str) -> ctk.CTkLabel:
         label = ctk.CTkLabel(

@@ -330,8 +330,11 @@ drawn in full: the entry, `(−1)^(i+j)`, the minor as a matrix, its determinant
 and the product the three make. The sum of the terms is the answer.
 
 **LU** reduces with row replacements, which do not change the determinant,
-keeping each multiplier in L. It draws the operations, then `A = L U`, and then
-the diagonal of U multiplied out. When a pivot is zero the rows are swapped, so
+keeping each multiplier in L. The reduction runs on a `Worksheet`, like every
+other elimination here, so it is walked with the same **Paso a paso** card —
+previous, next, the dots, and `Ver todos los pasos` — and the matrices shown
+are the ones that produced L and U rather than a retelling. Then it draws
+`A = L U`, and then the diagonal of U multiplied out. When a pivot is zero the rows are swapped, so
 what is factorised is `P A = L U` and the sign flips once per swap — the page
 says so and writes `(−1)^k` in front of the product.
 
