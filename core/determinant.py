@@ -40,6 +40,10 @@ COFACTOR_LIMIT = 8
 # siendo el camino corto; de 4 x 4 en adelante gana LU.
 LU_FROM = 4
 
+# Desarrollar sin limite: cada menor se parte hasta el orden 2. Para los tamanos
+# que esta pagina admite, el arbol entero cabe en pantalla.
+FULL = 99
+
 @dataclass(frozen=True)
 class Costs:
     """
@@ -61,39 +65,77 @@ class Costs:
         return self.cofactor // self.lu if self.lu else 0
 
 @dataclass(frozen=True)
+class Rule:
+    """
+    El determinante de una 2 x 2, que es donde el desarrollo toca fondo.
+
+    Una matriz de orden 2 no necesita menores: su determinante es ad - bc, el
+    producto de la diagonal principal menos el de la secundaria.
+    """
+
+    a: Scalar
+    b: Scalar
+    c: Scalar
+    d: Scalar
+
+    @property
+    def value(self) -> Scalar:
+        """ad - bc."""
+        return self.a * self.d - self.b * self.c
+
+@dataclass(frozen=True)
 class Summand:
     """
     Un sumando del desarrollo: la entrada, su menor, su signo y lo que aporta.
 
-    `sign` es (-1)^(i+j), `minor` es la matriz que queda al tachar la fila y la
-    columna de la entrada, y `cofactor` es sign * det(minor). El aporte al
-    determinante es entry * cofactor.
+    `sign` es (-1)^(i+j) y `minor` es el menor entero, con su propio desarrollo
+    colgando: es el mismo tipo que lo contiene, porque un menor se calcula igual
+    que la matriz de la que salio. `cofactor` es sign por lo que vale el menor, y
+    el aporte al determinante es entry * cofactor.
     """
 
     row: int
     col: int
     entry: Scalar
     sign: int
-    minor: Matrix
-    minor_value: Scalar
+    minor: "Cofactors"
     cofactor: Scalar
     amount: Scalar
+
+    @property
+    def minor_value(self) -> Scalar:
+        """Lo que vale el menor, que es lo unico que necesita la suma."""
+        return self.minor.value
 
 @dataclass(frozen=True)
 class Cofactors:
     """
-    Un determinante calculado por cofactores, con los sumandos que lo forman.
+    Un determinante por cofactores, con el desarrollo entero colgando de el.
 
     `along` dice si el desarrollo fue por una fila o por una columna, e `index`
-    cual de las dos. Los terminos con entrada cero no se guardan: su aporte es
-    cero y su menor no se calcula, que es el unico ahorro que admite el metodo.
+    cual de las dos. Cada sumando lleva su menor, y ese menor lleva su propio
+    desarrollo, asi hacia abajo hasta el orden 2, donde `rule` escribe ad - bc y
+    la recursion se detiene. Una matriz de orden 1 no tiene ni lo uno ni lo otro:
+    su determinante es su unica entrada.
+
+    Los terminos con entrada cero no se guardan: su aporte es cero y su menor ni
+    se calcula, que es el unico ahorro que admite el metodo.
+
+    Cuando el desarrollo se corta por profundidad, terms y rule quedan vacios: el
+    valor esta, pero calculado por otro camino y sin procedimiento que ensenar.
     """
 
     matrix: Matrix
     along: str
     index: int
     terms: tuple[Summand, ...]
+    rule: Rule | None
     value: Scalar
+
+    @property
+    def expanded(self) -> bool:
+        """Si este determinante trae su procedimiento o solo su numero."""
+        return bool(self.terms) or self.rule is not None
 
 ROW = "fila"
 COLUMN = "columna"
@@ -145,22 +187,33 @@ def costs(order: int) -> Costs:
     advised = "LU" if order >= LU_FROM else "cofactores"
     return Costs(order, cofactor, lu, advised)
 
-def by_cofactors(matrix: Matrix) -> Cofactors:
+def by_cofactors(matrix: Matrix, depth: int = FULL) -> Cofactors:
     """
     El determinante por el desarrollo de cofactores, a lo largo de la mejor linea.
 
     Se desarrolla por la fila o la columna que mas ceros tenga, porque cada cero
     se salta un menor entero. Es la misma eleccion que se hace a mano y la unica
     manera de que el metodo no cueste siempre lo mismo.
+
+    Cada menor se desarrolla igual, y asi hacia abajo hasta el orden 2, que se
+    resuelve con ad - bc. depth es cuantos niveles de ese desglose se guardan:
+    pasado ese limite el menor sigue valiendo lo mismo, pero calculado por otro
+    camino y sin procedimiento que ensenar.
     """
     matrix.require_square()
-    along, index = best_line(matrix)
     order = matrix.rows
 
     if order == 1:
-        value = matrix.elem(1, 1)
-        return Cofactors(matrix, along, index, (), value)
+        return Cofactors(matrix, "", 0, (), None, matrix.elem(1, 1))
 
+    if order == 2:
+        rule = Rule(matrix.elem(1, 1), matrix.elem(1, 2), matrix.elem(2, 1), matrix.elem(2, 2))
+        return Cofactors(matrix, "", 0, (), rule, rule.value)
+
+    if depth <= 0:
+        return Cofactors(matrix, "", 0, (), None, determinant(matrix))
+
+    along, index = best_line(matrix)
     terms: list[Summand] = []
     value = Scalar(0)
     for other in range(1, order + 1):
@@ -168,15 +221,14 @@ def by_cofactors(matrix: Matrix) -> Cofactors:
         entry = matrix.elem(row, col)
         if entry == 0:
             continue
-        minor = matrix.minor(row, col)
-        minor_value = determinant(minor)
+        minor = by_cofactors(matrix.minor(row, col), depth - 1)
         sign = -1 if (row + col) % 2 else 1
-        cofactor = sign * minor_value
+        cofactor = sign * minor.value
         amount = entry * cofactor
-        terms.append(Summand(row, col, entry, sign, minor, minor_value, cofactor, amount))
+        terms.append(Summand(row, col, entry, sign, minor, cofactor, amount))
         value += amount
 
-    return Cofactors(matrix, along, index, tuple(terms), value)
+    return Cofactors(matrix, along, index, tuple(terms), None, value)
 
 def by_lu(matrix: Matrix) -> Factorization:
     """

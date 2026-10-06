@@ -326,8 +326,20 @@ also what somebody follows by hand; from 4 × 4 on it says LU and by how much.
 
 **Cofactores** expands along the row or column with the most zeros, since each
 zero skips a whole minor, and says which line it chose and why. Every term is
-drawn in full: the entry, `(−1)^(i+j)`, the minor as a matrix, its determinant
-and the product the three make. The sum of the terms is the answer.
+drawn in full: the entry, `(−1)ⁱ⁺ʲ`, the minor as a matrix, and the product the
+three make.
+
+The minor is not left as a number. Underneath each term, indented, comes that
+minor's own expansion, and under its terms theirs, down to a 2 × 2, which is
+written out as `ad − bc` and ends the recursion. That nesting is the step by
+step here: the answer only appears once the last minor has been broken all the
+way down. The badge counts the levels.
+
+A 4 × 4 is drawn whole — four minors of 3 × 3 and twelve of 2 × 2. Above that
+the drawing is capped, since the tree grows like n!: a 5 × 5 shows two levels
+and anything larger one, and a minor left unbroken says so instead of
+pretending. The cap is not cosmetic: a 6 × 6 drawn in full exhausts the X
+server's resources.
 
 **LU** reduces with row replacements, which do not change the determinant,
 keeping each multiplier in L. The reduction runs on a `Worksheet`, like every

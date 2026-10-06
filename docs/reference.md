@@ -262,7 +262,7 @@ The determinant, by both methods the course teaches, with the working kept.
 
 | Name | Meaning |
 | --- | --- |
-| `by_cofactors(matrix) -> Cofactors` | Expansion along the line with the most zeros. Raises `NotSquare`. The minors come from `Matrix.minor`. |
+| `by_cofactors(matrix, depth=FULL) -> Cofactors` | Expansion along the line with the most zeros, recursive: each minor carries its own expansion, down to the 2 × 2 that `Rule` writes as `ad − bc`. `depth` caps how many levels keep their working. Raises `NotSquare`. |
 | `by_lu(matrix) -> Factorization` | `PA = LU` by row replacement, with swaps counted. Raises `NotSquare`. |
 | `determinant(matrix) -> Scalar` | The number alone, by the shortest road: the formula up to 2 × 2, LU above it. |
 | `costs(order) -> Costs` | What each method would cost for that order, and which is advised. |
@@ -270,9 +270,14 @@ The determinant, by both methods the course teaches, with the working kept.
 | `COFACTOR_LIMIT`, `LU_FROM` | 8, past which cofactors are refused, and 4, from which LU is advised. |
 
 **`Cofactors`** — the `matrix`, the line it expanded `along` and its `index`,
-the `terms` and the `value`. Each **`Summand`** carries the entry, its `sign`,
-the `minor` and its value, the `cofactor` and the `amount` it contributes.
-Entries equal to zero are left out: their minor is never computed.
+the `terms`, the `rule` and the `value`; `expanded` says whether it carries its
+working or only its number. Each **`Summand`** carries the entry, its `sign`,
+the `minor` — another `Cofactors`, which is what makes the structure recursive
+— the `cofactor` and the `amount` it contributes. Entries equal to zero are
+left out: their minor is never computed.
+
+**`Rule`** — `a`, `b`, `c`, `d` and the `value` they make, `ad − bc`. It is the
+bottom of the recursion: an order-2 determinant needs no minors.
 
 **`Factorization`** — `matrix`, `lower`, `upper`, `permutation`, the number of
 `swaps`, the `log` of the reduction, the `diagonal` of U and the `value`. The

@@ -22,8 +22,10 @@ import customtkinter as ctk
 
 from core.determinant import (
     COFACTOR_LIMIT,
+    FULL,
     ROW,
     Cofactors,
+    Summand,
     Costs,
     Factorization,
     by_cofactors,
@@ -62,6 +64,12 @@ DETERMINANT_SUBTITLES = {
 # El ejemplo con que abre la pagina es el de la presentacion del curso, el mismo
 # que alli se resuelve reduciendo a una triangular.
 EXAMPLE_MATRIX = (("1", "-4", "2"), ("-2", "8", "-9"), ("-1", "7", "0"))
+
+# Hasta este orden el desglose entero cabe en pantalla: una 4 x 4 son cuatro
+# menores de 3 x 3 y doce de 2 x 2. De ahi para arriba se recorta, porque el
+# arbol crece como n! y dibujarlo entero no lo leeria nadie (ni lo aguantaria la
+# pantalla: un 6 x 6 completo agota los recursos del servidor grafico).
+FULL_DEPTH_UP_TO = 4
 
 # Mas alla de esto, calcular el otro metodo solo para comprobar costaria mas que
 # todo lo demas junto: 8! son 40320 menores.
@@ -223,7 +231,7 @@ class DeterminantPage(ResultsPage):
         self._advise()
 
         if self._method == COFACTORES:
-            expansion = by_cofactors(matrix)
+            expansion = by_cofactors(matrix, _depth(matrix.rows))
             self._draw_answer(expansion.value, matrix.rows)
             self._draw_cofactors(expansion)
         else:
@@ -268,51 +276,113 @@ class DeterminantPage(ResultsPage):
     # ----- Por cofactores -----
 
     def _draw_cofactors(self, expansion: Cofactors) -> None:
-        """Cada entrada de la linea elegida, con su menor, su signo y su aporte."""
+        """
+        El desarrollo entero, nivel por nivel, hasta el orden 2.
+
+        Cada sumando lleva su menor debajo, desplazado a la derecha y
+        desarrollado igual que su padre, hasta que el menor es una 2 x 2 y se
+        resuelve con ad - bc. Esa sangria es todo el paso a paso: la respuesta no
+        aparece hasta que el ultimo menor se ha roto del todo.
+        """
         line = "fila" if expansion.along == ROW else "columna"
         inside = self._card(
-            f"Desarrollo por la {line} {expansion.index}", f"{len(expansion.terms)} sumandos"
+            f"Desarrollo por la {line} {expansion.index}",
+            f"{_levels(expansion)} niveles",
         )
         self._muted(
             inside,
             f"Se desarrolla por la {line} {expansion.index} porque es la que más ceros "
             "tiene: cada cero se salta un menor entero. El cofactor de una entrada es "
             "C = (−1)ⁱ⁺ʲ · M, donde el menor M es el determinante de lo que queda al "
-            "tachar su fila y su columna.",
+            "tachar su fila y su columna. Cada menor se desarrolla igual, hasta llegar a "
+            "una matriz 2 × 2, que se resuelve con ad − bc.",
         ).pack_configure(pady=(0, 14))
+        self._draw_expansion(inside, expansion, "det A")
 
+    def _draw_expansion(self, master: Any, expansion: Cofactors, name: str) -> None:
+        """Un determinante y lo que hay debajo de el, sea una suma o una regla."""
+        if expansion.rule is not None:
+            self._draw_rule(master, expansion, name)
+            return
+        if not expansion.expanded:
+            self._mono(master, f"{name}  =  {format_scalar(expansion.value)}").pack(anchor="w")
+            self._muted(
+                master,
+                f"Este menor de {expansion.matrix.rows} × {expansion.matrix.rows} no se "
+                "desglosa aquí: serían demasiados menores para una pantalla. Su valor sale "
+                "del mismo método, calculado aparte.",
+            ).pack_configure(pady=(4, 0))
+            return
         if not expansion.terms:
-            self._muted(inside, "Todas las entradas son cero, así que el determinante es cero.")
+            self._muted(master, "Toda la línea es cero, así que el determinante es cero.")
             return
 
         for term in expansion.terms:
-            block = ctk.CTkFrame(inside, fg_color="transparent")
-            block.pack(anchor="w", pady=(0, 12))
-            sign = "+" if term.sign > 0 else "−"
-            (
-                Expression(block)
-                .symbol(f"a{subscript(term.row)}{subscript(term.col)} = "
-                        f"{format_scalar(term.entry)}", theme.ACCENT)
-                .symbol(f"·  (−1){superscript(term.row)}⁺{superscript(term.col)} = {sign}1")
-                .symbol("·  det")
-                .matrix(term.minor, f"M{subscript(term.row)}{subscript(term.col)}")
-                .symbol(f"=  {format_scalar(term.minor_value)}")
-            ).pack(anchor="w")
-            MathChip(
-                block,
-                f"{format_factor(term.entry)} · ({sign}1) · "
-                f"{format_factor(term.minor_value)}  =  {format_scalar(term.amount)}",
-            ).pack(anchor="w", pady=(8, 0))
+            self._draw_term(master, term)
 
+        # Con un solo sumando, la suma y su resultado son la misma linea escrita
+        # dos veces, y nadie escribe eso: 20 = 20.
         total = " + ".join(format_scalar(term.amount) for term in expansion.terms)
-        self._muted(inside, "Sumando los aportes:").pack_configure(pady=(4, 6))
-        ctk.CTkLabel(
-            inside,
-            text=f"det A  =  {total}  =  {format_scalar(expansion.value)}".replace("+ -", "− "),
-            font=theme.font("mono"),
-            text_color=theme.ACCENT,
-            anchor="w",
+        written = format_scalar(expansion.value) if len(expansion.terms) == 1 else (
+            f"{total}  =  {format_scalar(expansion.value)}"
+        )
+        self._mono(
+            master, f"{name}  =  {written}".replace("+ -", "− "), theme.ACCENT
+        ).pack(anchor="w", pady=(6, 0))
+
+    def _draw_term(self, master: Any, term: Summand) -> None:
+        """Una entrada por su cofactor, y debajo el menor que todavia falta resolver."""
+        indices = f"{subscript(term.row)}{subscript(term.col)}"
+        sign = "+" if term.sign > 0 else "−"
+        block = ctk.CTkFrame(master, fg_color="transparent")
+        block.pack(anchor="w", pady=(0, 10))
+        (
+            Expression(block)
+            .symbol(f"a{indices} = {format_scalar(term.entry)}", theme.ACCENT)
+            .symbol(f"·  (−1){superscript(term.row)}⁺{superscript(term.col)} = {sign}1")
+            .symbol("·  det")
+            .matrix(term.minor.matrix, f"M{indices}")
         ).pack(anchor="w")
+
+        # El menor cuelga del sumando, indentado: lo que sigue es como se obtiene
+        # ese numero, y sin el la cuenta de arriba seria un acto de fe.
+        nested = ctk.CTkFrame(block, fg_color="transparent")
+        nested.pack(anchor="w", fill="x", padx=(28, 0), pady=(8, 0))
+        if term.minor.expanded and term.minor.rule is None:
+            self._muted(
+                nested,
+                f"M{indices} es {term.minor.matrix.rows} × {term.minor.matrix.cols}: "
+                f"se desarrolla por la "
+                f"{'fila' if term.minor.along == ROW else 'columna'} {term.minor.index}.",
+            ).pack_configure(pady=(0, 8))
+        self._draw_expansion(nested, term.minor, f"M{indices}")
+
+        MathChip(
+            block,
+            f"{format_factor(term.entry)} · ({sign}1) · "
+            f"{format_factor(term.minor_value)}  =  {format_scalar(term.amount)}",
+        ).pack(anchor="w", pady=(8, 0))
+
+    def _draw_rule(self, master: Any, expansion: Cofactors, name: str) -> None:
+        """El fondo de la recursion: una 2 x 2 es ad − bc y ahi se acaba."""
+        rule = expansion.rule
+        assert rule is not None
+        (
+            Expression(master)
+            .symbol(f"{name} = det")
+            .matrix(expansion.matrix)
+            .symbol(
+                f"=  {format_factor(rule.a)}·{format_factor(rule.d)} − "
+                f"{format_factor(rule.b)}·{format_factor(rule.c)}  =  "
+                f"{format_scalar(expansion.value)}",
+                theme.ACCENT,
+            )
+        ).pack(anchor="w")
+
+    def _mono(self, master: Any, text: str, color: Any = theme.INK) -> ctk.CTkLabel:
+        return ctk.CTkLabel(
+            master, text=text, font=theme.font("mono"), text_color=color, anchor="w",
+        )
 
     # ----- Por LU -----
 
@@ -404,3 +474,19 @@ class DeterminantPage(ResultsPage):
 
 
 
+
+def _depth(order: int) -> int:
+    """
+    Cuantos niveles del desglose se dibujan para una matriz de este orden.
+
+    Hasta 4 x 4, todos. Mas arriba se recorta: con 5 x 5 se ensenan dos niveles,
+    que ya son veinte sumandos, y de 6 x 6 en adelante solo el primero.
+    """
+    if order <= FULL_DEPTH_UP_TO:
+        return FULL
+    return 2 if order == FULL_DEPTH_UP_TO + 1 else 1
+
+def _levels(expansion: Cofactors) -> int:
+    """Cuantos niveles de desglose tiene este desarrollo, contandose a si mismo."""
+    deeper = [_levels(term.minor) for term in expansion.terms]
+    return 1 + (max(deeper) if deeper else 0)

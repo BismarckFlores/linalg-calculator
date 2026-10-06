@@ -354,6 +354,17 @@ check("1 x 1 es su unica entrada", determinant(Matrix([[7]])), 7)
 check("el menor tacha fila y columna", curso.minor(3, 2).data,
       [[Fraction(1), Fraction(2)], [Fraction(-2), Fraction(-9)]])
 check("se desarrolla por la linea con mas ceros", best_line(curso), ("fila", 3))
+# El desarrollo se parte hasta el orden 2, donde termina en ad - bc.
+grande = Matrix([[5, -7, 2, 2], [0, 3, 0, -4], [-5, -8, 0, 3], [0, 5, 0, -6]])
+arbol = by_cofactors(grande)
+check("el 4 x 4 se desarrolla", arbol.value, 20)
+check("su menor trae su propio desarrollo", arbol.terms[0].minor.expanded, True)
+dentro = arbol.terms[0].minor.terms[0].minor
+check("el fondo es una 2 x 2 con su regla", (dentro.matrix.rows, dentro.rule is not None), (2, True))
+check("y la regla es ad - bc", (dentro.rule.a * dentro.rule.d - dentro.rule.b * dentro.rule.c
+                                if dentro.rule else None), dentro.value)
+check("cortar la profundidad deja el valor pero no el camino",
+      (by_cofactors(grande, 1).value, by_cofactors(grande, 1).terms[0].minor.expanded), (20, False))
 # El ejemplo del pptx de LU: L y U son las de la diapositiva.
 lu = by_lu(Matrix([[3, -7, -2, 2], [-3, 5, 1, 0], [6, -4, 0, -5], [-9, 5, -5, 12]]))
 check("L es triangular inferior con unos", [row[:i + 1] for i, row in enumerate(lu.lower.data)],
