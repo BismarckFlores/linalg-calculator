@@ -19,6 +19,20 @@ def _is_row(value: object) -> bool:
     """Una secuencia de valores, pero no un texto: str tambien es una secuencia."""
     return isinstance(value, Sequence) and not isinstance(value, (str, bytes))
 
+class NotSquare(ValueError):
+    """
+    Una matriz que no es cuadrada, donde hacia falta una que lo fuera.
+
+    La inversa y el determinante solo existen para matrices cuadradas, y las dos
+    paginas que los calculan tienen que decirlo con los dos tamanos a la vista,
+    asi que el error los lleva.
+    """
+
+    def __init__(self, rows: int, cols: int) -> None:
+        super().__init__(f"A {rows}x{cols} matrix must be square.")
+        self.rows = rows
+        self.cols = cols
+
 class Matrix:
     """Un rectangulo de m x n numeros racionales exactos."""
 
@@ -55,6 +69,11 @@ class Matrix:
         """La diagonal principal, hasta donde llegue."""
         return [self.data[i][i] for i in range(min(self.rows, self.cols))]
 
+    def require_square(self) -> None:
+        """Lanza NotSquare si no lo es, que es la condicion de media algebra."""
+        if not self.is_square() or self.rows == 0:
+            raise NotSquare(self.rows, self.cols)
+
     def is_square(self) -> bool:
         return self.rows == self.cols
 
@@ -86,6 +105,21 @@ class Matrix:
         return Matrix([row[first - 1:last] for row in self.data])
 
     # ----- operaciones elementales por filas -----
+
+    def minor(self, i: int, j: int) -> "Matrix":
+        """
+        Lo que queda al tachar la fila i y la columna j, contando desde 1.
+
+        Es el menor de una entrada, que es de lo que esta hecho un desarrollo
+        por cofactores, y tambien el recorte que haria cualquiera a mano.
+        """
+        if not (1 <= i <= self.rows and 1 <= j <= self.cols):
+            raise IndexError(f"Entry ({i}, {j}) falls outside a {self.rows}x{self.cols} matrix.")
+        return Matrix([
+            [value for column, value in enumerate(row, start=1) if column != j]
+            for row_number, row in enumerate(self.data, start=1)
+            if row_number != i
+        ])
 
     def swap_rows(self, i: int, j: int) -> "Matrix":
         """f_i <-> f_j"""

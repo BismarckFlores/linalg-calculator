@@ -24,6 +24,7 @@ from ..widgets import (
     MatrixEntryGrid,
     PageHeader,
     PrimaryButton,
+    ResultsPage,
     SectionTitle,
     SegmentedControl,
 )
@@ -39,13 +40,12 @@ OPERATIONS = (
 
 NEEDS_B = ("A + B", "A − B", "A × B")
 
-class OperationsPage(ctk.CTkFrame):
+class OperationsPage(ResultsPage):
     """La pagina de aritmetica basica con matrices."""
 
     def __init__(self, master: Any) -> None:
-        super().__init__(master, fg_color="transparent")
+        super().__init__(master)
         self._operation = OPERATIONS[0][0]
-        self._result: Card | None = None
 
         PageHeader(
             self,
@@ -92,7 +92,7 @@ class OperationsPage(ctk.CTkFrame):
             justify="center",
         )
         self._scalar.insert(0, "2")
-        self._scalar.bind("<KeyRelease>", lambda _event: self._clear_result())
+        self._scalar.bind("<KeyRelease>", lambda _event: self._clear_output())
         self._scalar.pack(side="left", padx=(0, 14), pady=10)
 
         self._matrices = ctk.CTkFrame(inside, fg_color="transparent")
@@ -104,7 +104,7 @@ class OperationsPage(ctk.CTkFrame):
             2,
             2,
             values=(("1", "2"), ("3", "4")),
-            on_change=self._clear_result,
+            on_change=self._clear_output,
             on_resize=self._a_resized,
         )
         self._a.grid(row=0, column=0, sticky="nw", padx=(0, 40))
@@ -114,7 +114,7 @@ class OperationsPage(ctk.CTkFrame):
             2,
             2,
             values=(("5", "6"), ("7", "8")),
-            on_change=self._clear_result,
+            on_change=self._clear_output,
         )
         self._b.grid(row=0, column=1, sticky="nw")
 
@@ -129,7 +129,7 @@ class OperationsPage(ctk.CTkFrame):
 
     def _choose(self, operation: str) -> None:
         self._operation = operation
-        self._clear_result()
+        self._clear_output()
         self._error.hide()
 
         for label, description in OPERATIONS:
@@ -149,7 +149,7 @@ class OperationsPage(ctk.CTkFrame):
 
     def _a_resized(self, _rows: int, _cols: int) -> None:
         self._fit_b()
-        self._clear_result()
+        self._clear_output()
 
     def _fit_b(self) -> None:
         """
@@ -166,7 +166,7 @@ class OperationsPage(ctk.CTkFrame):
     # ----- Calculo -----
 
     def _calculate(self) -> None:
-        self._clear_result()
+        self._clear_output()
         try:
             result, caption = self._compute()
         except (CellError, ValueError) as problem:
@@ -216,18 +216,5 @@ class OperationsPage(ctk.CTkFrame):
     # ----- Presentacion del resultado -----
 
     def _show(self, matrix: Matrix, caption: str) -> None:
-        self._result = Card(self)
-        self._result.pack(fill="x", pady=(16, 0))
-        inside = ctk.CTkFrame(self._result, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-
-        SectionTitle(inside, caption, f"Dimensión: {matrix.rows} × {matrix.cols}").pack(
-            fill="x", pady=(0, 16)
-        )
+        inside = self._card(caption, f"Dimensión: {matrix.rows} × {matrix.cols}")
         MatrixDisplay(inside, matrix).pack(anchor="w")
-
-    def _clear_result(self) -> None:
-        """Un resultado deja de ser cierto en cuanto se reescribe cualquier cosa."""
-        if self._result is not None:
-            self._result.destroy()
-            self._result = None

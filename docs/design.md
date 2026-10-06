@@ -134,6 +134,22 @@ The dimension n is never declared. A vector is its components, and the only
 rule is that one calculation's vectors agree; anything that would fix n first
 would be answering a question the assignment says is not known.
 
+## A page is its input card and the cards it draws below
+
+Every page in the window has the same shape: something to type into, and under
+it the cards one calculation produced, which are thrown away the moment the
+input changes. That was written out eight times, once per page, each copy a
+little different — one called it `_section`, another `_add_card`, a third
+padded its headings by 14 instead of 12.
+
+`ResultsPage` in `gui/widgets.py` is that shape, and the pages inherit it. A
+page that needs more does more: the elimination page also forgets the walk it
+was drawing, so it extends the clearing rather than copying it.
+
+The duplication was invisible while it was seven copies of a six-line method.
+It became obvious when an eighth page needed the same thing, which is the usual
+way: the second occurrence is a coincidence, the eighth is a missing piece.
+
 ## The window is a front end, not a second program
 
 `gui/` sits beside `core/` and `ui/`, imports both, and is imported by neither.

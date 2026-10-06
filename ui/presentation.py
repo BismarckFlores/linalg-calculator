@@ -29,6 +29,14 @@ SUBSCRIPTS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 # Y como superindices, para un exponente: 2⁵, (−1)³⁺².
 SUPERSCRIPTS = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
 
+def subscript(number: int) -> str:
+    """Un indice escrito debajo: f₂, a₃₂, v₁."""
+    return str(number).translate(SUBSCRIPTS)
+
+def superscript(number: int) -> str:
+    """Un exponente escrito arriba: 2⁵, (−1)³."""
+    return str(number).translate(SUPERSCRIPTS)
+
 CLASSIFICATIONS = {
     SystemKind.UNIQUE: "Sistema Consistente Determinado: Presenta Solución Única.",
     SystemKind.INFINITE: "Sistema Consistente Indeterminado: Presenta Infinitas Soluciones.",

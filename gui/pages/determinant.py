@@ -26,13 +26,13 @@ from core.determinant import (
     Cofactors,
     Costs,
     Factorization,
-    NotSquare,
     by_cofactors,
     by_lu,
     costs,
 )
+from core.matrix import NotSquare
 from core.scalar import format_factor, format_scalar
-from ui.presentation import SUBSCRIPTS, SUPERSCRIPTS
+from ui.presentation import subscript, superscript
 
 from .. import theme
 from ..entry import UNREADABLE, SystemInput
@@ -45,6 +45,7 @@ from ..widgets import (
     MatrixDisplay,
     PageHeader,
     PrimaryButton,
+    ResultsPage,
     SectionTitle,
     SegmentedControl,
     StepWalker,
@@ -66,13 +67,12 @@ EXAMPLE_MATRIX = (("1", "-4", "2"), ("-2", "8", "-9"), ("-1", "7", "0"))
 # todo lo demas junto: 8! son 40320 menores.
 CHECK_LIMIT = 7
 
-class DeterminantPage(ctk.CTkFrame):
+class DeterminantPage(ResultsPage):
     """La pagina que calcula un determinante por cofactores o por LU."""
 
     def __init__(self, master: Any) -> None:
-        super().__init__(master, fg_color="transparent")
+        super().__init__(master)
         self._method = COFACTORES
-        self._output: list[Card] = []
 
         self._header = PageHeader(
             self, "|A|", "Determinante", DETERMINANT_SUBTITLES[COFACTORES]
@@ -202,8 +202,7 @@ class DeterminantPage(ctk.CTkFrame):
         self._clear_output()
         try:
             matrix = self._input.read().matrix
-            if matrix.rows != matrix.cols:
-                raise NotSquare(matrix.rows, matrix.cols)
+            matrix.require_square()
             if self._method == COFACTORES and matrix.rows > COFACTOR_LIMIT:
                 raise ValueError(
                     f"Una matriz {matrix.rows} × {matrix.rows} por cofactores pide "
@@ -292,11 +291,11 @@ class DeterminantPage(ctk.CTkFrame):
             sign = "+" if term.sign > 0 else "−"
             (
                 Expression(block)
-                .symbol(f"a{_subscript(term.row)}{_subscript(term.col)} = "
+                .symbol(f"a{subscript(term.row)}{subscript(term.col)} = "
                         f"{format_scalar(term.entry)}", theme.ACCENT)
-                .symbol(f"·  (−1){_superscript(term.row)}⁺{_superscript(term.col)} = {sign}1")
+                .symbol(f"·  (−1){superscript(term.row)}⁺{superscript(term.col)} = {sign}1")
                 .symbol("·  det")
-                .matrix(term.minor, f"M{_subscript(term.row)}{_subscript(term.col)}")
+                .matrix(term.minor, f"M{subscript(term.row)}{subscript(term.col)}")
                 .symbol(f"=  {format_scalar(term.minor_value)}")
             ).pack(anchor="w")
             MathChip(
@@ -358,7 +357,7 @@ class DeterminantPage(ctk.CTkFrame):
             "diagonal principal."
             + (
                 f" Hubo {lu.swaps} intercambio{'s' if lu.swaps != 1 else ''}, así que el "
-                f"producto se multiplica por (−1){_superscript(lu.swaps)}."
+                f"producto se multiplica por (−1){superscript(lu.swaps)}."
                 if lu.permuted
                 else ""
             ),
@@ -367,7 +366,7 @@ class DeterminantPage(ctk.CTkFrame):
         # Un factor negativo va entre parentesis, como en el resto del proyecto:
         # 1 · 3 · (-5) y no 1 · 3 · -5.
         product = " · ".join(format_factor(entry) for entry in lu.diagonal)
-        sign = f"(−1){_superscript(lu.swaps)} · " if lu.permuted else ""
+        sign = f"(−1){superscript(lu.swaps)} · " if lu.permuted else ""
         ctk.CTkLabel(
             inside,
             text=f"det A  =  {sign}{product}  =  {format_scalar(lu.value)}",
@@ -401,45 +400,7 @@ class DeterminantPage(ctk.CTkFrame):
 
     # ----- Mantenimiento -----
 
-    def _card(self, title: str, badge: str = "") -> ctk.CTkFrame:
-        """Una tarjeta con su titulo, guardada para que el siguiente calculo la borre."""
-        inside, _heading = self._titled_card(title, badge)
-        return inside
 
-    def _titled_card(self, title: str, badge: str = "") -> tuple[ctk.CTkFrame, SectionTitle]:
-        """
-        Lo mismo, devolviendo tambien el titulo.
 
-        El paso a paso lleva la cuenta en su insignia (3 / 7), asi que necesita
-        poder escribir en ella cada vez que alguien se mueve de paso.
-        """
-        card = Card(self)
-        card.pack(fill="x", pady=(16, 0))
-        self._output.append(card)
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        heading = SectionTitle(inside, title, badge)
-        heading.pack(fill="x", pady=(0, 12))
-        return inside, heading
 
-    def _muted(self, master: Any, text: str) -> ctk.CTkLabel:
-        label = ctk.CTkLabel(
-            master, text=text, font=theme.font("small"), text_color=theme.MUTED,
-            justify="left", anchor="w", wraplength=660,
-        )
-        label.pack(anchor="w")
-        return label
 
-    def _clear_output(self) -> None:
-        """Un resultado deja de ser cierto en cuanto se cambia la matriz."""
-        for card in self._output:
-            card.destroy()
-        self._output = []
-
-def _subscript(number: int) -> str:
-    """El indice de una entrada, escrito debajo: a₃₂."""
-    return str(number).translate(SUBSCRIPTS)
-
-def _superscript(number: int) -> str:
-    """El exponente de un signo, escrito arriba: (−1)³."""
-    return str(number).translate(SUPERSCRIPTS)

@@ -21,6 +21,7 @@ from typing import Any
 import customtkinter as ctk
 
 from core.inverse import InverseResult, InverseSystem, SingularMatrix, invert, solve_with_inverse
+from core.matrix import NotSquare
 from core.scalar import format_scalar
 from ui.presentation import unknown_name
 
@@ -28,7 +29,8 @@ from .. import theme
 from ..entry import SystemInput
 from ..widgets import (
     Card, Chip, ErrorBanner, Expression, MathChip, MatrixDisplay,
-    PageHeader, PrimaryButton, SectionTitle, SegmentedControl, StepWalker,
+    PageHeader, PrimaryButton, ResultsPage, SectionTitle, SegmentedControl,
+    StepWalker,
 )
 
 
@@ -40,13 +42,12 @@ INVERSE_SUBTITLES = {
 }
 
 
-class InversePage(ctk.CTkFrame):
+class InversePage(ResultsPage):
     """La pagina que invierte una matriz y resuelve un sistema con la inversa."""
 
     def __init__(self, master: Any) -> None:
-        super().__init__(master, fg_color="transparent")
+        super().__init__(master)
         self._mode = INVERSE_MODES[0]
-        self._output: list[Card] = []
         self._names: list[str] = []
 
         self._header = PageHeader(self, "⁻¹", "Matriz Inversa", INVERSE_SUBTITLES[self._mode])
@@ -131,10 +132,6 @@ class InversePage(ctk.CTkFrame):
                 typed.matrix.take_columns(1, typed.unknowns)
                 if typed.unknowns else typed.matrix
             )
-            if not matrix.is_square():
-                raise ValueError(
-                    f"A debe ser cuadrada para tener inversa: es {matrix.rows} × {matrix.cols}."
-                )
             solved = None
             if self._mode == INVERSE_MODES[1]:
                 constants = typed.matrix.take_columns(typed.unknowns + 1, typed.matrix.cols)
@@ -142,6 +139,11 @@ class InversePage(ctk.CTkFrame):
                 result = solved.inverse_result
             else:
                 result = invert(matrix)
+        except NotSquare as problem:
+            self._error.show(
+                f"A debe ser cuadrada para tener inversa: es {problem.rows} × {problem.cols}."
+            )
+            return
         except SingularMatrix:
             self._error.show(
                 "A es singular: no puede reducirse a la identidad y no tiene inversa.\n"
@@ -171,7 +173,7 @@ class InversePage(ctk.CTkFrame):
     def _draw_system(self, solved: InverseSystem) -> None:
         """El sistema en forma matricial, antes de hacerle nada."""
         matrix = solved.inverse_result.original
-        inside = self._section("Ecuación matricial  A x = b", f"A es {matrix.rows} × {matrix.cols}")
+        inside = self._card("Ecuación matricial  A x = b", f"A es {matrix.rows} × {matrix.cols}")
         unknowns = [unknown_name(column, self._names) for column in range(1, matrix.cols + 1)]
         (
             Expression(inside)
@@ -202,13 +204,13 @@ class InversePage(ctk.CTkFrame):
 
     def _draw_inverse(self, result: InverseResult) -> None:
         """La propia A^-1, que es la mitad derecha de la matriz en que termino el recorrido."""
-        inside = self._section("Resultado  A⁻¹", f"Dimensión: {result.inverse.rows} × {result.inverse.cols}")
+        inside = self._card("Resultado  A⁻¹", f"Dimensión: {result.inverse.rows} × {result.inverse.cols}")
         Chip(inside, "A es invertible", theme.GREEN).pack(anchor="w", pady=(0, 14))
         MatrixDisplay(inside, result.inverse).pack(anchor="w")
 
     def _draw_solution(self, solved: InverseSystem) -> None:
         """x = A^-1 b como el producto que es, y despues valor por valor."""
-        inside = self._section("Solución  x = A⁻¹b")
+        inside = self._card("Solución  x = A⁻¹b")
         (
             Expression(inside)
             .matrix(solved.inverse_result.inverse, "A⁻¹")
@@ -231,7 +233,7 @@ class InversePage(ctk.CTkFrame):
         La definicion pide A A^-1 y A^-1 A, asi que se dibujan los dos en vez de uno
         con una nota de que el otro tambien se cumple.
         """
-        inside = self._section("Comprobación en la matriz original")
+        inside = self._card("Comprobación en la matriz original")
         (
             Expression(inside)
             .matrix(result.original, "A")
@@ -251,7 +253,7 @@ class InversePage(ctk.CTkFrame):
         ).pack(anchor="w")
         Chip(inside, "A⁻¹ · A = I  ✓", theme.GREEN).pack(anchor="w", pady=(12, 0))
         if solved is not None:
-            inside = self._section("Comprobación en el sistema original")
+            inside = self._card("Comprobación en el sistema original")
             (
                 Expression(inside)
                 .matrix(result.original, "A")
@@ -264,18 +266,4 @@ class InversePage(ctk.CTkFrame):
 
     # ----- Mantenimiento -----
 
-    def _section(self, title: str, badge: str = "") -> ctk.CTkFrame:
-        """Una tarjeta con su titulo, guardada para que el siguiente calculo la borre."""
-        card = Card(self)
-        card.pack(fill="x", pady=(16, 0))
-        self._output.append(card)
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(inside, title, badge).pack(fill="x", pady=(0, 14))
-        return inside
 
-    def _clear_output(self) -> None:
-        """Un resultado deja de ser cierto en cuanto se cambia la matriz."""
-        for card in self._output:
-            card.destroy()
-        self._output = []

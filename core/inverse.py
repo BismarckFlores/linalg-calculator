@@ -64,8 +64,7 @@ def invert(matrix: Matrix) -> InverseResult:
     practica: ocurre exactamente cuando A tiene n posiciones pivote. Cuando no,
     la matriz es singular y no hay nada que devolver.
     """
-    if matrix.rows == 0 or matrix.cols == 0 or not matrix.is_square():
-        raise ValueError("The matrix must be nonempty and square.")
+    matrix.require_square()
 
     # I se agrega a la derecha, asi que cada operacion que actua sobre A actua
     # sobre ella a la vez. Ese es todo el metodo: A se vuelve I, e I se vuelve A^-1.

@@ -37,6 +37,7 @@ from ..widgets import (
     MatrixDisplay,
     PageHeader,
     PrimaryButton,
+    ResultsPage,
     SectionTitle,
     StepWalker,
 )
@@ -68,12 +69,11 @@ EXAMPLE = (("1", "-2", "1", "0"), ("0", "2", "-8", "8"), ("-4", "5", "9", "-9"))
 CLOSED = "Ver por qué  ▾"
 OPEN = "Ocultar  ▴"
 
-class EchelonPage(ctk.CTkFrame):
+class EchelonPage(ResultsPage):
     """La pagina que lee la forma de una matriz y despues la reduce."""
 
     def __init__(self, master: Any) -> None:
-        super().__init__(master, fg_color="transparent")
-        self._output: list[ctk.CTkBaseClass] = []
+        super().__init__(master)
         self._bar: int | None = None
         self._names: list[str] = []
 
@@ -403,17 +403,7 @@ class EchelonPage(ctk.CTkFrame):
 
     # ----- Mantenimiento -----
 
-    def _add_card(self) -> Card:
-        card = Card(self)
-        card.pack(fill="x", pady=(16, 0))
-        self._output.append(card)
-        return card
 
-    def _clear_output(self) -> None:
-        """Un veredicto sobre una matriz deja de significar nada al reescribirla."""
-        for card in self._output:
-            card.destroy()
-        self._output = []
 
 def _listed(columns: list[int]) -> str:
     """1, 3, 5, o la palabra para ninguna de ellas."""

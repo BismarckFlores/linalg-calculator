@@ -26,7 +26,7 @@ lanza errores, y la ventana decide el castellano.
 
 from dataclasses import dataclass
 
-from .matrix import Matrix
+from .matrix import Matrix, NotSquare
 from .scalar import Scalar
 from .steps import StepLog
 from .worksheet import Worksheet
@@ -39,14 +39,6 @@ COFACTOR_LIMIT = 8
 # Por debajo de este orden, n! es menor que n^3 / 3 y los cofactores siguen
 # siendo el camino corto; de 4 x 4 en adelante gana LU.
 LU_FROM = 4
-
-class NotSquare(ValueError):
-    """La matriz no es cuadrada, y solo las cuadradas tienen determinante."""
-
-    def __init__(self, rows: int, cols: int) -> None:
-        super().__init__(f"A {rows}x{cols} matrix has no determinant.")
-        self.rows = rows
-        self.cols = cols
 
 @dataclass(frozen=True)
 class Costs:
@@ -161,7 +153,7 @@ def by_cofactors(matrix: Matrix) -> Cofactors:
     se salta un menor entero. Es la misma eleccion que se hace a mano y la unica
     manera de que el metodo no cueste siempre lo mismo.
     """
-    _require_square(matrix)
+    matrix.require_square()
     along, index = best_line(matrix)
     order = matrix.rows
 
@@ -176,7 +168,7 @@ def by_cofactors(matrix: Matrix) -> Cofactors:
         entry = matrix.elem(row, col)
         if entry == 0:
             continue
-        minor = minor_of(matrix, row, col)
+        minor = matrix.minor(row, col)
         minor_value = determinant(minor)
         sign = -1 if (row + col) % 2 else 1
         cofactor = sign * minor_value
@@ -204,7 +196,7 @@ def by_lu(matrix: Matrix) -> Factorization:
     mismo objeto que el de la eliminacion, y no puede contar una historia
     distinta de la que produjo L y U.
     """
-    _require_square(matrix)
+    matrix.require_square()
     order = matrix.rows
 
     sheet = Worksheet(matrix, "Factorizacion LU")
@@ -264,21 +256,13 @@ def determinant(matrix: Matrix) -> Scalar:
     falta el numero. Los ordenes 1 y 2 se responden con su formula, ad - bc, y
     de ahi en adelante se reduce.
     """
-    _require_square(matrix)
+    matrix.require_square()
     order = matrix.rows
     if order == 1:
         return matrix.elem(1, 1)
     if order == 2:
         return matrix.elem(1, 1) * matrix.elem(2, 2) - matrix.elem(1, 2) * matrix.elem(2, 1)
     return by_lu(matrix).value
-
-def minor_of(matrix: Matrix, row: int, col: int) -> Matrix:
-    """La matriz que queda al tachar una fila y una columna, contando desde 1."""
-    return Matrix([
-        [value for j, value in enumerate(line, start=1) if j != col]
-        for i, line in enumerate(matrix.data, start=1)
-        if i != row
-    ])
 
 def best_line(matrix: Matrix) -> tuple[str, int]:
     """
@@ -302,6 +286,3 @@ def _pivot_row(matrix: Matrix, column: int) -> int | None:
             return row
     return None
 
-def _require_square(matrix: Matrix) -> None:
-    if matrix.rows != matrix.cols or matrix.rows == 0:
-        raise NotSquare(matrix.rows, matrix.cols)

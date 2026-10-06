@@ -43,6 +43,7 @@ from ..widgets import (
     ErrorBanner,
     PageHeader,
     PrimaryButton,
+    ResultsPage,
     RomanNumeral,
     SectionTitle,
     SegmentedControl,
@@ -104,13 +105,12 @@ def roman_complaint(problem: RomanError) -> str:
         )
     return str(problem)
 
-class RomanPage(ctk.CTkFrame):
+class RomanPage(ResultsPage):
     """La pagina que suma, resta y multiplica numeros romanos."""
 
     def __init__(self, master: Any) -> None:
-        super().__init__(master, fg_color="transparent")
+        super().__init__(master)
         self._operation = PLUS
-        self._output: list[Card] = []
 
         self._header = PageHeader(self, "Ⅻ", "Números Romanos", ROMAN_SUBTITLES[PLUS])
         self._header.pack(anchor="w", pady=(0, 18))
@@ -366,25 +366,5 @@ class RomanPage(ctk.CTkFrame):
 
     # ----- Mantenimiento -----
 
-    def _card(self, title: str, badge: str = "") -> ctk.CTkFrame:
-        card = Card(self)
-        card.pack(fill="x", pady=(16, 0))
-        self._output.append(card)
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(inside, title, badge).pack(fill="x", pady=(0, 12))
-        return inside
 
-    def _muted(self, master: Any, text: str) -> ctk.CTkLabel:
-        label = ctk.CTkLabel(
-            master, text=text, font=theme.font("small"), text_color=theme.MUTED,
-            justify="left", anchor="w", wraplength=640,
-        )
-        label.pack(anchor="w")
-        return label
 
-    def _clear_output(self) -> None:
-        """Un resultado deja de ser cierto en cuanto se cambia cualquiera de los dos numeros."""
-        for card in self._output:
-            card.destroy()
-        self._output = []

@@ -36,7 +36,7 @@ from core.vectors import (
 )
 from core.verification import verify
 from ui.presentation import (
-    SUBSCRIPTS,
+    subscript,
     pretty_label,
     render_general,
     render_linear_sum,
@@ -48,7 +48,6 @@ from ui.presentation import (
 
 from .. import theme
 from ..widgets import (
-    SIZE_LIMIT,
     Card,
     Chip,
     ErrorBanner,
@@ -58,6 +57,8 @@ from ..widgets import (
     MathLine,
     PageHeader,
     PrimaryButton,
+    ResultsPage,
+    SIZE_LIMIT,
     SectionTitle,
     SegmentedControl,
     StepWalker,
@@ -103,9 +104,9 @@ ANSWER_COLORS = {
 
 SUPERSCRIPT_DIGITS = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
 
-def subscript(name: str, index: int) -> str:
+def named(name: str, index: int) -> str:
     """v y 2 escritos como v₂."""
-    return name + str(index).translate(SUBSCRIPTS)
+    return name + subscript(index)
 
 def vector_text(vector: Vector) -> str:
     """Un vector escrito en una linea, como en un texto: (1, -2, 1/3)."""
@@ -139,13 +140,12 @@ def product(factor: Scalar, value: Scalar) -> str:
         return f"{format_scalar(factor)}({format_scalar(value)})"
     return f"{format_factor(factor)}({format_scalar(value)})"
 
-class VectorsPage(ctk.CTkFrame):
+class VectorsPage(ResultsPage):
     """La pagina de operaciones con vectores de Rn y de combinaciones lineales."""
 
     def __init__(self, master: Any) -> None:
-        super().__init__(master, fg_color="transparent")
+        super().__init__(master)
         self._operation = SUM
-        self._output: list[ctk.CTkBaseClass] = []
 
         self._header = PageHeader(self, "↗", "Vectores en ℝⁿ", VECTOR_SUBTITLES[SUM])
         self._header.pack(anchor="w", pady=(0, 18))
@@ -311,7 +311,7 @@ class VectorsPage(ctk.CTkFrame):
 
         vectors = []
         for index, line in enumerate(lines, start=1):
-            name = subscript("v", index)
+            name = named("v", index)
             try:
                 vector = parse_vector(line)
             except UnreadableComponent as problem:
@@ -379,7 +379,7 @@ class VectorsPage(ctk.CTkFrame):
 
         rows = [
             (
-                f"{subscript('u', i)} {sign} {subscript('v', i)}",
+                f"{named('u', i)} {sign} {named('v', i)}",
                 folded(a, "+" if adding else "-", b),
                 c,
             )
@@ -407,7 +407,7 @@ class VectorsPage(ctk.CTkFrame):
         ).pack(anchor="w", pady=(16, 0))
 
         rows = [
-            (f"k·{subscript('u', i)}", product(factor, a), c)
+            (f"k·{named('u', i)}", product(factor, a), c)
             for i, (a, c) in enumerate(zip(u, result), start=1)
         ]
         self._draw_components(rows)
@@ -435,8 +435,8 @@ class VectorsPage(ctk.CTkFrame):
     def _draw_combination(self, found: Combination) -> None:
         solution = found.solution
         count = len(found.vectors)
-        names = [subscript("c", index) for index in range(1, count + 1)]
-        vectors = [subscript("v", index) for index in range(1, count + 1)]
+        names = [named("c", index) for index in range(1, count + 1)]
+        vectors = [named("v", index) for index in range(1, count + 1)]
         listed = ", ".join(vectors)
 
         # La pregunta, escrita como ecuacion vectorial y como el sistema que es.
@@ -574,30 +574,5 @@ class VectorsPage(ctk.CTkFrame):
 
     # ----- Mantenimiento -----
 
-    def _card(self, title: str, badge: str = "") -> ctk.CTkFrame:
-        card = Card(self)
-        card.pack(fill="x", pady=(16, 0))
-        self._output.append(card)
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(inside, title, badge).pack(fill="x", pady=(0, 12))
-        return inside
 
-    def _muted(self, master: Any, text: str) -> ctk.CTkLabel:
-        label = ctk.CTkLabel(
-            master,
-            text=text,
-            font=theme.font("small"),
-            text_color=theme.MUTED,
-            justify="left",
-            anchor="w",
-            wraplength=640,
-        )
-        label.pack(anchor="w")
-        return label
 
-    def _clear_output(self) -> None:
-        """Un resultado deja de ser cierto en cuanto se reescribe cualquier cosa."""
-        for card in self._output:
-            card.destroy()
-        self._output = []

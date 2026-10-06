@@ -26,7 +26,6 @@ from core.determinant import (
     by_lu,
     costs,
     determinant,
-    minor_of,
 )
 from core.roman import (
     BadLetter,
@@ -352,7 +351,7 @@ check("una triangular es el producto de su diagonal",
       by_lu(Matrix([[3, 0, 0], [5, 2, 0], [1, 7, -2]])).value, -12)
 check("2 x 2 es ad - bc", determinant(Matrix([[3, -2], [-5, 4]])), 2)
 check("1 x 1 es su unica entrada", determinant(Matrix([[7]])), 7)
-check("el menor tacha fila y columna", minor_of(curso, 3, 2).data,
+check("el menor tacha fila y columna", curso.minor(3, 2).data,
       [[Fraction(1), Fraction(2)], [Fraction(-2), Fraction(-9)]])
 check("se desarrolla por la linea con mas ceros", best_line(curso), ("fila", 3))
 # El ejemplo del pptx de LU: L y U son las de la diapositiva.

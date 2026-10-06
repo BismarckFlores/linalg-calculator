@@ -262,11 +262,10 @@ The determinant, by both methods the course teaches, with the working kept.
 
 | Name | Meaning |
 | --- | --- |
-| `by_cofactors(matrix) -> Cofactors` | Expansion along the line with the most zeros. Raises `NotSquare`. |
+| `by_cofactors(matrix) -> Cofactors` | Expansion along the line with the most zeros. Raises `NotSquare`. The minors come from `Matrix.minor`. |
 | `by_lu(matrix) -> Factorization` | `PA = LU` by row replacement, with swaps counted. Raises `NotSquare`. |
 | `determinant(matrix) -> Scalar` | The number alone, by the shortest road: the formula up to 2 × 2, LU above it. |
 | `costs(order) -> Costs` | What each method would cost for that order, and which is advised. |
-| `minor_of(matrix, row, col)` | The matrix left after crossing out one row and one column. |
 | `best_line(matrix) -> (str, int)` | The row or column with the most zeros, `ROW` or `COLUMN`. |
 | `COFACTOR_LIMIT`, `LU_FROM` | 8, past which cofactors are refused, and 4, from which LU is advised. |
 
@@ -494,7 +493,7 @@ The window. `python -m gui`, from the repository root. Full notes in
 | Module | Holds |
 | --- | --- |
 | `gui/theme.py` | Every colour as a `(light, dark)` pair, the fonts, `set_dark`, and `on_change` for the parts drawn by hand. |
-| `gui/widgets.py` | `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `StepWalker`, `FractionCell`, `MathLine`, `MathBlock`, `MathChip`, and `ColumnDisplay` and `Expression`, which write an equation between matrices in a row: `A · x = b`, `c₁ v₁ + c₂ v₂ = b`. |
+| `gui/widgets.py` | `ResultsPage`, the base every page with results inherits — the cards below the input, and dropping them when anything is retyped. Plus `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `StepWalker`, `FractionCell`, `MathLine`, `MathBlock`, `MathChip`, and `ColumnDisplay` and `Expression`, which write an equation between matrices in a row: `A · x = b`, `c₁ v₁ + c₂ v₂ = b`. |
 | `gui/entry.py` | `SystemInput`, the input card both pages use, and `Typed`, what it hands back: the matrix, the names of the unknowns, and how many columns are coefficients. `augmentable=True` adds the switch that marks a single grid as `[ A \| b ]`. |
 | `gui/app.py` | `GROUPS` — the sidebar, by subject — with `MODULES` flattened out of it, plus `Group`, `Module`, `NavRow`, `Application` and `main()`. |
 | `gui/pages/vectors.py` | `VectorsPage`: `u + v`, `u − v`, `k · u` and linear combinations in Rⁿ, as columns and component by component. Owns its Spanish. |

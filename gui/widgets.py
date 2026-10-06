@@ -714,6 +714,58 @@ class Expression(ctk.CTkFrame):
         self._column += 1
         return self
 
+class ResultsPage(ctk.CTkFrame):
+    """
+    Lo que toda pagina de resultados hace igual: dibujar tarjetas y borrarlas.
+
+    Debajo de la tarjeta de entrada, cada pagina apila tarjetas con lo que
+    calculo, y las tira todas en cuanto alguien cambia un dato: un resultado
+    deja de ser cierto en el momento en que deja de corresponder a lo escrito.
+    Eso era siete copias del mismo metodo, una por pagina, hasta que una octava
+    las hizo evidentes.
+
+    `_add_card` da la tarjeta vacia, para quien dibuja dentro de ella a su
+    manera; `_card` la da ya con margenes y titulo, que es lo que quiere casi
+    todo el mundo; y `_titled_card` devuelve ademas el titulo, para el paso a
+    paso, que escribe la cuenta en su insignia.
+    """
+
+    def __init__(self, master: Any) -> None:
+        super().__init__(master, fg_color="transparent")
+        self._output: list[ctk.CTkBaseClass] = []
+
+    def _add_card(self) -> Card:
+        card = Card(self)
+        card.pack(fill="x", pady=(16, 0))
+        self._output.append(card)
+        return card
+
+    def _card(self, title: str = "", badge: str = "") -> ctk.CTkFrame:
+        inside, _heading = self._titled_card(title, badge)
+        return inside
+
+    def _titled_card(self, title: str, badge: str = "") -> tuple[ctk.CTkFrame, SectionTitle]:
+        inside = ctk.CTkFrame(self._add_card(), fg_color="transparent")
+        inside.pack(fill="x", padx=24, pady=22)
+        heading = SectionTitle(inside, title, badge)
+        heading.pack(fill="x", pady=(0, 12))
+        return inside, heading
+
+    def _muted(self, master: Any, text: str, width: int = 640) -> ctk.CTkLabel:
+        """Una linea de explicacion, en gris y debajo de lo que explica."""
+        label = ctk.CTkLabel(
+            master, text=text, font=theme.font("small"), text_color=theme.MUTED,
+            justify="left", anchor="w", wraplength=width,
+        )
+        label.pack(anchor="w")
+        return label
+
+    def _clear_output(self) -> None:
+        """Un resultado deja de ser cierto en cuanto cambia lo que se escribio."""
+        for card in self._output:
+            card.destroy()
+        self._output = []
+
 class RomanNumeral(ctk.CTkFrame):
     """
     Un numero romano leido como la suma de sus piezas: XIV = X + IV = 14.

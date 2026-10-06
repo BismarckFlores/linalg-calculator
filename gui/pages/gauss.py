@@ -51,6 +51,7 @@ from ..widgets import (
     MathLine,
     PageHeader,
     PrimaryButton,
+    ResultsPage,
     SectionTitle,
     SegmentedControl,
     StepWalker,
@@ -73,14 +74,13 @@ KIND_COLORS = {
     SystemKind.INCONSISTENT: theme.RED,
 }
 
-class GaussPage(ctk.CTkFrame):
+class GaussPage(ResultsPage):
     """La pagina que resuelve un sistema y recorre como se resolvio."""
 
     def __init__(self, master: Any) -> None:
-        super().__init__(master, fg_color="transparent")
+        super().__init__(master)
         self._method = GAUSS
         self._names: list[str] = []
-        self._output: list[ctk.CTkBaseClass] = []
         self._elimination: Elimination | None = None
         self._unknowns = 0
 
@@ -433,18 +433,13 @@ class GaussPage(ctk.CTkFrame):
 
     # ----- Mantenimiento -----
 
-    def _add_card(self) -> Card:
-        card = Card(self)
-        card.pack(fill="x", pady=(16, 0))
-        self._output.append(card)
-        return card
-
     def _clear_output(self) -> None:
         """
-        Todo lo que hay debajo de la tarjeta de entrada deja de ser cierto en cuanto
-        esa entrada cambia.
+        Ademas de las tarjetas, el recorrido que las produjo.
+
+        El paso a paso no es una tarjeta mas: es la eliminacion que esta pagina
+        guarda para dibujarla, y mientras siga ahi un calculo nuevo podria
+        mezclarse con el anterior.
         """
-        for card in self._output:
-            card.destroy()
-        self._output = []
+        super()._clear_output()
         self._elimination = None

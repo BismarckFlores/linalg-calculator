@@ -51,7 +51,7 @@ from core.bases import (
     from_base,
     to_base,
 )
-from ui.presentation import SUBSCRIPTS, SUPERSCRIPTS
+from ui.presentation import subscript, superscript
 
 from .. import theme
 from ..theme import Color
@@ -61,6 +61,7 @@ from ..widgets import (
     ErrorBanner,
     PageHeader,
     PrimaryButton,
+    ResultsPage,
     RomanNumeral,
     SectionTitle,
     SegmentedControl,
@@ -113,7 +114,7 @@ TERMS_PER_LINE = 6
 
 def written(numeral: str, base: int) -> str:
     """Un numero con su base escrita debajo: 101011₂."""
-    return numeral + str(base).translate(SUBSCRIPTS)
+    return numeral + subscript(base)
 
 def allowed(base: int) -> str:
     """Que cifras usa una base, dicho como lo diria una persona."""
@@ -145,7 +146,7 @@ def written_digit(remainder: int) -> str:
 
 def power(base: int, exponent: int) -> str:
     """Una potencia como se escribe a mano: 2⁵."""
-    return str(base) + str(exponent).translate(SUPERSCRIPTS)
+    return str(base) + superscript(exponent)
 
 def wrapped(first: str, pieces: list[str], indent: int) -> str:
     """
@@ -160,16 +161,15 @@ def wrapped(first: str, pieces: list[str], indent: int) -> str:
         lines.append(first + chunk if start == 0 else " " * indent + "+ " + chunk)
     return "\n".join(lines)
 
-class BasesPage(ctk.CTkFrame):
+class BasesPage(ResultsPage):
     """La pagina que convierte un numero entero entre la base 10 y cualquier base del 2 al 36."""
 
     def __init__(self, master: Any) -> None:
-        super().__init__(master, fg_color="transparent")
+        super().__init__(master)
         self._direction = TO_BASE
         self._base = 2
         self._custom = False
         self._example = True
-        self._output: list[ctk.CTkBaseClass] = []
 
         self._header = PageHeader(self, "⇄", "Conversiones", DIRECTION_SUBTITLES[TO_BASE])
         self._header.pack(anchor="w", pady=(0, 18))
@@ -651,22 +651,5 @@ class BasesPage(ctk.CTkFrame):
             justify="left", anchor="w",
         )
 
-    def _muted(self, master: Any, text: str) -> ctk.CTkLabel:
-        label = ctk.CTkLabel(
-            master, text=text, font=theme.font("small"), text_color=theme.MUTED,
-            justify="left", anchor="w", wraplength=640,
-        )
-        label.pack(anchor="w")
-        return label
 
-    def _add_card(self) -> Card:
-        card = Card(self)
-        card.pack(fill="x", pady=(16, 0))
-        self._output.append(card)
-        return card
 
-    def _clear_output(self) -> None:
-        """Una conversion deja de ser cierta en cuanto cambia el numero o la base."""
-        for card in self._output:
-            card.destroy()
-        self._output = []
