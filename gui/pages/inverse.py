@@ -186,13 +186,7 @@ class InversePage(ResultsPage):
 
     def _draw_steps(self, result: InverseResult) -> None:
         """La reduccion de [A | I], operacion por operacion, con la barra incluida."""
-        card = Card(self)
-        card.pack(fill="x", pady=(16, 0))
-        self._output.append(card)
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        counter = SectionTitle(inside, "Paso a paso", " ")
-        counter.pack(fill="x", pady=(0, 14))
+        inside, counter = self._titled_card("Paso a paso", " ")
         self._walker = StepWalker(
             inside,
             result.reduction.log,

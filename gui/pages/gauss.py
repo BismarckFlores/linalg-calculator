@@ -154,13 +154,9 @@ class GaussPage(ResultsPage):
 
     def _draw_matrix_equation(self, solution: Solution) -> None:
         """El sistema como una sola ecuacion entre matrices: A por las incognitas es b."""
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-
         rows, cols = solution.coefficients.size()
-        SectionTitle(inside, "Ecuación matricial  A x = b", f"A es {rows} × {cols}").pack(
-            fill="x", pady=(0, 6)
+        inside, _heading = self._titled_card(
+            "Ecuación matricial  A x = b", f"A es {rows} × {cols}"
         )
         ctk.CTkLabel(
             inside,
@@ -189,12 +185,7 @@ class GaussPage(ResultsPage):
     def _draw_steps(self) -> None:
         """El recorrido, en una tarjeta que lleva su propia cuenta en el encabezado."""
         assert self._elimination is not None
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-
-        self._counter = SectionTitle(inside, "Paso a paso", " ")
-        self._counter.pack(fill="x", pady=(0, 14))
+        inside, self._counter = self._titled_card("Paso a paso", " ")
 
         self._walker = StepWalker(
             inside,
@@ -218,11 +209,7 @@ class GaussPage(ResultsPage):
         las ecuaciones y el paso a paso ensenen lo mismo.
         """
         assert self._elimination is not None
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-
-        SectionTitle(inside, "Sistema equivalente").pack(fill="x", pady=(0, 6))
+        inside, heading = self._titled_card("Sistema equivalente")
         ctk.CTkLabel(
             inside,
             text=(
@@ -239,11 +226,7 @@ class GaussPage(ResultsPage):
         MathBlock(inside, typographic_rows(render_equations(walked, self._names))).pack(anchor="w")
 
     def _draw_result(self, solution: Solution) -> None:
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-
-        SectionTitle(inside, "Resultado").pack(fill="x", pady=(0, 14))
+        inside, heading = self._titled_card("Resultado")
 
         ranks = ctk.CTkFrame(inside, fg_color="transparent")
         ranks.pack(anchor="w", pady=(0, 10))
@@ -355,11 +338,7 @@ class GaussPage(ResultsPage):
         mete nada de contrabando.
         """
         family = general_solution(to_rref(solution.augmented), solution.unknowns)
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-
-        SectionTitle(inside, "Solución general").pack(fill="x", pady=(0, 6))
+        inside, heading = self._titled_card("Solución general")
         ctk.CTkLabel(
             inside,
             text=(
@@ -381,19 +360,13 @@ class GaussPage(ResultsPage):
         MathBlock(inside, render_general(family, self._names)).pack(anchor="w")
 
     def _draw_substitutions(self, solution: Solution) -> None:
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(inside, "Despeje por sustitución hacia atrás").pack(fill="x", pady=(0, 14))
+        inside, heading = self._titled_card("Despeje por sustitución hacia atrás")
         MathBlock(
             inside, typographic_rows(render_substitutions(solution, self._names)), "left"
         ).pack(anchor="w")
 
     def _draw_verification(self, solution: Solution) -> None:
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(inside, "Comprobación en el sistema original").pack(fill="x", pady=(0, 6))
+        inside, heading = self._titled_card("Comprobación en el sistema original")
 
         # La primera comprobacion es la propia forma matricial: el producto A x, hecho con
         # la misma multiplicacion que usa la pagina de Operaciones Matriciales.

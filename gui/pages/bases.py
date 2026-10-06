@@ -385,12 +385,7 @@ class BasesPage(ResultsPage):
         """El numero escrito pieza a pieza, cada una tomada de lo que queda."""
         self._draw_answer(written(str(result.value), 10), result.numeral)
 
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(
-            inside, "Construcción del número", f"{len(result.taken)} piezas"
-        ).pack(fill="x", pady=(0, 6))
+        inside, heading = self._titled_card("Construcción del número", f"{len(result.taken)} piezas")
         self._muted(
             inside,
             "Se toma la pieza más grande que quepa, se resta, y se repite con lo que "
@@ -431,10 +426,7 @@ class BasesPage(ResultsPage):
         """Un numero romano leido como la suma de sus piezas, que es lo que siempre fue."""
         self._draw_answer(numeral.text, written(str(numeral.value), 10))
 
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(inside, "Suma de sus piezas").pack(fill="x", pady=(0, 6))
+        inside, heading = self._titled_card("Suma de sus piezas")
         self._muted(
             inside,
             "Un número romano es la suma de sus piezas, escritas de mayor a menor. Las "
@@ -450,10 +442,7 @@ class BasesPage(ResultsPage):
 
     def _draw_roman_check(self, numeral: Numeral, value: int) -> None:
         """El numero recien escrito, leido de vuelta, que tiene que dar otra vez el numero."""
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(inside, "Comprobación").pack(fill="x", pady=(0, 6))
+        inside, heading = self._titled_card("Comprobación")
         self._muted(
             inside,
             f"El resultado, leído de vuelta como suma de sus piezas, da {value}: el "
@@ -466,14 +455,10 @@ class BasesPage(ResultsPage):
     def _draw_to_base(self, result: ToBase) -> None:
         self._draw_answer(written(str(result.value), 10), written(result.numeral, result.base))
 
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(
-            inside,
+        inside, _heading = self._titled_card(
             f"Divisiones sucesivas entre {result.base}",
             f"{len(result.divisions)} divisiones",
-        ).pack(fill="x", pady=(0, 6))
+        )
 
         self._muted(
             inside,
@@ -536,10 +521,7 @@ class BasesPage(ResultsPage):
 
     def _draw_combination(self, number: FromBase, title: str, note: str) -> None:
         """El numero escrito como suma de potencias, y resuelto hasta un solo numero."""
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(inside, title).pack(fill="x", pady=(0, 6))
+        inside, heading = self._titled_card(title)
         if number.negative:
             note += " El signo menos multiplica a toda la combinación."
         self._muted(inside, note)
@@ -575,10 +557,7 @@ class BasesPage(ResultsPage):
 
     def _draw_positions(self, number: FromBase) -> None:
         """La misma combinacion en forma de tabla: una fila por cifra, desde la izquierda."""
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(inside, "Valor de cada posición").pack(fill="x", pady=(0, 12))
+        inside, heading = self._titled_card("Valor de cada posición")
 
         table = ctk.CTkFrame(inside, fg_color="transparent")
         table.pack(anchor="w")
@@ -616,10 +595,7 @@ class BasesPage(ResultsPage):
 
     def _draw_answer(self, given: str, found: str) -> None:
         """La conversion en una linea, en grande, antes del procedimiento que la justifica."""
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(inside, "Resultado").pack(fill="x", pady=(0, 10))
+        inside, heading = self._titled_card("Resultado")
         line = ctk.CTkFrame(inside, fg_color="transparent")
         line.pack(anchor="w")
         ctk.CTkLabel(line, text=given, font=theme.font("title"), text_color=theme.INK).pack(

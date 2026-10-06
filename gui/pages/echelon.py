@@ -143,11 +143,7 @@ class EchelonPage(ResultsPage):
         cual fallo. Solo lo primero se ha ganado estar en pantalla por defecto; lo
         segundo queda a un clic y no estorba.
         """
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-
-        SectionTitle(inside, "Forma de la matriz").pack(fill="x", pady=(0, 12))
+        inside, heading = self._titled_card("Forma de la matriz")
 
         verdicts = ctk.CTkFrame(inside, fg_color="transparent")
         verdicts.pack(anchor="w")
@@ -256,12 +252,7 @@ class EchelonPage(ResultsPage):
         que informa mas abajo son las entradas principales de la matriz en la que
         termina este recorrido.
         """
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-
-        counter = SectionTitle(inside, "Reducción a la forma escalonada reducida", " ")
-        counter.pack(fill="x", pady=(0, 14))
+        inside, counter = self._titled_card("Reducción a la forma escalonada reducida", " ")
 
         if reduction.log.is_empty():
             ctk.CTkLabel(
@@ -287,11 +278,7 @@ class EchelonPage(ResultsPage):
     def _draw_pivots(
         self, matrix: Matrix, reduction: Elimination, solution: Solution | None
     ) -> None:
-        card = self._add_card()
-        inside = ctk.CTkFrame(card, fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-
-        SectionTitle(inside, "Posiciones y columnas pivote").pack(fill="x", pady=(0, 6))
+        inside, heading = self._titled_card("Posiciones y columnas pivote")
         ctk.CTkLabel(
             inside,
             text=(

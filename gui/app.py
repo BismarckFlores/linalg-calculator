@@ -28,7 +28,7 @@ from .pages.inverse import InversePage
 from .pages.operations import OperationsPage
 from .pages.roman import RomanPage
 from .pages.vectors import VectorsPage
-from .widgets import Card
+from .widgets import WHEEL_STEP, Card
 
 @dataclass(frozen=True)
 class Module:
@@ -76,10 +76,6 @@ GROUPS = (
 MODULES = tuple(module for group in GROUPS for module in group.modules)
 
 SIDEBAR_WIDTH = 268
-
-# Cuanto mueve la pagina una muesca de la rueda, en unidades de 30 pixeles:
-# unas tres lineas de texto, que es lo que hace todo lo demas en el escritorio.
-WHEEL_STEP = 3
 
 def scrolls_itself(widget: Any) -> bool:
     """Si lo que hay bajo el puntero tiene desplazamiento propio que hacer."""

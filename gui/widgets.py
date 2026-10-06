@@ -11,6 +11,7 @@ MatrixDisplay recibe una; lo que pasa en medio es asunto de core.
 """
 
 import re
+import tkinter
 from collections.abc import Callable, Sequence
 from typing import Any, Literal
 
@@ -27,6 +28,11 @@ from .theme import Color
 
 # Diez filas y diez columnas: el mismo tope que pide la version de terminal.
 SIZE_LIMIT = 10
+
+# Cuanto mueve una muesca de la rueda, en unidades de 30 pixeles: unas tres
+# lineas de texto, que es lo que hace todo lo demas en un escritorio. Vale para
+# la ventana entera hacia abajo y para una franja ancha hacia los lados.
+WHEEL_STEP = 3
 
 # Las dos maneras de leer un paso a paso: de uno en uno, o todo de una vez.
 ALL_STEPS = "Ver todos los pasos  ▾"
@@ -714,6 +720,100 @@ class Expression(ctk.CTkFrame):
         self._column += 1
         return self
 
+class Wide(ctk.CTkFrame):
+    """
+    Una franja que se desliza a lo ancho cuando lo que lleva no cabe en ella.
+
+    Una matriz de 6 x 6 con fracciones, o cuatro matrices en fila como P A = L U,
+    pasan de largo del ancho de la ventana. Hasta ahora eso se cortaba sin decir
+    nada: el dibujo seguia ahi, pero tapado por el borde de la tarjeta.
+
+    Lo que hay dentro vive sobre un lienzo, que es lo unico en Tk que puede ser
+    mas ancho que su hueco, y debajo aparece una barra cuando hace falta y solo
+    entonces. Si el contenido cabe, esto no se nota: el lienzo se estira hasta el
+    ancho disponible para que lo de dentro se siga alineando igual.
+
+    Como el lienzo guarda un color y no una pareja, se repinta al cambiar de
+    tema, igual que los corchetes de una matriz.
+    """
+
+    def __init__(self, master: Any, background: Color = theme.CARD) -> None:
+        super().__init__(master, fg_color="transparent")
+        self._background = background
+
+        self._strip = tkinter.Canvas(self, highlightthickness=0, borderwidth=0, height=1)
+        self._strip.pack(fill="both", expand=True)
+        # Los dos colores puestos a mano, y ninguno "transparent": lo de dentro
+        # resuelve su fondo preguntandole al padre, y un lienzo de Tk no sabe
+        # responder a eso. Sin el bg_color asoma el gris por defecto en el canto,
+        # una raya de un pixel por donde termina lo dibujado.
+        #
+        # Y el lienzo se llama _strip y no _canvas porque CTkFrame ya tiene un
+        # _canvas suyo, el que dibuja su fondo: llamar igual al nuestro se lo
+        # pisaba, y entonces winfo_children() dejaba de ver lo que hay dentro.
+        self.content = ctk.CTkFrame(
+            self._strip, fg_color=background, bg_color=background, corner_radius=0
+        )
+        self._window = self._strip.create_window(0, 0, anchor="nw", window=self.content)
+
+        self._bar = ctk.CTkScrollbar(
+            self,
+            orientation="horizontal",
+            command=self._strip.xview,
+            height=10,
+            button_color=theme.RULE,
+            button_hover_color=theme.MUTED,
+            fg_color="transparent",
+        )
+        self._strip.configure(xscrollcommand=self._bar.set)
+
+        self.content.bind("<Configure>", lambda _event: self._fit())
+        self._strip.bind("<Configure>", lambda _event: self._fit())
+        for sequence in ("<Shift-Button-4>", "<Shift-Button-5>", "<Shift-MouseWheel>"):
+            self._strip.bind_all(sequence, self._wheel, add=True)
+        self.bind("<Destroy>", lambda _event: theme.off_change(self._repaint))
+        theme.on_change(self._repaint)
+        self._repaint()
+
+    def _fit(self) -> None:
+        """
+        Ajusta el lienzo a lo que lleva dentro, y pone o quita la barra.
+
+        El alto es el del contenido, porque esto no desliza hacia abajo: de eso
+        se encarga la pagina entera. El ancho de lo de dentro es el suyo propio o
+        el del hueco, el que sea mayor, para que lo que cabe siga ocupando todo
+        el ancho como antes de existir esta franja.
+        """
+        if not self.winfo_exists():
+            return
+        needed = self.content.winfo_reqwidth()
+        available = self._strip.winfo_width()
+        self._strip.configure(height=self.content.winfo_reqheight())
+        self._strip.itemconfigure(self._window, width=max(needed, available))
+        self._strip.configure(scrollregion=(0, 0, max(needed, available), self.content.winfo_reqheight()))
+
+        if needed > available + 1:
+            self._bar.pack(fill="x", pady=(6, 0))
+        else:
+            self._bar.pack_forget()
+            self._strip.xview_moveto(0.0)
+
+    def _wheel(self, event: Any) -> None:
+        """Con Shift, la rueda mueve a lo ancho la franja que este debajo del puntero."""
+        if not self.winfo_exists() or not self._bar.winfo_ismapped():
+            return
+        under = event.widget.winfo_containing(event.x_root, event.y_root)
+        while under is not None:
+            if under is self:
+                right = event.num == 5 or getattr(event, "delta", 0) < 0
+                self._strip.xview_scroll(WHEEL_STEP if right else -WHEEL_STEP, "units")
+                return
+            under = getattr(under, "master", None)
+
+    def _repaint(self) -> None:
+        if self.winfo_exists():
+            self._strip.configure(background=theme.resolve(self._background))
+
 class ResultsPage(ctk.CTkFrame):
     """
     Lo que toda pagina de resultados hace igual: dibujar tarjetas y borrarlas.
@@ -735,6 +835,7 @@ class ResultsPage(ctk.CTkFrame):
         self._output: list[ctk.CTkBaseClass] = []
 
     def _add_card(self) -> Card:
+        """La tarjeta vacia, para quien dibuja dentro de ella a su manera."""
         card = Card(self)
         card.pack(fill="x", pady=(16, 0))
         self._output.append(card)
@@ -745,11 +846,21 @@ class ResultsPage(ctk.CTkFrame):
         return inside
 
     def _titled_card(self, title: str, badge: str = "") -> tuple[ctk.CTkFrame, SectionTitle]:
+        """
+        La tarjeta con su titulo, y dentro la franja donde se dibuja el resultado.
+
+        El titulo se queda quieto y lo de abajo se desliza: una matriz de 6 x 6
+        con fracciones, o cuatro matrices en fila como P A = L U, pasan del ancho
+        de la ventana, y antes eso se cortaba sin avisar. Al deslizar, el titulo
+        tiene que seguir diciendo que es lo que se esta mirando.
+        """
         inside = ctk.CTkFrame(self._add_card(), fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
         heading = SectionTitle(inside, title, badge)
         heading.pack(fill="x", pady=(0, 12))
-        return inside, heading
+        wide = Wide(inside)
+        wide.pack(fill="x")
+        return wide.content, heading
 
     def _muted(self, master: Any, text: str, width: int = 640) -> ctk.CTkLabel:
         """Una linea de explicacion, en gris y debajo de lo que explica."""

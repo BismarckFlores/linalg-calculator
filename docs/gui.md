@@ -157,6 +157,13 @@ The sign of a negative term comes out in front of it — `3x - 4(12)` rather tha
 `3x + (-4)(12)` — and closes up against the number when it opens the sum:
 `-4(29) + 5(16)`.
 
+A result wider than the window used to be cut off at the edge of its card, with
+nothing to say it had been. Every result card now draws on a strip that slides
+sideways: the title stays put, a bar appears under the content when — and only
+when — there is more of it than fits, and `Shift` with the wheel moves it. A
+6 × 6 factorisation `P A = L U` is four matrices in a row, and on a laptop
+screen that is simply wider than the window.
+
 Those blocks were lined up by counting characters, which stops being true the
 moment a fraction takes two lines instead of one, so `MathBlock` lays them out
 again in a grid. It is told which of the two alignments the text meant: a system
