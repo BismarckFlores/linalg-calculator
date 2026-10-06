@@ -28,6 +28,7 @@ from dataclasses import dataclass
 
 from .matrix import Matrix
 from .scalar import Scalar
+from .steps import label_add_scaled, label_swap
 
 # Hasta este tamano, un desarrollo por cofactores todavia termina en un instante.
 # Mas alla, 7! = 5040 menores de orden 6 y subiendo: es justo lo que el enunciado
@@ -106,7 +107,13 @@ COLUMN = "columna"
 
 @dataclass(frozen=True)
 class RowStep:
-    """Un paso de la reduccion: una resta de filas, o un intercambio."""
+    """
+    Un paso de la reduccion: un reemplazo de fila, o un intercambio.
+
+    La etiqueta se escribe con las mismas funciones que el resto del proyecto,
+    asi que un paso de aqui se lee igual que uno de la eliminacion: f_3 -> f_3 +
+    4*f_1, con el signo ya plegado en la operacion.
+    """
 
     label: str
     swap: bool
@@ -222,7 +229,7 @@ def by_lu(matrix: Matrix) -> Factorization:
                     lower[pivot][before], lower[column][before]
                 )
             swaps += 1
-            steps.append(RowStep(f"f_{column + 1} <-> f_{pivot + 1}", True))
+            steps.append(RowStep(label_swap(column + 1, pivot + 1), True))
 
         for row in range(column + 1, order):
             if upper[row][column] == 0:
@@ -231,7 +238,9 @@ def by_lu(matrix: Matrix) -> Factorization:
             lower[row][column] = factor
             for col in range(column, order):
                 upper[row][col] -= factor * upper[column][col]
-            steps.append(RowStep(f"f_{row + 1} -> f_{row + 1} - ({factor})*f_{column + 1}", False))
+            # Restar factor veces la fila del pivote es sumar -factor veces, que es
+            # como lo escribe el resto del proyecto y como se escribe a mano.
+            steps.append(RowStep(label_add_scaled(row + 1, column + 1, -factor), False))
 
     diagonal = tuple(upper[i][i] for i in range(order))
     value = Scalar(-1) ** swaps

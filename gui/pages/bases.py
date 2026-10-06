@@ -51,7 +51,7 @@ from core.bases import (
     from_base,
     to_base,
 )
-from ui.presentation import SUBSCRIPTS
+from ui.presentation import SUBSCRIPTS, SUPERSCRIPTS
 
 from .. import theme
 from ..theme import Color
@@ -110,8 +110,6 @@ LENGTH_LIMIT = 32
 
 # Cuantos terminos de una combinacion caben en una linea antes de partirla.
 TERMS_PER_LINE = 6
-
-SUPERSCRIPTS = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
 
 def written(numeral: str, base: int) -> str:
     """Un numero con su base escrita debajo: 101011₂."""

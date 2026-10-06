@@ -31,7 +31,8 @@ from core.determinant import (
     by_lu,
     costs,
 )
-from core.scalar import format_scalar
+from core.scalar import format_factor, format_scalar
+from ui.presentation import SUBSCRIPTS, SUPERSCRIPTS, pretty_label
 
 from .. import theme
 from ..entry import UNREADABLE, SystemInput
@@ -276,7 +277,7 @@ class DeterminantPage(ctk.CTkFrame):
             inside,
             f"Se desarrolla por la {line} {expansion.index} porque es la que más ceros "
             "tiene: cada cero se salta un menor entero. El cofactor de una entrada es "
-            "C = (−1)^(i+j) · M, donde el menor M es el determinante de lo que queda al "
+            "C = (−1)ⁱ⁺ʲ · M, donde el menor M es el determinante de lo que queda al "
             "tachar su fila y su columna.",
         ).pack_configure(pady=(0, 14))
 
@@ -292,15 +293,15 @@ class DeterminantPage(ctk.CTkFrame):
                 Expression(block)
                 .symbol(f"a{_subscript(term.row)}{_subscript(term.col)} = "
                         f"{format_scalar(term.entry)}", theme.ACCENT)
-                .symbol(f"·  (−1)^({term.row}+{term.col}) = {sign}1")
+                .symbol(f"·  (−1){_superscript(term.row)}⁺{_superscript(term.col)} = {sign}1")
                 .symbol("·  det")
                 .matrix(term.minor, f"M{_subscript(term.row)}{_subscript(term.col)}")
                 .symbol(f"=  {format_scalar(term.minor_value)}")
             ).pack(anchor="w")
             MathChip(
                 block,
-                f"{format_scalar(term.entry)} · ({sign}1) · {format_scalar(term.minor_value)}"
-                f"  =  {format_scalar(term.amount)}",
+                f"{format_factor(term.entry)} · ({sign}1) · "
+                f"{format_factor(term.minor_value)}  =  {format_scalar(term.amount)}",
             ).pack(anchor="w", pady=(8, 0))
 
         total = " + ".join(format_scalar(term.amount) for term in expansion.terms)
@@ -334,7 +335,7 @@ class DeterminantPage(ctk.CTkFrame):
         for step in lu.steps:
             ctk.CTkLabel(
                 inside,
-                text="  " + step.label.replace("->", "→").replace("<->", "↔"),
+                text="  " + pretty_label(step.label),
                 font=theme.font("mono"),
                 text_color=theme.ORANGE if step.swap else theme.MUTED,
                 anchor="w",
@@ -358,14 +359,16 @@ class DeterminantPage(ctk.CTkFrame):
             "diagonal principal."
             + (
                 f" Hubo {lu.swaps} intercambio{'s' if lu.swaps != 1 else ''}, así que el "
-                f"producto se multiplica por (−1)^{lu.swaps}."
+                f"producto se multiplica por (−1){_superscript(lu.swaps)}."
                 if lu.permuted
                 else ""
             ),
         ).pack_configure(pady=(0, 12))
 
-        product = " · ".join(format_scalar(entry) for entry in lu.diagonal)
-        sign = f"(−1)^{lu.swaps} · " if lu.permuted else ""
+        # Un factor negativo va entre parentesis, como en el resto del proyecto:
+        # 1 · 3 · (-5) y no 1 · 3 · -5.
+        product = " · ".join(format_factor(entry) for entry in lu.diagonal)
+        sign = f"(−1){_superscript(lu.swaps)} · " if lu.permuted else ""
         ctk.CTkLabel(
             inside,
             text=f"det A  =  {sign}{product}  =  {format_scalar(lu.value)}",
@@ -424,4 +427,8 @@ class DeterminantPage(ctk.CTkFrame):
 
 def _subscript(number: int) -> str:
     """El indice de una entrada, escrito debajo: a₃₂."""
-    return str(number).translate(str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉"))
+    return str(number).translate(SUBSCRIPTS)
+
+def _superscript(number: int) -> str:
+    """El exponente de un signo, escrito arriba: (−1)³."""
+    return str(number).translate(SUPERSCRIPTS)

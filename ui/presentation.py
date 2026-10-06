@@ -26,6 +26,9 @@ UNKNOWN_NAMES = ("x", "y", "z", "w")
 # Los digitos como subindices, para escribir f_12 como f₁₂ donde se pueda.
 SUBSCRIPTS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 
+# Y como superindices, para un exponente: 2⁵, (−1)³⁺².
+SUPERSCRIPTS = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
+
 CLASSIFICATIONS = {
     SystemKind.UNIQUE: "Sistema Consistente Determinado: Presenta Solución Única.",
     SystemKind.INFINITE: "Sistema Consistente Indeterminado: Presenta Infinitas Soluciones.",
