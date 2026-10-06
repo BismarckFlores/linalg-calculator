@@ -22,6 +22,7 @@ course is taught in: **Matrices**, **Vectores** and **Sistemas Numéricos**.
 | --- | --- | --- |
 | Matrices | **Operaciones Matriciales** | `A + B`, `A − B`, `A × B`, `k · A`, `Aᵀ`. Each matrix is resized with its own steppers, and B follows A wherever the shapes have to agree. |
 | Matrices | **Matriz Inversa** | Gauss–Jordan on `[A \| Iₙ]` with coefficient grids or equations, shared matrix displays and step navigation, both product checks, and the application `x = A⁻¹b`. See [inverse.md](inverse.md). |
+| Matrices | **Determinante** | det A by cofactor expansion or by LU, with the cost of each said before the method is picked. Shows every minor with its sign, or the reduction with L, U and the diagonal, and checks the answer with the other method. |
 | Matrices | **Eliminación Gaussiana** | Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
 | Matrices | **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one. Then it reduces it, step by step, and marks the pivot positions the reduced form puts on show. Switched to `Es una matriz aumentada [ A \| b ]`, it also reads the pivots as a system. |
 | Vectores | **Vectores en ℝⁿ** | `u + v`, `u − v` and `k · u`, as columns side by side and component by component, and whether b is a linear combination of v₁, …, vₖ, solved as the system it is. Nobody says what n is: it is however many components were typed. |
@@ -314,6 +315,31 @@ zero, a negative and anything above MMMCMXCIX, because Rome wrote none of them.
 Both directions share their wording with the **Números Romanos** page, so
 `IIII` is refused with the same sentence wherever it is typed.
 
+### The determinant
+
+The assignment asks for two methods and for the program to say which is more
+efficient **before** either is chosen, so the advice sits in the input card,
+under the matrix and above the button. It needs only the size: a 3 × 3 costs
+9 multiplications by cofactors and 8 by LU, a 4 × 4 costs 40 against 20, and a
+10 × 10 costs 6 235 300 against 330. Cofactors win up to 3 × 3, where they are
+also what somebody follows by hand; from 4 × 4 on it says LU and by how much.
+
+**Cofactores** expands along the row or column with the most zeros, since each
+zero skips a whole minor, and says which line it chose and why. Every term is
+drawn in full: the entry, `(−1)^(i+j)`, the minor as a matrix, its determinant
+and the product the three make. The sum of the terms is the answer.
+
+**LU** reduces with row replacements, which do not change the determinant,
+keeping each multiplier in L. It draws the operations, then `A = L U`, and then
+the diagonal of U multiplied out. When a pivot is zero the rows are swapped, so
+what is factorised is `P A = L U` and the sign flips once per swap — the page
+says so and writes `(−1)^k` in front of the product.
+
+Whichever method ran, the other one runs too and its value is shown as a check.
+They are different procedures over the same exact numbers, so agreeing is worth
+something. Past 7 × 7 the check is dropped and past 8 × 8 cofactors are refused
+outright: 8! minors is the wall the course's own slides describe.
+
 ### Roman numerals
 
 Three operations, one per pill, and all three take any two numerals.
@@ -369,6 +395,7 @@ gui/
     ├── operations.py   matrix arithmetic
     ├── gauss.py        A x = b, both methods
     ├── inverse.py      A inverse, checks and Ax = b by inverse
+    ├── determinant.py  det A by cofactors or by LU, and which one to use
     ├── echelon.py      the five properties, the reduction, the pivots
     ├── bases.py        whole numbers between base 10 and bases 2 to 36
     └── roman.py        Roman numerals, and the three operations on them

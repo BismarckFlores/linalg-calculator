@@ -21,6 +21,7 @@ import customtkinter as ctk
 
 from . import theme
 from .pages.bases import BasesPage
+from .pages.determinant import DeterminantPage
 from .pages.echelon import EchelonPage
 from .pages.gauss import GaussPage
 from .pages.inverse import InversePage
@@ -58,6 +59,7 @@ GROUPS = (
     Group("Matrices", (
         Module("operations", "⊞", "Operaciones Matriciales"),
         Module("inverse", "⁻¹", "Matriz Inversa"),
+        Module("determinant", "|A|", "Determinante"),
         Module("gauss", "▦", "Eliminación Gaussiana"),
         Module("echelon", "▧", "Formas Escalonadas"),
     )),
@@ -286,6 +288,8 @@ class Application(ctk.CTk):
             return BasesPage(self._container)
         if key == "roman":
             return RomanPage(self._container)
+        if key == "determinant":
+            return DeterminantPage(self._container)
         raise KeyError(f"No page is registered for {key!r}.")
 
 def main() -> None:

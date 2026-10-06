@@ -162,16 +162,19 @@ Escrito: deliverables/out/Programa 1_Grupo5.py
   1647 lineas, 12 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa 2_Grupo5.py
-  6721 lineas, 28 bloques
+  7419 lineas, 30 bloques
+  Todo el texto del archivo esta en castellano.
+Escrito: deliverables/out/Programa Determinante_Grupo5.py
+  7429 lineas, 30 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Matriz Inversa_Grupo5.py
-  6731 lineas, 28 bloques
+  7429 lineas, 30 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Numeros Romanos_Grupo5.py
-  6726 lineas, 28 bloques
+  7424 lineas, 30 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Vectores y Sistemas Numericos_Grupo5.py
-  6742 lineas, 28 bloques
+  7440 lineas, 30 bloques
   Todo el texto del archivo esta en castellano.
 ```
 
@@ -184,6 +187,12 @@ for. Its first lines are the instructions for running it: make a `.venv`,
 `pip install customtkinter`, run the file. That is the only thing any
 deliverable here needs installed, and only to draw — the mathematics inside it
 is standard library too.
+
+**`Programa Determinante_Grupo5.py`** is the same window, handed in for the
+determinant assignment. Its preamble points at the `Determinante` tab: the cost
+of each method before choosing one, the cofactor expansion with its minors, the
+`A = LU` reduction with the diagonal of U, and each method checked against the
+other.
 
 **`Programa Matriz Inversa_Grupo5.py`** is the same window, handed in for the
 inverse assignment. Its preamble points at the `Matriz Inversa` tab, under

@@ -216,6 +216,22 @@ class SystemInput(ctk.CTkFrame):
 
     # ----- Lectura de lo escrito -----
 
+    def size(self) -> tuple[int, int] | None:
+        """
+        El tamano de la cuadricula, o None si lo que hay escrito son ecuaciones.
+
+        Sirve para lo que depende del tamano y no de los numeros, como decidir
+        que metodo conviene antes de calcular nada. Unas ecuaciones todavia sin
+        leer no tienen tamano: hasta que no se leen no se sabe cuantas
+        incognitas mencionan.
+        """
+        if self._way_in == EQUATIONS:
+            return None
+        rows, cols = self._a.size()
+        if self._b is not None:
+            cols += 1
+        return rows, cols
+
     def read(self) -> Typed:
         """
         La matriz, y los nombres de las incognitas cuando los hay.

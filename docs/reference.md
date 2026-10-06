@@ -256,6 +256,32 @@ only, and says nothing to anybody: the Spanish for a mistake is decided in
 | `MissingEquals` | The line does not hold exactly one `=`. |
 | `UnreadableTerm` | A fragment is not a term. `.text` is the fragment, for pointing at it. |
 
+## `core/determinant.py`
+
+The determinant, by both methods the course teaches, with the working kept.
+
+| Name | Meaning |
+| --- | --- |
+| `by_cofactors(matrix) -> Cofactors` | Expansion along the line with the most zeros. Raises `NotSquare`. |
+| `by_lu(matrix) -> Factorization` | `PA = LU` by row replacement, with swaps counted. Raises `NotSquare`. |
+| `determinant(matrix) -> Scalar` | The number alone, by the shortest road: the formula up to 2 × 2, LU above it. |
+| `costs(order) -> Costs` | What each method would cost for that order, and which is advised. |
+| `minor_of(matrix, row, col)` | The matrix left after crossing out one row and one column. |
+| `best_line(matrix) -> (str, int)` | The row or column with the most zeros, `ROW` or `COLUMN`. |
+| `COFACTOR_LIMIT`, `LU_FROM` | 8, past which cofactors are refused, and 4, from which LU is advised. |
+
+**`Cofactors`** — the `matrix`, the line it expanded `along` and its `index`,
+the `terms` and the `value`. Each **`Summand`** carries the entry, its `sign`,
+the `minor` and its value, the `cofactor` and the `amount` it contributes.
+Entries equal to zero are left out: their minor is never computed.
+
+**`Factorization`** — `matrix`, `lower`, `upper`, `permutation`, the number of
+`swaps`, the `steps`, the `diagonal` of U and the `value`. `permuted` is true
+when rows had to be swapped, which is when `P` stops being the identity.
+
+**`Costs`** — `order`, `cofactor` and `lu` multiplication counts, `advised`,
+and `times`, how many times dearer the expansion is.
+
 ## `core/echelon.py`
 
 The definitions themselves: what form a matrix is in, and where its pivots are.
@@ -470,6 +496,7 @@ The window. `python -m gui`, from the repository root. Full notes in
 | `gui/entry.py` | `SystemInput`, the input card both pages use, and `Typed`, what it hands back: the matrix, the names of the unknowns, and how many columns are coefficients. `augmentable=True` adds the switch that marks a single grid as `[ A \| b ]`. |
 | `gui/app.py` | `GROUPS` — the sidebar, by subject — with `MODULES` flattened out of it, plus `Group`, `Module`, `NavRow`, `Application` and `main()`. |
 | `gui/pages/vectors.py` | `VectorsPage`: `u + v`, `u − v`, `k · u` and linear combinations in Rⁿ, as columns and component by component. Owns its Spanish. |
+| `gui/pages/determinant.py` | `DeterminantPage`: det A by cofactors or LU, with the cost of each shown before the choice. Owns its Spanish. |
 | `gui/pages/operations.py` | `OperationsPage`: the five matrix operations. |
 | `gui/pages/roman.py` | `RomanPage`: Roman numerals added, subtracted and multiplied, with each numeral read piece by piece and a switch for the repeated addition. Owns its Spanish. |
 | `gui/pages/inverse.py` | `InversePage`: inverse and `Ax = b`, both entered through the shared coefficient grids or equation parser, with matrix displays, product checks and `StepWalker`. |
@@ -484,6 +511,11 @@ than falling back to something apologetic.
 `SystemInput(max_size=None)` and `MatrixEntryGrid(max_size=None)` remove the
 default dimension cap for the inverse page. Other callers retain the default
 limit of ten. `Stepper(maximum=None)` keeps its plus button enabled.
+
+`SystemInput.size()` gives the grid's size, or `None` when equations are
+showing and nothing has been read yet. It is for what depends on the size and
+not on the numbers, like pricing the two ways to a determinant before either
+runs.
 
 `SystemInput.read()` is the boundary worth knowing: it hands back a `Typed`,
 exactly what `prompts.ask_system` hands the terminal, or raises with a Spanish

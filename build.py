@@ -249,6 +249,24 @@ WINDOW_BLOCKS: list[Block] = [
         "resolver Ax = b como x = A^-1 b cuando A es invertible.",
     ),
     Block(
+        "core/determinant.py",
+        "EL DETERMINANTE",
+        "Calcula det A por los dos caminos del enunciado, y dice de antemano cual\n"
+        "conviene:\n"
+        "  - Por cofactores: det A es la suma, a lo largo de una fila o una columna,\n"
+        "    de cada entrada por su cofactor C_ij = (-1)^(i+j) · M_ij, donde el menor\n"
+        "    M_ij es el determinante de lo que queda al tachar esa fila y esa\n"
+        "    columna. Se desarrolla por la linea con mas ceros, porque cada cero se\n"
+        "    salta un menor entero.\n"
+        "  - Por LU: se reduce A a una escalonada U con reemplazos de fila, que no\n"
+        "    cambian el determinante, guardando los multiplicadores en L. Como U es\n"
+        "    triangular, det A es el producto de su diagonal; si hubo intercambios,\n"
+        "    lo factorizado es PA = LU y cada intercambio cambia el signo.\n"
+        "El costo decide: los cofactores piden del orden de n! multiplicaciones y LU\n"
+        "del orden de n^3/3, asi que de 4 x 4 en adelante conviene LU. Una matriz de\n"
+        "25 x 25 por cofactores serian unas 1.5e25 multiplicaciones.",
+    ),
+    Block(
         "gui/theme.py",
         "EL ASPECTO DE LA VENTANA",
         "Los colores, las tipografías y el interruptor entre modo claro y modo\n"
@@ -310,6 +328,15 @@ WINDOW_BLOCKS: list[Block] = [
         "entradas principales y dónde quedan sus posiciones y columnas pivote.\n"
         "Cuando una propiedad no se cumple, dice cuál y señala la entrada que la\n"
         "rompe, que es lo que sirve para aprenderla.",
+    ),
+    Block(
+        "gui/pages/determinant.py",
+        "LA PESTAÑA DEL DETERMINANTE",
+        "Antes de elegir metodo dice lo que costaria cada uno con esa matriz, que es\n"
+        "una cuenta que solo depende del tamano. Despues muestra el procedimiento\n"
+        "entero: los menores con su signo en el desarrollo por cofactores, o la\n"
+        "reduccion con L, U y el producto de la diagonal en LU. Al final calcula el\n"
+        "mismo determinante por el otro metodo, como comprobacion.",
     ),
     Block(
         "gui/pages/gauss.py",
@@ -417,6 +444,29 @@ exacta, la eliminacion por filas, la clasificacion, el despeje y la
 comprobacion) esta escrita con Python estandar: listas anidadas,
 condicionales, bucles y funciones. No emplea NumPy, SciPy ni las funciones de
 algebra lineal de math.""",
+        blocks=[*ENGINE, *WINDOW_BLOCKS],
+    ),
+    Program(
+        number="Determinante",
+        title="Determinante de una Matriz por Cofactores y por Factorizacion LU",
+        preamble=WINDOW_HOWTO + """
+
+El determinante esta en la pestana Determinante de la ventana, dentro del grupo
+Matrices del menu de la izquierda:
+
+  Antes de elegir metodo    la pagina dice cuantas multiplicaciones pide cada
+                            uno con esa matriz, y cual conviene
+  Cofactores                desarrollo por la fila o la columna con mas ceros,
+                            con el menor y el signo de cada entrada
+  LU                        reduccion a A = LU (o PA = LU si hay intercambios)
+                            y producto de la diagonal de U
+
+Los dos metodos se comprueban entre si: al terminar, el determinante se vuelve
+a calcular por el otro camino y los dos valores tienen que coincidir.
+
+CustomTkinter solo dibuja. Toda la matematica esta escrita con Python estandar:
+listas anidadas, condicionales, bucles y funciones, con fracciones exactas. No
+emplea NumPy, SciPy ni las funciones de algebra lineal de math.""",
         blocks=[*ENGINE, *WINDOW_BLOCKS],
     ),
     Program(

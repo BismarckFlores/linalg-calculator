@@ -19,6 +19,15 @@ from core.parametric import general_solution
 from core.scalar import format_scalar
 from core.systems import SystemKind, solve
 from core.verification import verify
+from core.determinant import (
+    NotSquare,
+    best_line,
+    by_cofactors,
+    by_lu,
+    costs,
+    determinant,
+    minor_of,
+)
 from core.roman import (
     BadLetter,
     BadOrder,
@@ -332,6 +341,44 @@ many = product_of("XIV", "IX")
 check("any two numerals multiply", (many.value, many.numeral), (126, "CXXVI"))
 check("and keep their terms", (len(many.terms), many.terms[0]), (9, "XIV"))
 check("a product with no numeral", product_of("C", "C").numeral, "")
+
+print("determinantes: por cofactores y por LU")
+# El ejemplo de la presentacion: se reduce a triangular con un intercambio.
+curso = Matrix([[1, -4, 2], [-2, 8, -9], [-1, 7, 0]])
+check("det por cofactores", by_cofactors(curso).value, 15)
+check("det por LU", by_lu(curso).value, 15)
+check("el intercambio queda registrado", by_lu(curso).swaps, 1)
+check("una triangular es el producto de su diagonal",
+      by_lu(Matrix([[3, 0, 0], [5, 2, 0], [1, 7, -2]])).value, -12)
+check("2 x 2 es ad - bc", determinant(Matrix([[3, -2], [-5, 4]])), 2)
+check("1 x 1 es su unica entrada", determinant(Matrix([[7]])), 7)
+check("el menor tacha fila y columna", minor_of(curso, 3, 2).data,
+      [[Fraction(1), Fraction(2)], [Fraction(-2), Fraction(-9)]])
+check("se desarrolla por la linea con mas ceros", best_line(curso), ("fila", 3))
+# El ejemplo del pptx de LU: L y U son las de la diapositiva.
+lu = by_lu(Matrix([[3, -7, -2, 2], [-3, 5, 1, 0], [6, -4, 0, -5], [-9, 5, -5, 12]]))
+check("L es triangular inferior con unos", [row[:i + 1] for i, row in enumerate(lu.lower.data)],
+      [[Fraction(1)], [Fraction(-1), Fraction(1)], [Fraction(2), Fraction(-5), Fraction(1)],
+       [Fraction(-3), Fraction(8), Fraction(3), Fraction(1)]])
+check("U es la escalonada de la diapositiva", lu.upper.row(2), [Fraction(0), Fraction(-2), Fraction(-1), Fraction(2)])
+check("L por U devuelve A", lu.lower * lu.upper, lu.permutation * lu.matrix)
+check("una matriz singular tiene determinante cero",
+      by_cofactors(Matrix([[1, 2, 3], [2, 4, 6], [1, 0, 1]])).value, 0)
+check("los dos metodos coinciden siempre", all(
+    by_cofactors(m).value == by_lu(m).value for m in (
+        Matrix([[0, 1], [1, 0]]),
+        Matrix([[2, 0, 0, 1], [0, 3, 0, 0], [0, 0, 1, 0], [5, 0, 0, 2]]),
+        Matrix([[1, 2], [3, 4]]),
+    )), True)
+check("un intercambio cambia el signo", by_lu(Matrix([[0, 1], [1, 0]])).value, -1)
+check("el costo decide el metodo", (costs(3).advised, costs(4).advised), ("cofactores", "LU"))
+check("cofactores crece como n!", (costs(4).cofactor, costs(5).cofactor), (40, 205))
+check("LU crece como n^3/3", (costs(4).lu, costs(10).lu), (20, 330))
+try:
+    determinant(Matrix([[1, 2, 3], [4, 5, 6]]))
+    check("una matriz no cuadrada no tiene determinante", "aceptada", "rechazada")
+except NotSquare as problem:
+    check("una matriz no cuadrada no tiene determinante", (problem.rows, problem.cols), (2, 3))
 
 print("exact arithmetic, end to end")
 third = solve(Matrix([[3, 1]]))
