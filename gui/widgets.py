@@ -55,6 +55,34 @@ class Card(ctk.CTkFrame):
             **kwargs,
         )
 
+class GlyphBadge(ctk.CTkFrame):
+    """
+    El simbolo de una pagina dentro de un cuadrado de tamano fijo.
+
+    El menu y el titulo de la pagina lo dibujan igual. El cuadrado no crece con
+    el texto, asi que un simbolo ancho como LU o |A| no empuja el nombre de su
+    fila y todos los nombres quedan alineados.
+    """
+
+    def __init__(self, master: Any, glyph: str, size: int = 28, active: bool = False) -> None:
+        super().__init__(master, width=size, height=size, corner_radius=size // 3)
+        self.pack_propagate(False)
+        self._symbol = ctk.CTkLabel(
+            self, text=glyph, font=theme.font("badge"), text_color=theme.ACCENT
+        )
+        self._symbol.place(relx=0.5, rely=0.5, anchor="center")
+        self.set_active(active)
+
+    def parts(self) -> tuple[Any, ...]:
+        """El cuadrado y su simbolo: lo que una fila tiene que escuchar para ser pulsable."""
+        return (self, self._symbol)
+
+    def set_active(self, active: bool) -> None:
+        """Sobre una fila marcada el cuadrado se aclara, para no perderse en el azul."""
+        color = theme.ON_ACCENT_SOFT if active else theme.ACCENT_SOFT
+        self.configure(fg_color=color)
+        self._symbol.configure(fg_color=color)
+
 class PageHeader(ctk.CTkFrame):
     """El titulo de una pagina y la linea de debajo que explica lo que hace."""
 
@@ -62,10 +90,7 @@ class PageHeader(ctk.CTkFrame):
         super().__init__(master, fg_color="transparent")
         heading = ctk.CTkFrame(self, fg_color="transparent")
         heading.pack(anchor="w")
-        self._glyph = ctk.CTkLabel(
-            heading, text=glyph, font=theme.font("title"), text_color=theme.ACCENT
-        )
-        self._glyph.pack(side="left", padx=(0, 8))
+        GlyphBadge(heading, glyph, size=36).pack(side="left", padx=(0, 12))
         self._title = ctk.CTkLabel(
             heading, text=title, font=theme.font("title"), text_color=theme.INK
         )
@@ -73,7 +98,7 @@ class PageHeader(ctk.CTkFrame):
         self._subtitle = ctk.CTkLabel(
             self, text=subtitle, font=theme.font("body"), text_color=theme.MUTED
         )
-        self._subtitle.pack(anchor="w", pady=(2, 0))
+        self._subtitle.pack(anchor="w", pady=(6, 0))
 
     def set_subtitle(self, subtitle: str) -> None:
         """Explicar otra cosa bajo el mismo titulo: una pagina, dos metodos."""

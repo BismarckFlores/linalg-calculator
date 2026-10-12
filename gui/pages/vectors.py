@@ -145,7 +145,7 @@ class VectorsPage(ResultsPage):
         super().__init__(master)
         self._operation = SUM
 
-        self._header = PageHeader(self, "↗", "Vectores en ℝⁿ", VECTOR_SUBTITLES[SUM])
+        self._header = PageHeader(self, "↗", "Operaciones Vectoriales", VECTOR_SUBTITLES[SUM])
         self._header.pack(anchor="w", pady=(0, 18))
 
         SegmentedControl(

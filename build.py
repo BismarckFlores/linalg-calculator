@@ -512,10 +512,10 @@ emplea NumPy, SciPy ni las funciones de algebra lineal de math.""",
 La inversa esta en la pestana Matriz Inversa de la ventana, dentro del grupo
 Matrices del menu de la izquierda:
 
-  Calcular A^-1                    boton Inversa A^-1. Reduce [ A | I ] por
+  Calcular A^-1                    boton Calcular A^-1. Reduce [ A | I ] por
                                    Gauss-Jordan hasta [ I | A^-1 ], muestra el
                                    paso a paso y comprueba A A^-1 = A^-1 A = I
-  Resolver A x = b con la inversa  boton Resolver Ax = b. Calcula x = A^-1 b y
+  Resolver A x = b con la inversa  boton Resolver A x = b. Calcula x = A^-1 b y
                                    comprueba A x = b en la A original
 
 La matriz se escribe como coeficientes o como ecuaciones, igual que en las
@@ -533,8 +533,8 @@ emplea NumPy, SciPy ni las funciones de algebra lineal de math.""",
         title="Suma, Resta y Multiplicacion de Numeros Romanos",
         preamble=WINDOW_HOWTO + """
 
-Las operaciones con numeros romanos estan en la pestana Numeros Romanos de la
-ventana, la ultima del menu de la izquierda:
+Las operaciones con numeros romanos estan en la pestana Aritmetica Romana de la
+ventana, dentro del grupo Sistemas Numericos del menu de la izquierda:
 
   Sumar y restar numeros romanos    botones Suma y Resta
   Multiplicar por notacion de suma  boton Multiplicacion, un simbolo en cada
@@ -557,20 +557,21 @@ DONDE ESTA CADA REQUISITO
 Los dos programas son pestanas de la misma ventana, en el menu de la izquierda:
 
   Programa Vectores
-    Modulo de vectores (Rn)          pestana Vectores
+    Modulo de vectores (Rn)          pestana Operaciones Vectoriales
       suma, resta, k por un vector   botones u + v, u - v, k . u
       combinacion lineal             boton Combinacion lineal
     Operaciones matriciales          pestana Operaciones Matriciales
-    Ecuacion matricial A x = b       pestana Eliminacion Gaussiana, que es el
-                                     programa elaborado anteriormente
+    Ecuacion matricial A x = b       pestana Eliminacion Gaussiana (la primera
+                                     del menu), que es el programa
+                                     elaborado anteriormente
 
   Programa Sistemas Numericos
-    Decimal a binario, octal,        pestana Sistemas Numericos,
+    Decimal a binario, octal,        pestana Conversiones,
     hexadecimal (u otra base)        Decimal -> otra base
-    Binario, octal, hexadecimal      pestana Sistemas Numericos,
+    Binario, octal, hexadecimal      pestana Conversiones,
     (u otra base) a decimal          Otra base -> decimal
 
-La ventana trae ademas la pestana Numeros Romanos, que se entrega tambien por
+La ventana trae ademas la pestana Aritmetica Romana, que se entrega tambien por
 su cuenta como Programa Numeros Romanos_Grupo5.py.
 
 CustomTkinter solo dibuja. Toda la matematica esta escrita con Python

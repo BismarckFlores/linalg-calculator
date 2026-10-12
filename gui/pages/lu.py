@@ -47,8 +47,8 @@ from ..widgets import (
     SegmentedControl,
 )
 
-FACTORIZE = "Factorizar"
-SOLVE = "Resolver Ax = b"
+FACTORIZE = "Factorizar A"
+SOLVE = "Resolver A x = b"
 LU_MODES = (FACTORIZE, SOLVE)
 
 LU_SUBTITLES = {

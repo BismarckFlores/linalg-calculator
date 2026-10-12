@@ -588,9 +588,9 @@ the deliverables that open a window.
 **Values are frozen.** Every dataclass is `frozen=True` and `Matrix` operations
 return new matrices. Nothing mutates under you.
 
-**`core/` never speaks.** No `print`, no Spanish, not even in its exceptions —
-those describe programming mistakes and are addressed to whoever is writing the
-code. What a person can get wrong is caught in `ui/` and said in Spanish there.
+**`core/` never speaks.** No `print`: it returns data and raises exceptions,
+whose text is in Spanish. What a person can get wrong is caught in `ui/` and
+worded there, so every front end says the same thing.
 
 **Empty is meaningful.** `Solution.values` is empty for anything but a unique
 solution, and `free_columns` is empty for anything but an indeterminate one.

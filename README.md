@@ -71,14 +71,13 @@ theorems and course exercises.
 ## Rules
 
 **Identifiers are English; comments are Spanish.** Every identifier in this
-repository is in English — `to_rref`, `SingularMatrix` — and so are the
-exception messages the engine raises, which are addressed to whoever is writing
-the code. Every comment and docstring is in Spanish, without accents, because
-the file handed in carries them as they are to a class taught in Spanish. The
-documents under `docs/` are in English.
+repository is in English — `to_rref`, `SingularMatrix`. Every comment and docstring is in
+Spanish, without accents, because the file handed in carries them as they are to
+a class taught in Spanish, and so is the text of the exceptions the engine
+raises. The documents under `docs/` are in English.
 
 **`core/` does not talk.** No `print`, no message addressed to a person. It
-returns data and raises exceptions aimed at whoever is writing the code. The
+returns data and raises exceptions, worded in Spanish. The
 wording a user reads is decided in the interface layer, which is why every front
 end says exactly the same thing.
 

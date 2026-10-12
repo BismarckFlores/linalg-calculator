@@ -17,7 +17,7 @@ block is `A⁻¹`. The result is checked against the original input with both
 `A A⁻¹ = Iₙ` and `A⁻¹ A = Iₙ`. If A is not square, has an unreadable entry, or
 has fewer than n pivots, the page reports the reason in Spanish.
 
-The **Resolver Ax = b** mode accepts A and b in separate grids, or reads both
+The **Resolver A x = b** mode accepts A and b in separate grids, or reads both
 from the equations. Each mode preserves its input when switching away and back. Its
 method is `x = A⁻¹b`, followed by an independent check that `Ax = b` using the
 original A. This method applies only when A is invertible; a singular system

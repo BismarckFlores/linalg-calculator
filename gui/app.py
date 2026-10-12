@@ -29,7 +29,7 @@ from .pages.lu import LUPage
 from .pages.operations import OperationsPage
 from .pages.roman import RomanPage
 from .pages.vectors import VectorsPage
-from .widgets import WHEEL_STEP, Card, Wide
+from .widgets import WHEEL_STEP, Card, GlyphBadge, Wide
 
 @dataclass(frozen=True)
 class Module:
@@ -46,31 +46,31 @@ class Group:
     name: str
     modules: tuple[Module, ...]
 
-# El menu, por los tres temas en que se ensena el curso, y dentro de cada uno
-# en el orden en que se ensena: las operaciones con matrices antes de la
-# eliminacion que se escribe con ellas, y leer la forma de una matriz despues
-# de las dos, como la comprobacion que se hace al terminar. Gauss y
-# Gauss-Jordan comparten fila, porque son dos ajustes de un mismo metodo y la
-# eleccion entre ellos va dentro de la pagina.
-#
-# Vectores tiene hoy una sola pagina. Aun asi conserva su propio titulo: los
-# tres temas se leen igual, y una segunda pagina de vectores tiene donde
-# aterrizar.
+# El menu, por lo que se quiere hacer y dentro de cada grupo por prioridad:
+# primero la pagina que resuelve un sistema, que es lo que mas se pide y con lo
+# que abre la ventana, y despues sus herramientas. Matrices va de lo basico (las
+# operaciones) a lo que se calcula con ellas: la inversa, la factorizacion LU y
+# el determinante, que lee la diagonal de esa factorizacion. Gauss y Gauss-Jordan
+# comparten fila, porque son dos ajustes de un mismo metodo y la eleccion entre
+# ellos va dentro de la pagina. Vectores tiene una sola pagina, pero conserva su
+# titulo para que una segunda tenga donde aterrizar.
 GROUPS = (
+    Group("Sistemas Lineales", (
+        Module("gauss", "▦", "Eliminación Gaussiana"),
+        Module("echelon", "▧", "Formas Escalonadas"),
+    )),
     Group("Matrices", (
         Module("operations", "⊞", "Operaciones Matriciales"),
         Module("inverse", "⁻¹", "Matriz Inversa"),
-        Module("determinant", "|A|", "Determinante"),
-        Module("gauss", "▦", "Eliminación Gaussiana"),
         Module("lu", "LU", "Factorización LU"),
-        Module("echelon", "▧", "Formas Escalonadas"),
+        Module("determinant", "|A|", "Determinante"),
     )),
     Group("Vectores", (
-        Module("vectors", "↗", "Vectores en ℝⁿ"),
+        Module("vectors", "↗", "Operaciones Vectoriales"),
     )),
     Group("Sistemas Numéricos", (
         Module("bases", "⇄", "Conversiones"),
-        Module("roman", "Ⅻ", "Números Romanos"),
+        Module("roman", "Ⅻ", "Aritmética Romana"),
     )),
 )
 
@@ -102,16 +102,14 @@ class NavRow(ctk.CTkFrame):
         self._module = module
         self._active = False
 
-        self._glyph = ctk.CTkLabel(
-            self, text=module.glyph, width=18, font=theme.font("body"), text_color=theme.ACCENT
-        )
-        self._glyph.pack(side="left", padx=(12, 8), pady=8)
+        self._glyph = GlyphBadge(self, module.glyph, size=32)
+        self._glyph.pack(side="left", padx=(8, 10), pady=4)
         self._name = ctk.CTkLabel(
             self, text=module.name, anchor="w", font=theme.font("body"), text_color=theme.INK
         )
         self._name.pack(side="left", fill="x", expand=True, padx=(0, 12))
 
-        for widget in (self, self._glyph, self._name):
+        for widget in (self, *self._glyph.parts(), self._name):
             widget.bind("<Button-1>", lambda _event: select(module.key))
             widget.bind("<Enter>", lambda _event: self._hover(True))
             widget.bind("<Leave>", lambda _event: self._hover(False))
@@ -120,7 +118,7 @@ class NavRow(ctk.CTkFrame):
     def set_active(self, active: bool) -> None:
         self._active = active
         self.configure(fg_color=theme.ACCENT if active else "transparent")
-        self._glyph.configure(text_color=theme.ON_ACCENT if active else theme.ACCENT)
+        self._glyph.set_active(active)
         self._name.configure(text_color=theme.ON_ACCENT if active else theme.INK)
 
     def _hover(self, inside: bool) -> None:
@@ -304,7 +302,7 @@ class Application(ctk.CTk):
             return DeterminantPage(self._container)
         if key == "lu":
             return LUPage(self._container)
-        raise KeyError(f"No page is registered for {key!r}.")
+        raise KeyError(f"No hay ninguna página registrada para {key!r}.")
 
 def main() -> None:
     """Abre la ventana y le cede el control."""

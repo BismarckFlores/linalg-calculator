@@ -110,7 +110,7 @@ class RomanPage(ResultsPage):
         super().__init__(master)
         self._operation = PLUS
 
-        self._header = PageHeader(self, "Ⅻ", "Números Romanos", ROMAN_SUBTITLES[PLUS])
+        self._header = PageHeader(self, "Ⅻ", "Aritmética Romana", ROMAN_SUBTITLES[PLUS])
         self._header.pack(anchor="w", pady=(0, 18))
 
         SegmentedControl(self, (PLUS, MINUS, TIMES), self._choose).pack(

@@ -258,19 +258,21 @@ Identifiers stay in English — `to_rref`, `SingularMatrix`, `render_equations` 
 so the code still reads as code and nothing had to be renamed. The comments
 carry no accents, which is how they already reached the handed-in file.
 
-What stays in English is the text of the exceptions the engine raises. Those
-describe programming mistakes and are addressed to whoever is writing the code;
-a person using the program never sees one, because the interface catches what
-they can get wrong and says it in Spanish first.
+The text of the exceptions the engine raises is in Spanish too. It used to stay
+in English, on the grounds that nobody but a programmer reads it, but a message
+that escapes — a size mismatch, a singular matrix, a base out of range — then
+reached a Spanish-speaking user in English, and the file handed in has to read
+in Spanish end to end. The interface still catches what a person can get wrong
+and words it itself; the engine's text is the safety net underneath.
 
 `build.py` compiles what it produced before writing it out, so a build that
 succeeds cannot have shipped a syntax error.
 
-## The engine raises in English
+## The engine raises in Spanish
 
-`core/` speaks no Spanish, not even when it fails. Its messages describe a
-programming error ("Cannot multiply: A has 2 columns and B has 1 rows") and are
-addressed to whoever is writing the code. When the mistake belongs to the person
+`core/` never prints, but what it raises is in Spanish. Its messages describe a
+mistake ("No se pueden multiplicar: A tiene 2 columnas y B tiene 1 filas") and
+read the same wherever they surface. When the mistake belongs to the person
 using the program, the interface catches it and says so in Spanish before
 calling the engine. That is why the interface checks dimensions the engine also
 checks: two different audiences, not duplication.

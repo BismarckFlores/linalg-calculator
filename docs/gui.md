@@ -15,26 +15,32 @@ when the root is the directory Python started from.
 
 ## What is on it
 
-The sidebar lists what works, and nothing else, under the three subjects the
-course is taught in: **Matrices**, **Vectores** and **Sistemas Numéricos**.
+The sidebar lists what works, and nothing else, in four groups ordered by what
+somebody sets out to do: **Sistemas Lineales**, **Matrices**, **Vectores** and
+**Sistemas Numéricos**. Every row has the same square badge for its symbol, in
+the menu and again in the page title, so a wide symbol such as `LU` or `|A|`
+never pushes a name out of line.
 
 | Group | Row | What it does |
 | --- | --- | --- |
+| Sistemas Lineales | **Eliminación Gaussiana** | Opens with the window. Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
+| Sistemas Lineales | **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one. Then it reduces it, step by step, and marks the pivot positions the reduced form puts on show. Switched to `Es una matriz aumentada [ A \| b ]`, it also reads the pivots as a system. |
 | Matrices | **Operaciones Matriciales** | `A + B`, `A − B`, `A × B`, `k · A`, `Aᵀ`. Each matrix is resized with its own steppers, and B follows A wherever the shapes have to agree. |
-| Matrices | **Matriz Inversa** | Gauss–Jordan on `[A \| Iₙ]` with coefficient grids or equations, shared matrix displays and step navigation, both product checks, and the application `x = A⁻¹b`. See [inverse.md](inverse.md). |
+| Matrices | **Matriz Inversa** | Gauss–Jordan on `[A \| Iₙ]` with coefficient grids or equations, shared matrix displays and step navigation, both product checks, and the application `x = A⁻¹b`. Modes `Calcular A⁻¹` and `Resolver A x = b`. See [inverse.md](inverse.md). |
+| Matrices | **Factorización LU** | `PA = LU` with the reduction step by step, the four matrices, and the exact `PA = LU` check (`Factorizar A`); or `A x = b` by the two substitutions, `Ly = Pb` and `Ux = y`, written equation by equation (`Resolver A x = b`). Partial pivoting and strict mode are switches. |
 | Matrices | **Determinante** | det A by cofactor expansion or by LU, with the cost of each said before the method is picked. Shows every minor with its sign, or the reduction with L, U and the diagonal, and checks the answer with the other method. |
-| Matrices | **Factorización LU** | `PA = LU` with the reduction step by step, the four matrices, and the exact `PA = LU` check; or `Ax = b` by the two substitutions, `Ly = Pb` and `Ux = y`, written equation by equation. Partial pivoting and strict mode are switches. |
-| Matrices | **Eliminación Gaussiana** | Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
-| Matrices | **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one. Then it reduces it, step by step, and marks the pivot positions the reduced form puts on show. Switched to `Es una matriz aumentada [ A \| b ]`, it also reads the pivots as a system. |
-| Vectores | **Vectores en ℝⁿ** | `u + v`, `u − v` and `k · u`, as columns side by side and component by component, and whether b is a linear combination of v₁, …, vₖ, solved as the system it is. Nobody says what n is: it is however many components were typed. |
+| Vectores | **Operaciones Vectoriales** | `u + v`, `u − v` and `k · u`, as columns side by side and component by component, and whether b is a linear combination of v₁, …, vₖ, solved as the system it is. Nobody says what n is: it is however many components were typed. |
 | Sistemas Numéricos | **Conversiones** | A whole number from decimal to binary, octal, hexadecimal or any base from 2 to 36 by repeated division, and back by the linear combination of powers it stands for. `Romano` converts to and from Roman numerals, which are no base at all. Each direction is checked with the other. |
-| Sistemas Numéricos | **Números Romanos** | Adds, subtracts and multiplies Roman numerals, with a switch that writes a multiplication out as the repeated addition it stands for. Says when an answer is one the Romans could not write. |
+| Sistemas Numéricos | **Aritmética Romana** | Adds, subtracts and multiplies Roman numerals, with a switch that writes a multiplication out as the repeated addition it stands for. Says when an answer is one the Romans could not write. |
 
-Inside each group the order follows the course: the matrix arithmetic before
-the elimination that is written in terms of it, and reading the form of a
-matrix after both, as the check somebody reaches for once one of them is done.
+The order is by priority. Solving a system comes first and opens the window,
+with reading the form of a matrix next to it. Matrices goes from the basic
+arithmetic to what is computed with it: the inverse, the LU factorization, and
+the determinant, which reads the diagonal of that factorization. The pages that
+have two modes name them the same way: a verb and the object, `Calcular A⁻¹`,
+`Factorizar A`, `Resolver A x = b`.
 
-Vectores holds one page today and keeps a heading anyway. The three subjects
+Vectores holds one page today and keeps a heading anyway. The four subjects
 then read the same way, and a second vector page has somewhere to land.
 
 The whole menu is one tuple, `GROUPS` in `gui/app.py`, and nothing else depends
@@ -320,7 +326,7 @@ Coming the other way, the numeral is read as the sum of its pieces, with the
 six subtractive pairs marked. What has no numeral is said rather than drawn:
 zero, a negative and anything above MMMCMXCIX, because Rome wrote none of them.
 
-Both directions share their wording with the **Números Romanos** page, so
+Both directions share their wording with the **Aritmética Romana** page, so
 `IIII` is refused with the same sentence wherever it is typed.
 
 ### The determinant
@@ -384,7 +390,7 @@ is invertible. The last card is the check: `P A` and `L U` side by side and
 compared exactly, `P A = L U  ✓`. It says in as many words that the comparison
 has no tolerance, because with fractions there are no ghost zeros to clean.
 
-**Resolver Ax = b** adds what LU is for. `A x = b` becomes `L(U x) = P b`, and the
+**Resolver A x = b** adds what LU is for. `A x = b` becomes `L(U x) = P b`, and the
 page writes the two substitutions the way the elimination writes its own — the
 equation, the values put in, the constant moved, the result — `L y = P b` from
 the top and `U x = y` from the bottom. Because the diagonal of U is not 1, the

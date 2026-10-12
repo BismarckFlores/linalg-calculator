@@ -198,14 +198,14 @@ other.
 
 **`Programa Matriz Inversa_Grupo5.py`** is the same window, handed in for the
 inverse assignment. Its preamble points at the `Matriz Inversa` tab, under
-`Matrices`: `Inversa A⁻¹` reduces `[ A | I ]` to `[ I | A⁻¹ ]` and checks both
-products, and `Resolver Ax = b` solves a system as `x = A⁻¹ b` and puts the
+`Matrices`: `Calcular A⁻¹` reduces `[ A | I ]` to `[ I | A⁻¹ ]` and checks both
+products, and `Resolver A x = b` solves a system as `x = A⁻¹ b` and puts the
 answer back into the original A. Its report is `Algebra lineal G5 Programa
 Matriz Inversa.docx`, with its PDF.
 
 **`Programa Numeros Romanos_Grupo5.py`** is the same window again, handed in
-for the Roman numerals assignment. Its preamble points at the `Números Romanos`
-tab: `Suma`, `Resta` and `Multiplicación`, the last with the `Notación de suma`
+for the Roman numerals assignment. Its preamble points at the `Aritmética Romana`
+tab, under `Sistemas Numéricos`: `Suma`, `Resta` and `Multiplicación`, the last with the `Notación de suma`
 switch that writes the product as the repeated addition the assignment asks
 for.
 No Roman numeral library is used; `core/roman.py` reads and writes them.
@@ -217,12 +217,12 @@ both to the tab that answers it:
 
 | Requirement | Where |
 | --- | --- |
-| Vectors of Rⁿ: `u + v`, `u − v`, `k · u` | Vectores |
-| Is b a linear combination of v₁, …, vₖ? | Vectores → Combinación lineal |
+| Vectors of Rⁿ: `u + v`, `u − v`, `k · u` | Operaciones Vectoriales |
+| Is b a linear combination of v₁, …, vₖ? | Operaciones Vectoriales → Combinación lineal |
 | Matrix sum, difference, scalar and product, sizes checked | Operaciones Matriciales |
 | `A x = b` as a matrix equation, using the earlier program | Eliminación Gaussiana |
-| Decimal to binary, octal, hexadecimal, or any base 2–36 | Sistemas Numéricos → Decimal → otra base |
-| Any of those back to decimal, as a linear combination | Sistemas Numéricos → Otra base → decimal |
+| Decimal to binary, octal, hexadecimal, or any base 2–36 | Conversiones → Decimal → otra base |
+| Any of those back to decimal, as a linear combination | Conversiones → Otra base → decimal |
 
 The program is one file, but the reports are two, one per assignment:
 `Algebra lineal G5 Programa Vectores.docx` and `Algebra lineal G5 Programa

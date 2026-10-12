@@ -37,6 +37,7 @@ FAINT: Color = ("#b0b0b6", "#5a5a5e")
 ACCENT = "#0071e3"
 ACCENT_HOVER = "#0077ed"
 ACCENT_SOFT: Color = ("#e8f1fc", "#12283c")
+ON_ACCENT_SOFT: Color = ("#ffffff", "#e8f1fc")
 ON_ACCENT = "#ffffff"
 
 GREEN = "#34c759"

@@ -34,7 +34,7 @@ from ..widgets import (
 
 
 # Los dos modos: la inversa sola, y la inversa puesta a trabajar.
-INVERSE_MODES = ("Inversa A⁻¹", "Resolver Ax = b")
+INVERSE_MODES = ("Calcular A⁻¹", "Resolver A x = b")
 INVERSE_SUBTITLES = {
     INVERSE_MODES[0]: "Calcular A⁻¹ · transformar [ A | I ] en [ I | A⁻¹ ] por Gauss-Jordan.",
     INVERSE_MODES[1]: "Resolver A x = b · multiplicar b por la inversa de A y comprobar la solución.",
