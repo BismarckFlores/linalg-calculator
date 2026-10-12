@@ -24,6 +24,7 @@ linalg-calculator/
 │   ├── parametric.py     # the general solution, when there are infinitely many
 │   ├── bases.py          # whole numbers in any base from 2 to 36, working kept
 │   ├── roman.py          # Roman numerals, read, written and operated on
+│   ├── lu.py             # PA = LU, and Ax = b by two substitutions
 │   ├── determinant.py    # det A by cofactors and by LU, and what each costs
 │   └── vectors.py        # vectors of Rⁿ, and whether b combines the others
 ├── ui/                   # everything a person reads, in Spanish
@@ -163,12 +164,18 @@ nothing fixes n in advance: it is however many components were typed.
 solution is one way of combining them, infinitely many are infinitely many
 ways, and none means b is not a combination.
 
+`factorize` writes a square matrix as `PA = LU`: row replacements reduce it to U,
+each multiplier goes into L, and P remembers the row swaps. `solve_with_lu` uses
+that to solve `Ax = b` with two direct substitutions, `Ly = Pb` forwards and
+`Ux = y` backwards. LU is a factorisation and the determinant is only something
+it makes cheap to read, so the factorisation lives in `core/lu.py` and the
+determinant imports it, not the other way round.
+
 `by_cofactors` and `by_lu` are the two roads to a determinant: the expansion
 along the line with the most zeros, keeping every minor and its sign, and the
-reduction to `A = LU` (or `PA = LU` when rows have to be swapped), where det A
-is the product of the diagonal of U. `costs` prices both before either runs —
-about n! multiplications against n³/3 — which is what lets the window say which
-one to pick.
+product of the diagonal of U from `factorize`, with a sign for each swap. `costs`
+prices both before either runs — about n! multiplications against n³/3 — which
+is what lets the window say which one to pick.
 
 `verify` is the independent check: hand it A, b and the values found and it
 evaluates every equation of the original system, comparing both sides exactly.

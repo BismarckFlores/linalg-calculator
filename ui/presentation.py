@@ -172,42 +172,78 @@ def render_substitutions(solution: Solution, names: Sequence[str] = ()) -> str:
     lines: list[str] = []
 
     for step in solution.substitutions:
-        name = unknown_name(step.column, names)
-        constant = format_scalar(step.constant)
-        head = f"  f_{step.row}:  "
-        indent = " " * len(head)
-
-        if not step.terms:
-            lines.extend([f"{head}{name} = {constant}", ""])
-            continue
-
-        values = [solution.values[col - 1] for _coefficient, col in step.terms]
-        symbolic = " ".join(
-            _term(coefficient, unknown_name(col, names))
+        known = [
+            (coefficient, solution.values[col - 1], unknown_name(col, names))
             for coefficient, col in step.terms
-        )
-        replaced = " ".join(
-            _substitution(coefficient, value)
-            for (coefficient, _col), value in zip(step.terms, values)
-        )
-        moved = [
-            _substitution(coefficient, value, flip=True)
-            for (coefficient, _col), value in zip(step.terms, values)
         ]
-        # Un termino independiente cero no se escribe: x = 0 + 2(16) - 3 no es letra
-        # de nadie. Solo se quita cuando queda algo que sostenga la linea.
-        cleared = _sum(moved) if step.constant == 0 and moved else f"{constant} " + " ".join(moved)
-
-        lines.append(f"{head}{name} {symbolic} = {constant}")
-        lines.append(f"{indent}{name} {replaced} = {constant}")
-        # Despejar el termino independiente y resolver la suma son dos lineas solo
-        # cuando dicen cosas distintas. Nadie escribe dos veces la misma linea.
-        if cleared.strip() != format_scalar(step.value):
-            lines.append(f"{indent}{name} = {cleared.strip()}")
-        lines.append(f"{indent}{name} = {format_scalar(step.value)}")
-        lines.append("")
+        lines.extend(
+            render_despeje(
+                f"  f_{step.row}:  ",
+                unknown_name(step.column, names),
+                Scalar(1),
+                known,
+                step.constant,
+                step.value,
+            )
+        )
 
     return "\n".join(lines).rstrip()
+
+def render_despeje(
+    head: str,
+    name: str,
+    divisor: Scalar,
+    known: Sequence[tuple[Scalar, Scalar, str]],
+    constant: Scalar,
+    value: Scalar,
+) -> list[str]:
+    """
+    Las lineas de un despeje: la ecuacion, los valores puestos, y el resultado.
+
+    Es la pieza que comparten la eliminacion, que despeja de una escalonada, y las
+    sustituciones de LU, que despejan de una triangular: el trabajo es el mismo y
+    por eso se escribe una sola vez. Quien la llama pone el nombre de la fila y
+    los terminos que ya conoce.
+
+    `known` son los terminos que ya tienen valor, como (coeficiente, valor,
+    nombre). Cuando el coeficiente de la incognita es 1 son las lineas de siempre;
+    cuando no, el termino independiente se despeja primero y despues se divide.
+    Nadie escribe dos veces la misma linea, asi que las que no dicen nada nuevo
+    se omiten.
+    """
+    indent = " " * len(head)
+    written = format_scalar(constant)
+    result = format_scalar(value)
+    pivot = _sum([_term(divisor, name)])
+
+    if not known:
+        lines = [f"{head}{pivot} = {written}"]
+        if divisor != 1:
+            lines.append(f"{indent}{name} = {result}")
+        return [*lines, ""]
+
+    symbolic = _sum([_term(divisor, name), *(_term(c, label) for c, _v, label in known)])
+    replaced = _sum([_term(divisor, name), *(_substitution(c, v) for c, v, _l in known)])
+    moved = [_substitution(c, v, flip=True) for c, v, _l in known]
+    # Un termino independiente cero no se escribe: x = 0 + 2(16) - 3 no es letra
+    # de nadie. Solo se quita cuando queda algo que sostenga la linea.
+    cleared = (_sum(moved) if constant == 0 and moved else f"{written} " + " ".join(moved)).strip()
+
+    lines = [f"{head}{symbolic} = {written}", f"{indent}{replaced} = {written}"]
+    if divisor == 1:
+        # Despejar el termino independiente y resolver la suma son dos lineas solo
+        # cuando dicen cosas distintas.
+        if cleared != result:
+            lines.append(f"{indent}{name} = {cleared}")
+        lines.append(f"{indent}{name} = {result}")
+    else:
+        numeric = format_scalar(value * divisor)
+        lines.append(f"{indent}{pivot} = {cleared}")
+        if cleared != numeric:
+            lines.append(f"{indent}{pivot} = {numeric}")
+        lines.append(f"{indent}{name} = {result}")
+    lines.append("")
+    return lines
 
 def render_general(family: General, names: Sequence[str] = ()) -> str:
     """x = 1 + 4z, una linea por variable basica, con los nombres alineados en el igual."""

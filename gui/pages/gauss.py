@@ -48,13 +48,10 @@ from ..widgets import (
     Expression,
     MathBlock,
     MathChip,
-    MathLine,
     PageHeader,
     PrimaryButton,
     ResultsPage,
-    SectionTitle,
     SegmentedControl,
-    StepWalker,
 )
 
 GAUSS = "Gauss"
@@ -185,16 +182,9 @@ class GaussPage(ResultsPage):
     def _draw_steps(self) -> None:
         """El recorrido, en una tarjeta que lleva su propia cuenta en el encabezado."""
         assert self._elimination is not None
-        inside, self._counter = self._titled_card("Paso a paso", " ")
-
-        self._walker = StepWalker(
-            inside,
-            self._elimination.log,
-            bar_after=self._unknowns,
-            first_caption="Matriz aumentada  [ A | b ]",
-            on_step=lambda index, total: self._counter.set_badge(f"{index + 1} / {total}"),
+        self._walker, self._counter = self._draw_walk(
+            self._elimination.log, "Matriz aumentada  [ A | b ]", bar_after=self._unknowns
         )
-        self._walker.pack(fill="x")
 
     # ----- La respuesta -----
 
@@ -370,9 +360,6 @@ class GaussPage(ResultsPage):
 
         # La primera comprobacion es la propia forma matricial: el producto A x, hecho con
         # la misma multiplicacion que usa la pagina de Operaciones Matriciales.
-        x = Matrix.column_vector(solution.values)
-        product = solution.coefficients * x
-        holds = product == solution.constants
         ctk.CTkLabel(
             inside,
             text="Con el producto de matrices, A por el vector solución tiene que dar b:",
@@ -380,19 +367,12 @@ class GaussPage(ResultsPage):
             text_color=theme.MUTED,
             anchor="w",
         ).pack(fill="x", pady=(0, 12))
-        (
-            Expression(inside)
-            .matrix(solution.coefficients, "A")
-            .symbol("·")
-            .matrix(x, "x", highlight=True)
-            .symbol("=")
-            .matrix(product, "A x")
-        ).pack(anchor="w")
-        Chip(
+        self._product_check(
             inside,
-            "A x = b  ✓" if holds else "A x ≠ b",
-            theme.GREEN if holds else theme.RED,
-        ).pack(anchor="w", pady=(12, 18))
+            solution.coefficients,
+            Matrix.column_vector(solution.values),
+            solution.constants,
+        )
 
         ctk.CTkLabel(
             inside,
@@ -400,7 +380,7 @@ class GaussPage(ResultsPage):
             font=theme.font("small"),
             text_color=theme.MUTED,
             anchor="w",
-        ).pack(fill="x", pady=(0, 12))
+        ).pack(fill="x", pady=(18, 12))
         checked = verify(solution.coefficients, solution.constants, solution.values)
         MathBlock(inside, render_verification(checked), "left").pack(anchor="w")
 

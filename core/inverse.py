@@ -21,11 +21,7 @@ lanza errores; la ventana decide el castellano.
 from dataclasses import dataclass
 
 from .elimination import Elimination, to_rref
-from .matrix import Matrix
-
-
-class SingularMatrix(ValueError):
-    """Una matriz cuadrada con menos de n pivotes, que no tiene inversa."""
+from .matrix import Matrix, SingularMatrix
 
 
 @dataclass(frozen=True)

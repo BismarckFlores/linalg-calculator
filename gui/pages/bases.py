@@ -63,7 +63,6 @@ from ..widgets import (
     PrimaryButton,
     ResultsPage,
     RomanNumeral,
-    SectionTitle,
     SegmentedControl,
 )
 from .roman import roman_complaint

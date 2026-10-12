@@ -13,14 +13,15 @@ from core.bases import BadDigit, from_base, to_base
 from core.echelon import analyse, free_columns, leading_entries, pivot_columns
 from core.elimination import to_ref, to_rref
 from core.equations import parse_equation, to_augmented, unknown_names
-from core.inverse import SingularMatrix, invert, solve_with_inverse
-from core.matrix import Matrix
+from core.inverse import invert, solve_with_inverse
+from core.lu import factorize, solve_with_lu
+from core.matrix import Matrix, NotSquare, SingularMatrix
 from core.parametric import general_solution
 from core.scalar import format_scalar
 from core.systems import SystemKind, solve
 from core.verification import verify
+from ui.presentation import render_despeje, render_substitutions
 from core.determinant import (
-    NotSquare,
     best_line,
     by_cofactors,
     by_lu,
@@ -346,7 +347,7 @@ print("determinantes: por cofactores y por LU")
 curso = Matrix([[1, -4, 2], [-2, 8, -9], [-1, 7, 0]])
 check("det por cofactores", by_cofactors(curso).value, 15)
 check("det por LU", by_lu(curso).value, 15)
-check("el intercambio queda registrado", by_lu(curso).swaps, 1)
+check("el intercambio queda registrado", by_lu(curso).factorization.swaps, 1)
 check("una triangular es el producto de su diagonal",
       by_lu(Matrix([[3, 0, 0], [5, 2, 0], [1, 7, -2]])).value, -12)
 check("2 x 2 es ad - bc", determinant(Matrix([[3, -2], [-5, 4]])), 2)
@@ -365,13 +366,6 @@ check("y la regla es ad - bc", (dentro.rule.a * dentro.rule.d - dentro.rule.b * 
                                 if dentro.rule else None), dentro.value)
 check("cortar la profundidad deja el valor pero no el camino",
       (by_cofactors(grande, 1).value, by_cofactors(grande, 1).terms[0].minor.expanded), (20, False))
-# El ejemplo del pptx de LU: L y U son las de la diapositiva.
-lu = by_lu(Matrix([[3, -7, -2, 2], [-3, 5, 1, 0], [6, -4, 0, -5], [-9, 5, -5, 12]]))
-check("L es triangular inferior con unos", [row[:i + 1] for i, row in enumerate(lu.lower.data)],
-      [[Fraction(1)], [Fraction(-1), Fraction(1)], [Fraction(2), Fraction(-5), Fraction(1)],
-       [Fraction(-3), Fraction(8), Fraction(3), Fraction(1)]])
-check("U es la escalonada de la diapositiva", lu.upper.row(2), [Fraction(0), Fraction(-2), Fraction(-1), Fraction(2)])
-check("L por U devuelve A", lu.lower * lu.upper, lu.permutation * lu.matrix)
 check("una matriz singular tiene determinante cero",
       by_cofactors(Matrix([[1, 2, 3], [2, 4, 6], [1, 0, 1]])).value, 0)
 check("los dos metodos coinciden siempre", all(
@@ -389,6 +383,93 @@ try:
     check("una matriz no cuadrada no tiene determinante", "aceptada", "rechazada")
 except NotSquare as problem:
     check("una matriz no cuadrada no tiene determinante", (problem.rows, problem.cols), (2, 3))
+
+print("factorizacion LU: PA = LU, y los sistemas que resuelve")
+# El ejemplo del pptx de LU: L y U son las de la diapositiva.
+diapositiva = Matrix([[3, -7, -2, 2], [-3, 5, 1, 0], [6, -4, 0, -5], [-9, 5, -5, 12]])
+lu = factorize(diapositiva)
+check("L es triangular inferior con unos", [row[:i + 1] for i, row in enumerate(lu.lower.data)],
+      [[Fraction(1)], [Fraction(-1), Fraction(1)], [Fraction(2), Fraction(-5), Fraction(1)],
+       [Fraction(-3), Fraction(8), Fraction(3), Fraction(1)]])
+check("U es la escalonada de la diapositiva", lu.upper.row(2),
+      [Fraction(0), Fraction(-2), Fraction(-1), Fraction(2)])
+check("L por U devuelve A", lu.product, lu.permuted_matrix)
+check("sin intercambios, P es la identidad", (lu.swaps, lu.permutation == Matrix.identity(4)), (0, True))
+check("la comprobacion PA = LU se cumple", lu.holds, True)
+check("la diagonal de U son los pivotes", lu.diagonal, (3, -2, -1, -1))
+check("una invertible tiene rango completo", (lu.rank, lu.singular), (4, False))
+# Un cero en el pivote obliga a intercambiar, y entonces lo factorizado es PA.
+cero = factorize(Matrix([[0, 1], [1, 0]]))
+check("un cero en el pivote intercambia filas", (cero.swaps, cero.permuted), (1, True))
+check("y PA = LU sigue valiendo", cero.holds, True)
+# El pivoteo parcial elige el mayor valor absoluto, no el primero que no es cero.
+curso_lu = Matrix([[1, -4, 2], [-2, 8, -9], [-1, 7, 0]])
+check("por defecto, el primer pivote no nulo", factorize(curso_lu).permutation.row(1),
+      [Fraction(1), Fraction(0), Fraction(0)])
+parcial = factorize(curso_lu, partial=True)
+check("el parcial elige el de mayor valor absoluto", parcial.permutation.row(1),
+      [Fraction(0), Fraction(1), Fraction(0)])
+check("y tambien reconstruye la matriz", parcial.holds, True)
+# Una singular: permisivo deja el cero en la diagonal, estricto se niega.
+singular = Matrix([[1, 2, 3], [2, 4, 6], [1, 0, 1]])
+flojo = factorize(singular)
+check("permisivo completa la factorizacion", (flojo.singular, flojo.rank, flojo.holds), (True, 2, True))
+check("y deja un cero en la diagonal de U", 0 in flojo.diagonal, True)
+try:
+    factorize(singular, strict=True)
+    check("estricto rechaza la singular", "aceptada", "rechazada")
+except SingularMatrix as problem:
+    check("estricto rechaza la singular", problem.column, 3)
+try:
+    factorize(Matrix([[1, 2, 3], [4, 5, 6]]))
+    check("una no cuadrada no se factoriza", "aceptada", "rechazada")
+except NotSquare as problem:
+    check("una no cuadrada no se factoriza", (problem.rows, problem.cols), (2, 3))
+check("la factorizacion lleva su paso a paso", len(lu.log), 6)
+# Ax = b con las dos sustituciones: los valores de la diapositiva.
+sistema = solve_with_lu(diapositiva, Matrix.column_vector([-9, 5, 7, 11]))
+check("Ly = b da y", [row[0] for row in sistema.intermediate.data],
+      [Fraction(-9), Fraction(-4), Fraction(5), Fraction(1)])
+check("Ux = y da x", [row[0] for row in sistema.solution.data],
+      [Fraction(3), Fraction(4), Fraction(-6), Fraction(-1)])
+check("A x devuelve b", sistema.check, sistema.constants)
+check("hay un despeje por incognita", (len(sistema.forward), len(sistema.backward)), (4, 4))
+check("en L el divisor es 1, en U es el pivote",
+      (sistema.forward[1].divisor, sistema.backward[0].divisor), (1, -1))
+try:
+    solve_with_lu(singular, Matrix.column_vector([1, 2, 3]))
+    check("una singular no se resuelve con LU", "resuelta", "rechazada")
+except SingularMatrix:
+    check("una singular no se resuelve con LU", "rechazada", "rechazada")
+casos = (
+    (Matrix([[0, 1], [1, 0]]), [2, 3]),
+    (Matrix([[2, 1, 1], [4, 3, 3], [8, 7, 9]]), [1, 2, 3]),
+    (Matrix([[0, 2, 1], [1, 1, 1], [3, 0, 4]]), [3, 2, 1]),
+)
+check("con intercambios tambien resuelve", all(
+    solve_with_lu(m, Matrix.column_vector(b)).solution == solve_with_inverse(m, Matrix.column_vector(b)).solution
+    for m, b in casos), True)
+check("el pivoteo parcial da la misma solucion", all(
+    solve_with_lu(m, Matrix.column_vector(b), partial=True).solution
+    == solve_with_inverse(m, Matrix.column_vector(b)).solution for m, b in casos), True)
+
+print("el texto de los despejes: el de la eliminacion no cambia, el de LU divide")
+sistema_texto = solve(Matrix([[1, -2, 1, 0], [0, 2, -8, 8], [-4, 5, 9, -9]]))
+check("la eliminacion se escribe como siempre", render_substitutions(sistema_texto),
+      "  f_3:  z = 3\n\n"
+      "  f_2:  y - 4z = 4\n        y - 4(3) = 4\n        y = 4 + 4(3)\n        y = 16\n\n"
+      "  f_1:  x - 2y + z = 0\n        x - 2(16) + 3 = 0\n        x = 2(16) - 3\n        x = 29")
+check("un coeficiente distinto de 1 despeja y luego divide",
+      render_despeje("  f_1:  ", "x", Fraction(-2), [(Fraction(3), Fraction(4), "y")],
+                     Fraction(-4), Fraction(8)),
+      ["  f_1:  -2x + 3y = -4", "        -2x + 3(4) = -4", "        -2x = -4 - 3(4)",
+       "        -2x = -16", "        x = 8", ""])
+check("sin terminos conocidos, solo divide",
+      render_despeje("  f_3:  ", "z", Fraction(2), [], Fraction(6), Fraction(3)),
+      ["  f_3:  2z = 6", "        z = 3", ""])
+check("con coeficiente 1 y sin terminos, una linea",
+      render_despeje("  f_2:  ", "w", Fraction(1), [], Fraction(5), Fraction(5)),
+      ["  f_2:  w = 5", ""])
 
 print("exact arithmetic, end to end")
 third = solve(Matrix([[3, 1]]))

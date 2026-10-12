@@ -33,6 +33,20 @@ class NotSquare(ValueError):
         self.rows = rows
         self.cols = cols
 
+class SingularMatrix(ValueError):
+    """
+    Una matriz cuadrada sin inversa: le faltan pivotes, y su determinante es cero.
+
+    Lo lanzan igual la inversa y la factorizacion LU, que se topan con ella de la
+    misma manera: una columna de la que ya no se puede sacar un pivote. `column`
+    dice cual, contando desde 1, para quien quiera senalarla; vale None cuando
+    quien la lanza no sabe en que columna fue.
+    """
+
+    def __init__(self, message: str = "The matrix is singular.", column: int | None = None) -> None:
+        super().__init__(message)
+        self.column = column
+
 class Matrix:
     """Un rectangulo de m x n numeros racionales exactos."""
 

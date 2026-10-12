@@ -21,7 +21,6 @@ import customtkinter as ctk
 
 from core.roman import (
     LARGEST,
-    SYMBOLS,
     BadLetter,
     BadOrder,
     EmptyRoman,
@@ -45,7 +44,6 @@ from ..widgets import (
     PrimaryButton,
     ResultsPage,
     RomanNumeral,
-    SectionTitle,
     SegmentedControl,
 )
 

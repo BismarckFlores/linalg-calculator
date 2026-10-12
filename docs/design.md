@@ -150,6 +150,39 @@ The duplication was invisible while it was seven copies of a six-line method.
 It became obvious when an eighth page needed the same thing, which is the usual
 way: the second occurrence is a coincidence, the eighth is a missing piece.
 
+## LU is a factorisation, and the determinant reads it
+
+The determinant assignment asked for two methods, cofactors and LU, and the first
+version put the factorisation inside `core/determinant.py`: `by_lu` returned an
+object whose main field was the determinant, and the page that showed it was the
+determinant page. That conflated two things. LU is `A = LU`, a way to solve
+systems that happens to make the determinant easy to read; the determinant is a
+number, and cofactors reach it without any factorisation at all.
+
+`core/lu.py` owns the factorisation now — pivoting, the singular cases, `P`, the
+check, and the substitutions that solve `Ax = b` — and `core/determinant.py` calls
+`factorize` and multiplies a diagonal. The dependency runs one way, and the LU tab
+and the determinant tab draw the same objects with the same widgets.
+
+The tolerance a professor's floating-point checklist asks for (an ε for the pivot,
+cleaning `1.2e-16` to `0`) is not implemented, on purpose: it answers rounding,
+and there is none here. The exactness is stated where a reader would look for the
+tolerance, in the module and in the check card, instead of silently skipped.
+
+## A shared text cannot depend on a type its program does not carry
+
+`ui/presentation.py` is part of the engine every deliverable carries, and `core/lu.py`
+is only in the window's. When the LU renderer first lived in `presentation.py` it
+imported `Substitution` from `core/lu.py`, and the terminal program's file —
+which does not carry LU — referred to a name that did not exist. Python 3.14 defers
+annotations, so it still ran here; on the 3.12 the course asks for it would have
+failed on start. Pyright, run over the generated files, is what caught it.
+
+The shared piece is `render_despeje`, which takes plain numbers and names. The
+function that walks a list of `Substitution` lives in the LU page, which is in the
+window's program and so can name the type. The rule: what several programs share
+must be written in terms of what all of them carry.
+
 ## The window is a front end, not a second program
 
 `gui/` sits beside `core/` and `ui/`, imports both, and is imported by neither.

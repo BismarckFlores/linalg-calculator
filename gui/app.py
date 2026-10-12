@@ -25,10 +25,11 @@ from .pages.determinant import DeterminantPage
 from .pages.echelon import EchelonPage
 from .pages.gauss import GaussPage
 from .pages.inverse import InversePage
+from .pages.lu import LUPage
 from .pages.operations import OperationsPage
 from .pages.roman import RomanPage
 from .pages.vectors import VectorsPage
-from .widgets import WHEEL_STEP, Card
+from .widgets import WHEEL_STEP, Card, Wide
 
 @dataclass(frozen=True)
 class Module:
@@ -61,6 +62,7 @@ GROUPS = (
         Module("inverse", "⁻¹", "Matriz Inversa"),
         Module("determinant", "|A|", "Determinante"),
         Module("gauss", "▦", "Eliminación Gaussiana"),
+        Module("lu", "LU", "Factorización LU"),
         Module("echelon", "▧", "Formas Escalonadas"),
     )),
     Group("Vectores", (
@@ -169,6 +171,20 @@ class Application(ctk.CTk):
         for sequence in ("<Button-4>", "<Button-5>", "<MouseWheel>"):
             self.unbind_all(sequence)
             self.bind_all(sequence, self._wheel, add=True)
+        # Con Shift la rueda va a los lados. Tk elige el enlace mas especifico, asi
+        # que con Shift apretado solo suena este y no se desliza dos veces.
+        for sequence in ("<Shift-Button-4>", "<Shift-Button-5>", "<Shift-MouseWheel>"):
+            self.bind_all(sequence, self._sideways, add=True)
+
+    def _sideways(self, event: Any) -> None:
+        """Con Shift, una muesca mueve a lo ancho la franja que este bajo el puntero."""
+        widget = event.widget
+        while widget is not None:
+            if isinstance(widget, Wide):
+                right = event.num == 5 or getattr(event, "delta", 0) < 0
+                widget.scroll(1 if right else -1)
+                return
+            widget = getattr(widget, "master", None)
 
     def _wheel(self, event: Any) -> None:
         """Una muesca: baja la pagina, salvo que algo bajo el puntero la quiera."""
@@ -286,6 +302,8 @@ class Application(ctk.CTk):
             return RomanPage(self._container)
         if key == "determinant":
             return DeterminantPage(self._container)
+        if key == "lu":
+            return LUPage(self._container)
         raise KeyError(f"No page is registered for {key!r}.")
 
 def main() -> None:

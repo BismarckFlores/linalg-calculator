@@ -159,22 +159,22 @@ per assignment:
 
 ```
 Escrito: deliverables/out/Programa 1_Grupo5.py
-  1647 lineas, 12 bloques
+  1742 lineas, 12 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa 2_Grupo5.py
-  7419 lineas, 30 bloques
+  8246 lineas, 32 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Determinante_Grupo5.py
-  7429 lineas, 30 bloques
+  8260 lineas, 32 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Matriz Inversa_Grupo5.py
-  7429 lineas, 30 bloques
+  8256 lineas, 32 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Numeros Romanos_Grupo5.py
-  7424 lineas, 30 bloques
+  8251 lineas, 32 bloques
   Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Vectores y Sistemas Numericos_Grupo5.py
-  7440 lineas, 30 bloques
+  8267 lineas, 32 bloques
   Todo el texto del archivo esta en castellano.
 ```
 
@@ -189,7 +189,9 @@ deliverable here needs installed, and only to draw — the mathematics inside it
 is standard library too.
 
 **`Programa Determinante_Grupo5.py`** is the same window, handed in for the
-determinant assignment. Its preamble points at the `Determinante` tab: the cost
+determinant assignment. The window carries the `Factorización LU` tab too — LU is
+its own thing and the determinant only reads it — and the preamble says where it
+is. Its preamble points at the `Determinante` tab: the cost
 of each method before choosing one, the cofactor expansion with its minors, the
 `A = LU` reduction with the diagonal of U, and each method checked against the
 other.

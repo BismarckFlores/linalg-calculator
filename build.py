@@ -249,6 +249,26 @@ WINDOW_BLOCKS: list[Block] = [
         "resolver Ax = b como x = A^-1 b cuando A es invertible.",
     ),
     Block(
+        "core/lu.py",
+        "LA FACTORIZACIÓN LU",
+        "Escribe una matriz cuadrada como un producto de dos triangulares, A = LU,\n"
+        "y resuelve sistemas con ella:\n"
+        "  - U es lo que queda de A al reducirla por filas con puros reemplazos, y L\n"
+        "    guarda el multiplicador de cada operacion: en la posicion (i, j) esta el\n"
+        "    que hizo cero la entrada (i, j). L es triangular inferior con unos en la\n"
+        "    diagonal.\n"
+        "  - Si un pivote es cero se intercambian filas, y lo que se factoriza es\n"
+        "    PA = LU, con P la matriz que recuerda esos intercambios. Sin P la\n"
+        "    factorizacion no reconstruiria A. El pivoteo parcial elige en cada\n"
+        "    columna el mayor valor absoluto, y el modo estricto rechaza una matriz\n"
+        "    singular en vez de dejarle un cero en la diagonal de U.\n"
+        "  - Ax = b se vuelve L(Ux) = Pb: se despeja y de Ly = Pb hacia adelante y\n"
+        "    despues x de Ux = y hacia atras. Son sustituciones directas, y la\n"
+        "    factorizacion se hace una sola vez aunque b cambie.\n"
+        "Todo es exacto, con fracciones: no hay ceros fantasma, asi que no hace falta\n"
+        "ninguna tolerancia y la comprobacion PA = LU se hace sin margen.",
+    ),
+    Block(
         "core/determinant.py",
         "EL DETERMINANTE",
         "Calcula det A por los dos caminos del enunciado, y dice de antemano cual\n"
@@ -258,10 +278,11 @@ WINDOW_BLOCKS: list[Block] = [
         "    M_ij es el determinante de lo que queda al tachar esa fila y esa\n"
         "    columna. Se desarrolla por la linea con mas ceros, porque cada cero se\n"
         "    salta un menor entero.\n"
-        "  - Por LU: se reduce A a una escalonada U con reemplazos de fila, que no\n"
-        "    cambian el determinante, guardando los multiplicadores en L. Como U es\n"
-        "    triangular, det A es el producto de su diagonal; si hubo intercambios,\n"
-        "    lo factorizado es PA = LU y cada intercambio cambia el signo.\n"
+        "  - Por LU: se factoriza A (bloque anterior) y se lee su diagonal. Los\n"
+        "    reemplazos de fila no cambian el determinante, y como U es triangular,\n"
+        "    det A es el producto de su diagonal; cada intercambio de filas lo\n"
+        "    multiplica por -1. La factorizacion es del bloque de LU: aqui solo se\n"
+        "    lee, porque el determinante es algo que LU permite y no al reves.\n"
         "El costo decide: los cofactores piden del orden de n! multiplicaciones y LU\n"
         "del orden de n^3/3, asi que de 4 x 4 en adelante conviene LU. Una matriz de\n"
         "25 x 25 por cofactores serian unas 1.5e25 multiplicaciones.",
@@ -337,6 +358,16 @@ WINDOW_BLOCKS: list[Block] = [
         "entero: los menores con su signo en el desarrollo por cofactores, o la\n"
         "reduccion con L, U y el producto de la diagonal en LU. Al final calcula el\n"
         "mismo determinante por el otro metodo, como comprobacion.",
+    ),
+    Block(
+        "gui/pages/lu.py",
+        "LA PESTAÑA DE LA FACTORIZACIÓN LU",
+        "Factoriza una matriz y resuelve sistemas con la factorizacion, en dos modos.\n"
+        "Muestra la reduccion paso a paso, P A = L U con las cuatro matrices, y la\n"
+        "comprobacion de que P por A es igual a L por U, hecha sin tolerancia. En el\n"
+        "modo del sistema escribe las dos sustituciones, Ly = Pb y Ux = y, ecuacion\n"
+        "por ecuacion, y comprueba que A por la solucion da b. Dos opciones: el\n"
+        "pivoteo parcial y el modo estricto para las matrices singulares.",
     ),
     Block(
         "gui/pages/gauss.py",
@@ -460,6 +491,10 @@ Matrices del menu de la izquierda:
                             con el menor y el signo de cada entrada
   LU                        reduccion a A = LU (o PA = LU si hay intercambios)
                             y producto de la diagonal de U
+
+La factorizacion LU no es parte del determinante, sino al reves: el determinante
+la lee. Tiene su propia pestana, Factorizacion LU, que la muestra completa con
+las matrices L, U y P, la comprobacion PA = LU y la resolucion de Ax = b.
 
 Los dos metodos se comprueban entre si: al terminar, el determinante se vuelve
 a calcular por el otro camino y los dos valores tienen que coincidir.

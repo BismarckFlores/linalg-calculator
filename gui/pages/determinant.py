@@ -26,7 +26,7 @@ from core.determinant import (
     Cofactors,
     Summand,
     Costs,
-    Factorization,
+    ByLU,
     by_cofactors,
     by_lu,
     costs,
@@ -44,13 +44,11 @@ from ..widgets import (
     ErrorBanner,
     Expression,
     MathChip,
-    MatrixDisplay,
     PageHeader,
+    FactorizationDisplay,
     PrimaryButton,
     ResultsPage,
-    SectionTitle,
     SegmentedControl,
-    StepWalker,
 )
 
 COFACTORES = "Cofactores"
@@ -235,9 +233,9 @@ class DeterminantPage(ResultsPage):
             self._draw_answer(expansion.value, matrix.rows)
             self._draw_cofactors(expansion, whole)
         else:
-            factorization = by_lu(matrix)
-            self._draw_answer(factorization.value, matrix.rows)
-            self._draw_lu(factorization)
+            found = by_lu(matrix)
+            self._draw_answer(found.value, matrix.rows)
+            self._draw_lu(found)
 
         if matrix.rows <= CHECK_LIMIT:
             self._draw_check(matrix)
@@ -431,39 +429,27 @@ class DeterminantPage(ResultsPage):
 
     # ----- Por LU -----
 
-    def _draw_lu(self, lu: Factorization) -> None:
+    def _draw_lu(self, found: ByLU) -> None:
         """La reduccion, las dos matrices, y la diagonal que da el determinante."""
-        inside, counter = self._titled_card("Paso a paso", " ")
-        self._muted(
-            inside,
-            "Se hacen ceros debajo de cada pivote con reemplazos de fila, que no cambian "
-            "el determinante, y cada multiplicador se guarda en L."
-            + (
-                " Hubo que intercambiar filas, así que lo que se factoriza es P A y cada "
-                "intercambio cambia el signo del determinante."
-                if lu.permuted
-                else " No hizo falta ningún intercambio, así que P es la identidad."
-            ),
-        ).pack_configure(pady=(0, 14))
-        StepWalker(
-            inside,
+        lu = found.factorization
+        self._draw_walk(
             lu.log,
-            first_caption="Matriz A",
-            on_step=lambda index, total: counter.set_badge(f"{index + 1} / {total}"),
-        ).pack(fill="x")
+            "Matriz A",
+            intro=(
+                "Se hacen ceros debajo de cada pivote con reemplazos de fila, que no "
+                "cambian el determinante, y cada multiplicador se guarda en L."
+                + (
+                    " Hubo que intercambiar filas, así que lo que se factoriza es P A y "
+                    "cada intercambio cambia el signo del determinante."
+                    if lu.permuted
+                    else " No hizo falta ningún intercambio, así que P es la identidad."
+                )
+            ),
+        )
 
         name = "P A = L U" if lu.permuted else "A = L U"
         inside = self._card(f"Factorización  {name}")
-        written = Expression(inside)
-        if lu.permuted:
-            written.matrix(lu.permutation, "P").symbol("·")
-        (
-            written.matrix(lu.matrix, "A")
-            .symbol("=")
-            .matrix(lu.lower, "L")
-            .symbol("·")
-            .matrix(lu.upper, "U", highlight=False)
-        ).pack(anchor="w", pady=(14, 0))
+        FactorizationDisplay(inside, lu).pack(anchor="w", pady=(14, 0))
 
         inside = self._card("La diagonal de U")
         self._muted(
@@ -484,7 +470,7 @@ class DeterminantPage(ResultsPage):
         sign = f"(−1){superscript(lu.swaps)} · " if lu.permuted else ""
         ctk.CTkLabel(
             inside,
-            text=f"det A  =  {sign}{product}  =  {format_scalar(lu.value)}",
+            text=f"det A  =  {sign}{product}  =  {format_scalar(found.value)}",
             font=theme.font("mono"),
             text_color=theme.ACCENT,
             anchor="w",

@@ -59,9 +59,7 @@ from ..widgets import (
     PrimaryButton,
     ResultsPage,
     SIZE_LIMIT,
-    SectionTitle,
     SegmentedControl,
-    StepWalker,
 )
 
 SUM = "u + v"
@@ -460,13 +458,9 @@ class VectorsPage(ResultsPage):
         ).pack(anchor="w", pady=(10, 0))
 
         # El sistema, resuelto con la misma eliminacion que en todas partes.
-        inside = self._card("Paso a paso")
-        StepWalker(
-            inside,
-            solution.log,
-            bar_after=count,
-            first_caption=f"Matriz aumentada  [ {' '.join(vectors)} | b ]",
-        ).pack(fill="x")
+        self._draw_walk(
+            solution.log, f"Matriz aumentada  [ {' '.join(vectors)} | b ]", bar_after=count
+        )
 
         self._draw_answer(found, names, vectors)
         if found.weights is not None:

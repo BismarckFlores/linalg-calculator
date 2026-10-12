@@ -25,7 +25,6 @@ from ..widgets import (
     PageHeader,
     PrimaryButton,
     ResultsPage,
-    SectionTitle,
     SegmentedControl,
 )
 

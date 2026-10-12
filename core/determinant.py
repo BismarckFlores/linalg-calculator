@@ -7,11 +7,10 @@ el determinante de lo que queda al tachar la fila i y la columna j. Es la
 definicion, y se aplica a si misma en cada menor hasta llegar a una matriz de
 1 x 1.
 
-Por LU: se reduce A a una forma escalonada U con puros reemplazos de fila, se
-guardan los multiplicadores en una triangular inferior L con unos en la
-diagonal, y entonces det A es el producto de la diagonal de U. Si hizo falta
-intercambiar filas, lo que se factoriza es PA = LU y cada intercambio cambia el
-signo: det A = (-1)^intercambios * det U.
+Por LU: se factoriza A (core/lu.py) y entonces det A es el producto de la
+diagonal de U. Si hizo falta intercambiar filas, lo que se factoriza es PA = LU y
+cada intercambio cambia el signo: det A = (-1)^intercambios * det U. La
+factorizacion es de ese modulo; aqui solo se lee su diagonal.
 
 Los dos dan el mismo numero, y lo que los separa es el costo. El desarrollo por
 cofactores necesita del orden de n! multiplicaciones y LU del orden de n^3 / 3,
@@ -26,10 +25,9 @@ lanza errores, y la ventana decide el castellano.
 
 from dataclasses import dataclass
 
-from .matrix import Matrix, NotSquare
+from .lu import Factorization, factorize
+from .matrix import Matrix
 from .scalar import Scalar
-from .steps import StepLog
-from .worksheet import Worksheet
 
 # Hasta este tamano, un desarrollo por cofactores todavia termina en un instante.
 # Mas alla, 7! = 5040 menores de orden 6 y subiendo: es justo lo que el enunciado
@@ -141,33 +139,17 @@ ROW = "fila"
 COLUMN = "columna"
 
 @dataclass(frozen=True)
-class Factorization:
+class ByLU:
     """
-    La factorizacion PA = LU, y el determinante que se lee en la diagonal de U.
+    Un determinante leido en la diagonal de U, con la factorizacion que lo dio.
 
-    `swaps` cuenta los intercambios de fila, que son los que cambian el signo.
-    Cuando no hubo ninguno, P es la identidad y la factorizacion es la A = LU de
-    las diapositivas.
-
-    `log` es el registro de la reduccion, el mismo que lleva cualquier otra
-    eliminacion del proyecto: la matriz de partida y, por cada operacion, la que
-    quedo despues. Con el, la ventana recorre la reduccion paso a paso sin tener
-    que recalcular nada.
+    La factorizacion es de core/lu.py y aqui no se toca: este modulo solo la lee.
+    El determinante de A es el producto de la diagonal de U, y cada intercambio de
+    filas lo multiplica por -1, asi que det A = (-1)^intercambios * producto.
     """
 
-    matrix: Matrix
-    lower: Matrix
-    upper: Matrix
-    permutation: Matrix
-    swaps: int
-    log: StepLog
-    diagonal: tuple[Scalar, ...]
+    factorization: Factorization
     value: Scalar
-
-    @property
-    def permuted(self) -> bool:
-        """Si hubo que intercambiar filas, y entonces lo factorizado es PA."""
-        return self.swaps > 0
 
 def costs(order: int) -> Costs:
     """
@@ -230,75 +212,21 @@ def by_cofactors(matrix: Matrix, depth: int = FULL) -> Cofactors:
 
     return Cofactors(matrix, along, index, tuple(terms), None, value)
 
-def by_lu(matrix: Matrix) -> Factorization:
+def by_lu(matrix: Matrix) -> ByLU:
     """
-    El determinante por la factorizacion LU, que es la eliminacion de siempre.
+    El determinante por la factorizacion LU: se factoriza y se multiplica la diagonal.
 
-    Se hacen ceros debajo de cada pivote con puros reemplazos de fila, que no
-    cambian el determinante, y el multiplicador de cada operacion se guarda en L.
-    Si el pivote es cero se intercambia con una fila de mas abajo, que es lo que
-    convierte A = LU en PA = LU y lo que cambia el signo del resultado.
-
-    Una columna entera de ceros desde el pivote hacia abajo deja un cero en la
-    diagonal de U, y entonces el determinante es cero: no hay nada que arreglar
-    y la reduccion sigue hasta el final igual.
-
-    La reduccion corre sobre un Worksheet, que es donde una operacion elemental
-    ocurre y queda apuntada a la vez. Asi, el paso a paso de esta pagina es el
-    mismo objeto que el de la eliminacion, y no puede contar una historia
-    distinta de la que produjo L y U.
+    Los reemplazos de fila no cambian el determinante, asi que el de A es el de U,
+    y U es triangular: su determinante es el producto de su diagonal. Cada
+    intercambio de filas lo multiplica por -1. Una matriz singular deja un cero en
+    la diagonal y el determinante da cero, sin nada especial que hacer: la
+    factorizacion se completa en modo permisivo y el cero se lee igual.
     """
-    matrix.require_square()
-    order = matrix.rows
-
-    sheet = Worksheet(matrix, "Factorizacion LU")
-    lower = [[Scalar(1) if i == j else Scalar(0) for j in range(order)] for i in range(order)]
-    permutation = [[Scalar(1) if i == j else Scalar(0) for j in range(order)] for i in range(order)]
-    swaps = 0
-
-    for column in range(1, order + 1):
-        pivot = _pivot_row(sheet.matrix, column)
-        if pivot is None:
-            continue
-        if pivot != column:
-            sheet.swap(column, pivot)
-            permutation[column - 1], permutation[pivot - 1] = (
-                permutation[pivot - 1], permutation[column - 1]
-            )
-            # Los multiplicadores ya guardados viajan con su fila: pertenecen a la
-            # ecuacion, no al lugar que ocupaba antes del intercambio.
-            for before in range(column - 1):
-                lower[column - 1][before], lower[pivot - 1][before] = (
-                    lower[pivot - 1][before], lower[column - 1][before]
-                )
-            swaps += 1
-
-        for row in range(column + 1, order + 1):
-            entry = sheet.matrix.elem(row, column)
-            if entry == 0:
-                continue
-            factor = entry / sheet.matrix.elem(column, column)
-            lower[row - 1][column - 1] = factor
-            # Restar factor veces la fila del pivote es sumar -factor veces, que es
-            # como lo escribe el resto del proyecto y como se escribe a mano.
-            sheet.add_scaled(row, column, -factor)
-
-    upper = sheet.matrix
-    diagonal = tuple(upper.elem(i, i) for i in range(1, order + 1))
-    value = Scalar(-1) ** swaps
-    for entry in diagonal:
+    factorization = factorize(matrix)
+    value = Scalar(-1) ** factorization.swaps
+    for entry in factorization.diagonal:
         value *= entry
-
-    return Factorization(
-        matrix,
-        Matrix(lower),
-        upper,
-        Matrix(permutation),
-        swaps,
-        sheet.log,
-        diagonal,
-        value,
-    )
+    return ByLU(factorization, value)
 
 def drawn_terms(expansion: Cofactors) -> int:
     """
@@ -340,11 +268,4 @@ def best_line(matrix: Matrix) -> tuple[str, int]:
     if cols[best_col] > rows[best_row]:
         return COLUMN, best_col + 1
     return ROW, best_row + 1
-
-def _pivot_row(matrix: Matrix, column: int) -> int | None:
-    """La primera fila de esta columna hacia abajo con una entrada no nula."""
-    for row in range(column, matrix.rows + 1):
-        if matrix.elem(row, column) != 0:
-            return row
-    return None
 

@@ -92,6 +92,12 @@ lists.
 
 Construction raises `ValueError` if the rows are not all the same length.
 
+Two errors about the shape of a matrix live here, because every module that needs
+a square one raises the same pair: **`NotSquare`** carries `rows` and `cols`, and
+**`SingularMatrix`** carries the `column` where a pivot was missing, or `None`.
+`require_square()` raises the first, and `minor(i, j)` gives what is left after
+crossing out a row and a column.
+
 **Reading**
 
 | Method | Returns |
@@ -263,7 +269,7 @@ The determinant, by both methods the course teaches, with the working kept.
 | Name | Meaning |
 | --- | --- |
 | `by_cofactors(matrix, depth=FULL) -> Cofactors` | Expansion along the line with the most zeros, recursive: each minor carries its own expansion, down to the 2 × 2 that `Rule` writes as `ad − bc`. `depth` caps how many levels keep their working. Raises `NotSquare`. |
-| `by_lu(matrix) -> Factorization` | `PA = LU` by row replacement, with swaps counted. Raises `NotSquare`. |
+| `by_lu(matrix) -> ByLU` | The determinant read off `factorize`: the product of the diagonal of U, with a sign for each swap. Raises `NotSquare`. |
 | `determinant(matrix) -> Scalar` | The number alone, by the shortest road: the formula up to 2 × 2, LU above it. |
 | `costs(order) -> Costs` | What each method would cost for that order, and which is advised. |
 | `best_line(matrix) -> (str, int)` | The row or column with the most zeros, `ROW` or `COLUMN`. |
@@ -279,14 +285,43 @@ left out: their minor is never computed.
 **`Rule`** — `a`, `b`, `c`, `d` and the `value` they make, `ad − bc`. It is the
 bottom of the recursion: an order-2 determinant needs no minors.
 
-**`Factorization`** — `matrix`, `lower`, `upper`, `permutation`, the number of
-`swaps`, the `log` of the reduction, the `diagonal` of U and the `value`. The
-log is a `StepLog` like any other elimination's, so the window walks it with
-`StepWalker` and nothing is recomputed. `permuted` is true
-when rows had to be swapped, which is when `P` stops being the identity.
+**`ByLU`** — the `factorization` it read, from `core/lu.py`, and the `value`:
+`(−1)^swaps` times the product of the diagonal of U. It owns neither; LU is a
+factorisation and this only reads one.
 
 **`Costs`** — `order`, `cofactor` and `lu` multiplication counts, `advised`,
 and `times`, how many times dearer the expansion is.
+
+## `core/lu.py`
+
+The LU factorisation of a square matrix, and the systems it solves. The
+determinant and the window's LU tab both read it; it knows nothing of either.
+
+| Name | Meaning |
+| --- | --- |
+| `factorize(matrix, partial=False, strict=False) -> Factorization` | `PA = LU` by row replacement, every operation recorded on a `Worksheet`. `partial` picks the largest absolute value as pivot instead of the first non-zero; `strict` raises `SingularMatrix` rather than leave a zero on the diagonal of U. Raises `NotSquare`. |
+| `solve_with_lu(matrix, constants, partial=False) -> LUSystem` | `Ax = b` as `Ly = Pb`, then `Ux = y`, and `A x` checked against `b`. Raises `SingularMatrix` when U has a zero on its diagonal. |
+
+**`Factorization`** — `matrix`, `lower`, `upper`, `permutation`, `swaps`, `rank`
+and the `log` of the reduction. The log is a `StepLog` like any other
+elimination's, so the window walks it with `StepWalker` and what it shows is
+what produced L and U. Derived: `permuted`, `singular`, `diagonal`, `row_order`
+(P as a list), `permuted_matrix` (`PA`), `product` (`LU`) and `holds`, the
+exact comparison `PA = LU` with L unit lower triangular and U upper triangular.
+
+**`LUSystem`** — the `factorization`, `constants`, `permuted` (`Pb`), the two
+tuples of `Substitution` and the vectors `intermediate` (`y`) and `solution`
+(`x`), and `check`, `A x`. Each **`Substitution`** is one equation of a
+triangular system: the `unknown`, the `known` terms as
+`(coefficient, value, index)`, the `constant`, the `divisor` — 1 in L, the pivot
+in U — and the `value`.
+
+Everything is exact. The tolerance a floating-point LU needs (comparing a pivot
+with ε, cleaning `1.2e-16` into `0`) answers a problem `Fraction` does not have:
+what is zero is zero, so a pivot is compared with `0` and nothing is rounded. The
+default pivot is the first non-zero, which is what the course's slides do and
+why their `L` and `U` come out unchanged; `partial` is there for the other
+convention.
 
 ## `core/echelon.py`
 
@@ -440,6 +475,7 @@ nothing.
 | `unknown_name(col, names=())` | The name that was typed, when there is one; otherwise `x`, `y`, `z`, `w`, then `x5` and up. |
 | `render_augmented(matrix, unknowns)` | `[  1  -2   1 \|  0 ]`, with the bar. |
 | `render_steps(log, unknowns)` | Every operation, numbered, with the matrix after it. |
+| `render_despeje(head, name, divisor, known, constant, value)` | The lines of one clearing — the equation, the values put in, the constant moved, the result — shared by the elimination's back substitution and by LU's two. A `divisor` other than 1 adds the step that divides. |
 | `pretty_label(label)` | One step label in typographic notation: `f_2 -> f_2 + 3*f_1` becomes `f₂ → f₂ + 3 · f₁`. For a front end with the glyphs for it; the handed-in file prints the plain form. |
 | `describe(solution)` | The classification, in the assignment's exact words. |
 | `render_values(solution, names=())` | The values, or the free variables, or the contradictory row — whichever applies to the kind. |
@@ -498,10 +534,11 @@ The window. `python -m gui`, from the repository root. Full notes in
 | Module | Holds |
 | --- | --- |
 | `gui/theme.py` | Every colour as a `(light, dark)` pair, the fonts, `set_dark`, and `on_change` for the parts drawn by hand. |
-| `gui/widgets.py` | `Wide`, the strip that slides sideways when its content is wider than its place — every result card draws on one. `ResultsPage`, the base every page with results inherits — the cards below the input, and dropping them when anything is retyped. Plus `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `StepWalker`, `FractionCell`, `MathLine`, `MathBlock`, `MathChip`, and `ColumnDisplay` and `Expression`, which write an equation between matrices in a row: `A · x = b`, `c₁ v₁ + c₂ v₂ = b`. |
+| `gui/widgets.py` | `Wide`, the strip that slides sideways when its content is wider than its place — every result card draws on one. `ResultsPage`, the base every page with results inherits — the cards below the input, and dropping them when anything is retyped. It also holds what several pages drew by hand: `_draw_walk` and `_walker_in`, the step walker with its `3 / 7` badge; and `_product_check`, `A · x = b` worked out with the matrix product. `FactorizationDisplay`, `P · A = L · U` as one line of four matrices. Plus `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `StepWalker`, `FractionCell`, `MathLine`, `MathBlock`, `MathChip`, and `ColumnDisplay` and `Expression`, which write an equation between matrices in a row: `A · x = b`, `c₁ v₁ + c₂ v₂ = b`. |
 | `gui/entry.py` | `SystemInput`, the input card both pages use, and `Typed`, what it hands back: the matrix, the names of the unknowns, and how many columns are coefficients. `augmentable=True` adds the switch that marks a single grid as `[ A \| b ]`. |
 | `gui/app.py` | `GROUPS` — the sidebar, by subject — with `MODULES` flattened out of it, plus `Group`, `Module`, `NavRow`, `Application` and `main()`. |
 | `gui/pages/vectors.py` | `VectorsPage`: `u + v`, `u − v`, `k · u` and linear combinations in Rⁿ, as columns and component by component. Owns its Spanish. |
+| `gui/pages/lu.py` | `LUPage`: `PA = LU` with the reduction, the four matrices and the `PA = LU` check; or `Ax = b` by the two substitutions. Pivoting and strict mode as switches. Owns its Spanish. |
 | `gui/pages/determinant.py` | `DeterminantPage`: det A by cofactors or LU, with the cost of each shown before the choice. Owns its Spanish. |
 | `gui/pages/operations.py` | `OperationsPage`: the five matrix operations. |
 | `gui/pages/roman.py` | `RomanPage`: Roman numerals added, subtracted and multiplied, with each numeral read piece by piece and a switch for the repeated addition. Owns its Spanish. |
@@ -522,6 +559,8 @@ limit of ten. `Stepper(maximum=None)` keeps its plus button enabled.
 showing and nothing has been read yet. It is for what depends on the size and
 not on the numbers, like pricing the two ways to a determinant before either
 runs.
+
+`Typed.coefficients` and `Typed.constants` split what was typed into A and b, whichever way it was typed — a grid gives only A, equations and an augmented matrix give both — so a page asking for A does not need to know which it got.
 
 `SystemInput.read()` is the boundary worth knowing: it hands back a `Typed`,
 exactly what `prompts.ask_system` hands the terminal, or raises with a Spanish

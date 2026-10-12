@@ -20,8 +20,8 @@ from typing import Any
 
 import customtkinter as ctk
 
-from core.inverse import InverseResult, InverseSystem, SingularMatrix, invert, solve_with_inverse
-from core.matrix import NotSquare
+from core.inverse import InverseResult, InverseSystem, invert, solve_with_inverse
+from core.matrix import NotSquare, SingularMatrix
 from core.scalar import format_scalar
 from ui.presentation import unknown_name
 
@@ -29,8 +29,7 @@ from .. import theme
 from ..entry import SystemInput
 from ..widgets import (
     Card, Chip, ErrorBanner, Expression, MathChip, MatrixDisplay,
-    PageHeader, PrimaryButton, ResultsPage, SectionTitle, SegmentedControl,
-    StepWalker,
+    PageHeader, PrimaryButton, ResultsPage, SegmentedControl,
 )
 
 
@@ -128,14 +127,10 @@ class InversePage(ResultsPage):
         try:
             typed = self._input.read()
             self._names = typed.names
-            matrix = (
-                typed.matrix.take_columns(1, typed.unknowns)
-                if typed.unknowns else typed.matrix
-            )
+            matrix = typed.coefficients
             solved = None
             if self._mode == INVERSE_MODES[1]:
-                constants = typed.matrix.take_columns(typed.unknowns + 1, typed.matrix.cols)
-                solved = solve_with_inverse(matrix, constants)
+                solved = solve_with_inverse(matrix, typed.constants)
                 result = solved.inverse_result
             else:
                 result = invert(matrix)
@@ -186,15 +181,9 @@ class InversePage(ResultsPage):
 
     def _draw_steps(self, result: InverseResult) -> None:
         """La reduccion de [A | I], operacion por operacion, con la barra incluida."""
-        inside, counter = self._titled_card("Paso a paso", " ")
-        self._walker = StepWalker(
-            inside,
-            result.reduction.log,
-            bar_after=result.original.cols,
-            first_caption="Matriz aumentada  [ A | I ]",
-            on_step=lambda index, total: counter.set_badge(f"{index + 1} / {total}"),
+        self._walker, _counter = self._draw_walk(
+            result.reduction.log, "Matriz aumentada  [ A | I ]", bar_after=result.original.cols
         )
-        self._walker.pack(fill="x")
 
     def _draw_inverse(self, result: InverseResult) -> None:
         """La propia A^-1, que es la mitad derecha de la matriz en que termino el recorrido."""
@@ -248,15 +237,7 @@ class InversePage(ResultsPage):
         Chip(inside, "A⁻¹ · A = I  ✓", theme.GREEN).pack(anchor="w", pady=(12, 0))
         if solved is not None:
             inside = self._card("Comprobación en el sistema original")
-            (
-                Expression(inside)
-                .matrix(result.original, "A")
-                .symbol("·")
-                .matrix(solved.solution, "x", highlight=True)
-                .symbol("=")
-                .matrix(solved.check, "A x")
-            ).pack(anchor="w")
-            Chip(inside, "A x = b  ✓", theme.GREEN).pack(anchor="w", pady=(12, 0))
+            self._product_check(inside, result.original, solved.solution, solved.constants)
 
     # ----- Mantenimiento -----
 

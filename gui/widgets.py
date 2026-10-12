@@ -17,6 +17,7 @@ from typing import Any, Literal
 
 import customtkinter as ctk
 
+from core.lu import Factorization
 from core.matrix import Matrix
 from core.roman import Numeral
 from core.scalar import Scalar, format_scalar, to_scalar
@@ -741,7 +742,12 @@ class Wide(ctk.CTkFrame):
         super().__init__(master, fg_color="transparent")
         self._background = background
 
-        self._strip = tkinter.Canvas(self, highlightthickness=0, borderwidth=0, height=1)
+        # Treinta pixeles por unidad, como el desplazamiento vertical de la ventana:
+        # sin esto una unidad es un decimo del ancho del lienzo, y el paso de una
+        # muesca cambiaria con el tamano de la ventana.
+        self._strip = tkinter.Canvas(
+            self, highlightthickness=0, borderwidth=0, height=1, xscrollincrement=30
+        )
         self._strip.pack(fill="both", expand=True)
         # Los dos colores puestos a mano, y ninguno "transparent": lo de dentro
         # resuelve su fondo preguntandole al padre, y un lienzo de Tk no sabe
@@ -769,8 +775,6 @@ class Wide(ctk.CTkFrame):
 
         self.content.bind("<Configure>", lambda _event: self._fit())
         self._strip.bind("<Configure>", lambda _event: self._fit())
-        for sequence in ("<Shift-Button-4>", "<Shift-Button-5>", "<Shift-MouseWheel>"):
-            self._strip.bind_all(sequence, self._wheel, add=True)
         self.bind("<Destroy>", lambda _event: theme.off_change(self._repaint))
         theme.on_change(self._repaint)
         self._repaint()
@@ -798,17 +802,18 @@ class Wide(ctk.CTkFrame):
             self._bar.pack_forget()
             self._strip.xview_moveto(0.0)
 
-    def _wheel(self, event: Any) -> None:
-        """Con Shift, la rueda mueve a lo ancho la franja que este debajo del puntero."""
+    def scroll(self, notches: int) -> bool:
+        """
+        Mueve la franja a lo ancho, y dice si habia algo que mover.
+
+        Quien la llama es la ventana, que es la duena de la rueda: la franja no se
+        suscribe a ningun evento global, porque cada una que se dibuja dejaria su
+        suscripcion puesta para siempre.
+        """
         if not self.winfo_exists() or not self._bar.winfo_ismapped():
-            return
-        under = event.widget.winfo_containing(event.x_root, event.y_root)
-        while under is not None:
-            if under is self:
-                right = event.num == 5 or getattr(event, "delta", 0) < 0
-                self._strip.xview_scroll(WHEEL_STEP if right else -WHEEL_STEP, "units")
-                return
-            under = getattr(under, "master", None)
+            return False
+        self._strip.xview_scroll(notches * WHEEL_STEP, "units")
+        return True
 
     def _repaint(self) -> None:
         if self.winfo_exists():
@@ -862,6 +867,73 @@ class ResultsPage(ctk.CTkFrame):
         wide.pack(fill="x")
         return wide.content, heading
 
+    def _walker_in(
+        self,
+        inside: ctk.CTkFrame,
+        counter: "SectionTitle",
+        log: StepLog,
+        first_caption: str,
+        bar_after: int | None = None,
+    ) -> "StepWalker":
+        """
+        Un recorrido paso a paso dentro de una tarjeta, llevando su cuenta en el titulo.
+
+        Cinco paginas lo armaban a mano, cada una con su copia de las mismas seis
+        lineas: el recorrido, la barra entre A y b, el pie de la primera matriz, y
+        la insignia 3 / 7 que se actualiza al moverse. `bar_after` es cuantas
+        columnas van a la izquierda de la barra, o None si la matriz no lleva.
+        """
+        walker = StepWalker(
+            inside,
+            log,
+            bar_after=bar_after,
+            first_caption=first_caption,
+            on_step=lambda index, total: counter.set_badge(f"{index + 1} / {total}"),
+        )
+        walker.pack(fill="x")
+        return walker
+
+    def _draw_walk(
+        self,
+        log: StepLog,
+        first_caption: str,
+        bar_after: int | None = None,
+        title: str = "Paso a paso",
+        intro: str = "",
+    ) -> tuple["StepWalker", "SectionTitle"]:
+        """La tarjeta del paso a paso entera: titulo con cuenta, una explicacion y el recorrido."""
+        inside, counter = self._titled_card(title, " ")
+        if intro:
+            self._muted(inside, intro).pack_configure(pady=(0, 14))
+        return self._walker_in(inside, counter, log, first_caption, bar_after), counter
+
+    def _product_check(
+        self, inside: ctk.CTkFrame, matrix: Matrix, solution: Matrix, constants: Matrix
+    ) -> bool:
+        """
+        A por la solucion tiene que dar b, hecho con el producto de matrices.
+
+        Es la comprobacion de cualquier sistema, venga de la eliminacion, de la
+        inversa o de LU, y no confia en ninguno de los tres: multiplica la matriz
+        original por lo que salio y lo compara con lo que se pedia.
+        """
+        product = matrix * solution
+        holds = product == constants
+        (
+            Expression(inside)
+            .matrix(matrix, "A")
+            .symbol("·")
+            .matrix(solution, "x", highlight=True)
+            .symbol("=")
+            .matrix(product, "A x")
+        ).pack(anchor="w")
+        Chip(
+            inside,
+            "A x = b  ✓" if holds else "A x ≠ b",
+            theme.GREEN if holds else theme.RED,
+        ).pack(anchor="w", pady=(12, 0))
+        return holds
+
     def _muted(self, master: Any, text: str, width: int = 640) -> ctk.CTkLabel:
         """Una linea de explicacion, en gris y debajo de lo que explica."""
         label = ctk.CTkLabel(
@@ -876,6 +948,29 @@ class ResultsPage(ctk.CTkFrame):
         for card in self._output:
             card.destroy()
         self._output = []
+
+class FactorizationDisplay(Expression):
+    """
+    Una factorizacion escrita como una igualdad: P A = L U, o A = L U sin intercambios.
+
+    Lo dibujan igual la pagina de LU y la del determinante, que la lee: las cuatro
+    matrices en fila, cada una con su nombre debajo. P solo aparece cuando hubo
+    que intercambiar filas, que es cuando deja de ser la identidad.
+    """
+
+    def __init__(
+        self, master: Any, factorization: Factorization, background: Color = theme.CARD
+    ) -> None:
+        super().__init__(master, background)
+        if factorization.permuted:
+            self.matrix(factorization.permutation, "P").symbol("·")
+        (
+            self.matrix(factorization.matrix, "A")
+            .symbol("=")
+            .matrix(factorization.lower, "L")
+            .symbol("·")
+            .matrix(factorization.upper, "U")
+        )
 
 class RomanNumeral(ctk.CTkFrame):
     """

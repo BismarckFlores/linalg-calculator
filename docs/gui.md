@@ -23,6 +23,7 @@ course is taught in: **Matrices**, **Vectores** and **Sistemas Numéricos**.
 | Matrices | **Operaciones Matriciales** | `A + B`, `A − B`, `A × B`, `k · A`, `Aᵀ`. Each matrix is resized with its own steppers, and B follows A wherever the shapes have to agree. |
 | Matrices | **Matriz Inversa** | Gauss–Jordan on `[A \| Iₙ]` with coefficient grids or equations, shared matrix displays and step navigation, both product checks, and the application `x = A⁻¹b`. See [inverse.md](inverse.md). |
 | Matrices | **Determinante** | det A by cofactor expansion or by LU, with the cost of each said before the method is picked. Shows every minor with its sign, or the reduction with L, U and the diagonal, and checks the answer with the other method. |
+| Matrices | **Factorización LU** | `PA = LU` with the reduction step by step, the four matrices, and the exact `PA = LU` check; or `Ax = b` by the two substitutions, `Ly = Pb` and `Ux = y`, written equation by equation. Partial pivoting and strict mode are switches. |
 | Matrices | **Eliminación Gaussiana** | Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
 | Matrices | **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one. Then it reduces it, step by step, and marks the pivot positions the reduced form puts on show. Switched to `Es una matriz aumentada [ A \| b ]`, it also reads the pivots as a system. |
 | Vectores | **Vectores en ℝⁿ** | `u + v`, `u − v` and `k · u`, as columns side by side and component by component, and whether b is a linear combination of v₁, …, vₖ, solved as the system it is. Nobody says what n is: it is however many components were typed. |
@@ -355,19 +356,51 @@ asking for a pixmap, or `BadValue` because the canvas passes the height X
 allows. A 4 × 4 is twelve summands and is always drawn whole; a 5 × 5 is
 fifty-one and never is.
 
-**LU** reduces with row replacements, which do not change the determinant,
-keeping each multiplier in L. The reduction runs on a `Worksheet`, like every
-other elimination here, so it is walked with the same **Paso a paso** card —
-previous, next, the dots, and `Ver todos los pasos` — and the matrices shown
-are the ones that produced L and U rather than a retelling. Then it draws
-`A = L U`, and then the diagonal of U multiplied out. When a pivot is zero the rows are swapped, so
-what is factorised is `P A = L U` and the sign flips once per swap — the page
-says so and writes `(−1)^k` in front of the product.
+**LU** does not factorise anything itself: it reads the factorisation of
+`core/lu.py` — the same one the **Factorización LU** tab shows — and multiplies
+the diagonal of U. The reduction is walked with the same **Paso a paso** card as
+every other elimination, so the matrices shown are the ones that produced L and
+U rather than a retelling. Then it draws `A = L U` and the diagonal multiplied
+out. When a pivot is zero the rows are swapped, so what is factorised is
+`P A = L U` and the sign flips once per swap — the page says so and writes
+`(−1)^k` in front of the product.
 
 Whichever method ran, the other one runs too and its value is shown as a check.
 They are different procedures over the same exact numbers, so agreeing is worth
 something. Past 7 × 7 the check is dropped and past 8 × 8 cofactors are refused
 outright: 8! minors is the wall the course's own slides describe.
+
+### LU factorisation
+
+LU and the determinant are not the same thing, and the menu says so: the
+determinant is one of the things a factorisation makes cheap, not what the
+factorisation is. This tab is the factorisation, and the determinant tab reads it.
+
+**Factorizar** reduces `A` with row replacements, keeping each multiplier in L,
+and draws what came out: the reduction through the shared **Paso a paso** card,
+then `P A = L U` as four matrices — `P` only appears when rows were swapped —
+with the rank, the order of the rows (`P` as a list, `(1, 3, 2)`) and whether `A`
+is invertible. The last card is the check: `P A` and `L U` side by side and
+compared exactly, `P A = L U  ✓`. It says in as many words that the comparison
+has no tolerance, because with fractions there are no ghost zeros to clean.
+
+**Resolver Ax = b** adds what LU is for. `A x = b` becomes `L(U x) = P b`, and the
+page writes the two substitutions the way the elimination writes its own — the
+equation, the values put in, the constant moved, the result — `L y = P b` from
+the top and `U x = y` from the bottom. Because the diagonal of U is not 1, the
+backward one has a last line that divides: `-2y = -8`, then `y = 4`. The solution
+is checked in the original system with the matrix product, by the same widget the
+elimination and the inverse use.
+
+Two switches, for the two decisions that belong to the user. **Pivoteo parcial**
+picks the largest absolute value in each column instead of the first non-zero.
+Exact arithmetic does not need it, and by default only a zero forces a swap,
+which is what the course's slides do and why their `L` and `U` come out
+unchanged. **Modo estricto** refuses a singular matrix naming the column that has
+no pivot; otherwise it completes the factorisation, leaves the `0` on the
+diagonal of U and says so. Solving a singular system by LU is refused either way —
+the backward substitution would divide by zero — and the page points to
+Eliminación Gaussiana, which classifies it.
 
 ### Roman numerals
 
@@ -424,6 +457,7 @@ gui/
     ├── operations.py   matrix arithmetic
     ├── gauss.py        A x = b, both methods
     ├── inverse.py      A inverse, checks and Ax = b by inverse
+    ├── lu.py           PA = LU, and Ax = b by two substitutions
     ├── determinant.py  det A by cofactors or by LU, and which one to use
     ├── echelon.py      the five properties, the reduction, the pivots
     ├── bases.py        whole numbers between base 10 and bases 2 to 36

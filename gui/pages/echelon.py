@@ -38,8 +38,6 @@ from ..widgets import (
     PageHeader,
     PrimaryButton,
     ResultsPage,
-    SectionTitle,
-    StepWalker,
 )
 from .gauss import KIND_COLORS
 
@@ -265,13 +263,7 @@ class EchelonPage(ResultsPage):
                 text_color=theme.MUTED,
             ).pack(anchor="w", pady=(0, 12))
 
-        StepWalker(
-            inside,
-            reduction.log,
-            bar_after=self._bar,
-            first_caption="Matriz inicial",
-            on_step=lambda index, total: counter.set_badge(f"{index + 1} / {total}"),
-        ).pack(fill="x")
+        self._walker_in(inside, counter, reduction.log, "Matriz inicial", bar_after=self._bar)
 
     # ----- Los pivotes, que viven en la forma reducida -----
 

@@ -58,6 +58,24 @@ class Typed:
     names: list[str] = field(default_factory=list)
     unknowns: int = 0
 
+    @property
+    def coefficients(self) -> Matrix:
+        """
+        La matriz A: todo lo escrito, o solo las columnas de coeficientes si habia b.
+
+        Unas ecuaciones, o una matriz aumentada, entregan A y b juntas; una
+        cuadricula suelta entrega solo A, y entonces unknowns vale 0 y no hay nada
+        que separar. Quien pide A no tiene que saber de cual de las dos le llego.
+        """
+        if not self.unknowns:
+            return self.matrix
+        return self.matrix.take_columns(1, self.unknowns)
+
+    @property
+    def constants(self) -> Matrix:
+        """La columna b: lo que queda a la derecha de los coeficientes."""
+        return self.matrix.take_columns(self.unknowns + 1, self.matrix.cols)
+
 class SystemInput(ctk.CTkFrame):
     """
     El selector, las cuadriculas y el cuadro de texto: todo lo que va encima del
