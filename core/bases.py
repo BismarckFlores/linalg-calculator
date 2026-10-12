@@ -39,7 +39,7 @@ class BadDigit(NumeralError):
     """Un caracter que no es cifra de la base. digit es ese caracter."""
 
     def __init__(self, digit: str, base: int) -> None:
-        super().__init__(f"'{digit}' is not a digit in base {base}.")
+        super().__init__(f"'{digit}' no es una cifra en base {base}.")
         self.digit = digit
         self.base = base
 
@@ -149,7 +149,7 @@ def from_base(text: str, base: int) -> FromBase:
     if numeral[:1] in ("-", "+"):
         numeral = numeral[1:]
     if not numeral:
-        raise EmptyNumeral("There is no numeral to read.")
+        raise EmptyNumeral("No hay ningún número que leer.")
 
     top = len(numeral) - 1
     terms: list[Term] = []
@@ -171,4 +171,4 @@ def from_base(text: str, base: int) -> FromBase:
 
 def _check(base: int) -> None:
     if not LOWEST_BASE <= base <= HIGHEST_BASE:
-        raise ValueError(f"Base {base} is not between {LOWEST_BASE} and {HIGHEST_BASE}.")
+        raise ValueError(f"La base {base} no está entre {LOWEST_BASE} y {HIGHEST_BASE}.")

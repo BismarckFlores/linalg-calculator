@@ -52,14 +52,14 @@ class UnreadableComponent(VectorError):
     """Una componente que no es un numero. text es el trozo que se escribio."""
 
     def __init__(self, text: str) -> None:
-        super().__init__(f"'{text}' is not a number.")
+        super().__init__(f"'{text}' no es un número.")
         self.text = text
 
 class DimensionMismatch(VectorError):
     """Dos vectores que no estan en el mismo Rn."""
 
     def __init__(self, first: int, second: int) -> None:
-        super().__init__(f"A vector of R^{first} and one of R^{second} do not combine.")
+        super().__init__(f"Un vector de R^{first} y uno de R^{second} no se pueden combinar.")
         self.first = first
         self.second = second
 
@@ -75,7 +75,7 @@ def parse_vector(text: str) -> Vector:
         inside = inside[1:-1]
     pieces = [piece for piece in _SEPARATORS.split(inside) if piece]
     if not pieces:
-        raise EmptyVector("There is no vector to read.")
+        raise EmptyVector("No hay ningún vector que leer.")
     return tuple(_component(piece) for piece in pieces)
 
 def add(u: Vector, v: Vector) -> Vector:
@@ -98,9 +98,9 @@ def linear_sum(weights: Sequence[Scalar], vectors: Sequence[Vector]) -> Vector:
     vector por su escalar y despues se suman uno tras otro.
     """
     if len(weights) != len(vectors):
-        raise ValueError(f"{len(weights)} scalars were given for {len(vectors)} vectors.")
+        raise ValueError(f"Se dieron {len(weights)} escalares para {len(vectors)} vectores.")
     if not vectors:
-        raise EmptyVector("There are no vectors to add up.")
+        raise EmptyVector("No hay vectores que sumar.")
     total: Vector = tuple(Scalar(0) for _ in vectors[0])
     for weight, vector in zip(weights, vectors):
         total = add(total, scale(weight, vector))
@@ -109,7 +109,7 @@ def linear_sum(weights: Sequence[Scalar], vectors: Sequence[Vector]) -> Vector:
 def combination_matrix(vectors: Sequence[Vector], target: Vector) -> Matrix:
     """[ v1 ... vk | b ]: los vectores puestos como columnas, y b como la ultima."""
     if not vectors:
-        raise EmptyVector("At least one vector is needed to form a combination.")
+        raise EmptyVector("Hace falta al menos un vector para formar una combinación.")
     for vector in vectors:
         _same_dimension(vector, target)
     return Matrix([

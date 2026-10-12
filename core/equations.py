@@ -46,7 +46,7 @@ class UnreadableTerm(EquationError):
     """Un trozo de un lado no es un termino. text es el trozo en cuestion."""
 
     def __init__(self, text: str) -> None:
-        super().__init__(f"'{text}' is not a term.")
+        super().__init__(f"'{text}' no es un término.")
         self.text = text
 
 @dataclass(frozen=True)
@@ -67,7 +67,7 @@ def parse_equation(text: str) -> Equation:
     sistema no menciona x, y fingir lo contrario seria inventarse una columna.
     """
     if text.count("=") != 1:
-        raise MissingEquals("An equation needs exactly one '='.")
+        raise MissingEquals("Una ecuación necesita exactamente un '='.")
 
     left_text, right_text = text.split("=")
     left_terms, left_constant = _parse_side(left_text)

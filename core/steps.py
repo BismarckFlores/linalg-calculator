@@ -73,7 +73,7 @@ class StepLog:
     def annotate(self, text: str) -> None:
         """Anade una nota al paso recien registrado, para que la interfaz la muestre."""
         if not self._steps:
-            raise ValueError("There is no step to annotate yet.")
+            raise ValueError("Todavía no hay ningún paso que anotar.")
         last = self._steps[-1]
         self._steps[-1] = Step(last.before, last.label, last.after, text)
 
@@ -94,7 +94,7 @@ class StepLog:
         por la que el registro guarda las matrices y no solo las etiquetas.
         """
         if not 0 <= index <= len(self._steps):
-            raise IndexError(f"There are {len(self._steps)} steps, none at index {index}.")
+            raise IndexError(f"Hay {len(self._steps)} pasos y ninguno en la posición {index}.")
         if index == 0:
             return self.initial
         return self._steps[index - 1].after

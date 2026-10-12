@@ -57,14 +57,14 @@ def verify(
     sustitucion entera y no solo dar el total.
     """
     if constants.cols != 1:
-        raise ValueError(f"The constants must be a single column, got {constants.cols}.")
+        raise ValueError(f"Los términos independientes deben ser una sola columna, y hay {constants.cols}.")
     if coefficients.rows != constants.rows:
         raise ValueError(
-            f"A has {coefficients.rows} rows and b has {constants.rows}: they must match."
+            f"A tiene {coefficients.rows} filas y b tiene {constants.rows}: tienen que coincidir."
         )
     if len(values) != coefficients.cols:
         raise ValueError(
-            f"A has {coefficients.cols} unknowns and {len(values)} values were given."
+            f"A tiene {coefficients.cols} incógnitas y se dieron {len(values)} valores."
         )
 
     found = [to_scalar(value) for value in values]

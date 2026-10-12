@@ -318,7 +318,7 @@ def _contradictory_row(solution: Solution) -> int:
         )
         if coefficients_are_zero and echelon.elem(row, solution.unknowns + 1) != 0:
             return row
-    raise ValueError("An inconsistent system must have a contradictory row.")
+    raise ValueError("Un sistema inconsistente tiene que tener una fila contradictoria.")
 
 def _plural(count: int, singular: str, plural: str) -> str:
     """'1 pivote' o '3 pivotes', para que nunca se lea '1 pivote(s)'."""

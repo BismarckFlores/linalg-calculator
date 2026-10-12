@@ -42,7 +42,7 @@ def general_solution(reduction: Elimination, unknowns: int) -> General:
     primero y solo pregunta cuando hay algo que preguntar.
     """
     if not reduction.reduced:
-        raise ValueError("The general solution is read off the reduced form.")
+        raise ValueError("La solución general se lee de la forma escalonada reducida.")
 
     result = reduction.result
     constants = unknowns + 1

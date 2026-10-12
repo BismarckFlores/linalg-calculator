@@ -68,7 +68,7 @@ def invert(matrix: Matrix) -> InverseResult:
     reduction = to_rref(matrix.augment(identity))
 
     if reduction.result.take_columns(1, matrix.rows) != identity:
-        raise SingularMatrix("The matrix is singular.")
+        raise SingularMatrix("La matriz es singular: no se puede reducir a la identidad.")
 
     inverse = reduction.result.take_columns(matrix.rows + 1, 2 * matrix.rows)
     left_check = matrix * inverse
@@ -78,7 +78,7 @@ def invert(matrix: Matrix) -> InverseResult:
     # teorema, pero comprobar la pareja cuesta una multiplicacion y responde a la
     # definicion en vez de apoyarse en el.
     if left_check != identity or right_check != identity:
-        raise ArithmeticError("The inverse failed verification.")
+        raise ArithmeticError("La comprobación de la inversa falló.")
 
     return InverseResult(matrix, inverse, reduction, left_check, right_check)
 
@@ -93,13 +93,13 @@ def solve_with_inverse(matrix: Matrix, constants: Matrix) -> InverseSystem:
     la inversa ni en la eliminacion que la produjo.
     """
     if constants.size() != (matrix.rows, 1):
-        raise ValueError("The constants must be a column with one entry per row.")
+        raise ValueError("Los términos independientes deben ser una columna con una entrada por fila.")
 
     result = invert(matrix)
     solution = result.inverse * constants
     check = matrix * solution
 
     if check != constants:
-        raise ArithmeticError("The solution failed verification.")
+        raise ArithmeticError("La comprobación de la solución falló.")
 
     return InverseSystem(result, constants, solution, check)

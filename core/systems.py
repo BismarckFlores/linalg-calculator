@@ -99,7 +99,7 @@ def solve(augmented: Matrix) -> Solution:
     despeje que viene despues esta en solution.substitutions.
     """
     if augmented.rows < 1 or augmented.cols < 2:
-        raise ValueError("A system needs at least one equation and one unknown.")
+        raise ValueError("Un sistema necesita al menos una ecuación y una incógnita.")
 
     unknowns = augmented.cols - 1
     reduction = to_ref(augmented)

@@ -53,7 +53,7 @@ class Form:
         for condition in self.conditions:
             if condition.number == number:
                 return condition
-        raise ValueError(f"There is no property number {number}.")
+        raise ValueError(f"No existe la propiedad número {number}.")
 
     @property
     def is_echelon(self) -> bool:

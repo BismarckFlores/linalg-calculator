@@ -29,7 +29,7 @@ class NotSquare(ValueError):
     """
 
     def __init__(self, rows: int, cols: int) -> None:
-        super().__init__(f"A {rows}x{cols} matrix must be square.")
+        super().__init__(f"Una matriz de {rows} × {cols} debe ser cuadrada.")
         self.rows = rows
         self.cols = cols
 
@@ -43,7 +43,7 @@ class SingularMatrix(ValueError):
     quien la lanza no sabe en que columna fue.
     """
 
-    def __init__(self, message: str = "The matrix is singular.", column: int | None = None) -> None:
+    def __init__(self, message: str = "La matriz es singular.", column: int | None = None) -> None:
         super().__init__(message)
         self.column = column
 
@@ -53,12 +53,12 @@ class Matrix:
     def __init__(self, data: Sequence[Sequence[NumberLike]]) -> None:
         """Se construye con una lista de filas: Matrix([[1, 2], [3, 4]]) es 2x2."""
         if not _is_row(data) or not all(_is_row(row) for row in data):
-            raise ValueError("A matrix is built from a list of rows.")
+            raise ValueError("Una matriz se construye con una lista de filas.")
 
         rows = [[to_scalar(value) for value in row] for row in data]
         if len({len(row) for row in rows}) > 1:
             widths = ", ".join(str(len(row)) for row in data)
-            raise ValueError(f"Every row needs the same length, got {widths}.")
+            raise ValueError(f"Todas las filas deben tener la misma longitud, y hay longitudes {widths}.")
 
         self.data: list[list[Scalar]] = rows
         self.rows: int = len(rows)
@@ -108,14 +108,14 @@ class Matrix:
         """Pega otra matriz a la derecha: [A | B], y mas adelante [A | I]."""
         if self.rows != other.rows:
             raise ValueError(
-                f"Cannot augment: {self.rows} rows on the left, {other.rows} on the right."
+                f"No se puede aumentar: hay {self.rows} filas a la izquierda y {other.rows} a la derecha."
             )
         return Matrix([left + right for left, right in zip(self.data, other.data)])
 
     def take_columns(self, first: int, last: int) -> "Matrix":
         """Las columnas de first a last, ambas incluidas y contando desde 1."""
         if not 1 <= first <= last <= self.cols:
-            raise ValueError(f"Columns {first}..{last} fall outside a {self.cols}-wide matrix.")
+            raise ValueError(f"Las columnas {first}..{last} quedan fuera de una matriz de {self.cols} columnas.")
         return Matrix([row[first - 1:last] for row in self.data])
 
     # ----- operaciones elementales por filas -----
@@ -128,7 +128,7 @@ class Matrix:
         por cofactores, y tambien el recorte que haria cualquiera a mano.
         """
         if not (1 <= i <= self.rows and 1 <= j <= self.cols):
-            raise IndexError(f"Entry ({i}, {j}) falls outside a {self.rows}x{self.cols} matrix.")
+            raise IndexError(f"La entrada ({i}, {j}) queda fuera de una matriz de {self.rows} × {self.cols}.")
         return Matrix([
             [value for column, value in enumerate(row, start=1) if column != j]
             for row_number, row in enumerate(self.data, start=1)
@@ -145,7 +145,7 @@ class Matrix:
         """f_i -> k*f_i, con k distinto de cero: multiplicar por cero no tiene vuelta atras."""
         factor = to_scalar(factor)
         if factor == 0:
-            raise ValueError("Scaling a row by zero is not an elementary operation.")
+            raise ValueError("Multiplicar una fila por cero no es una operación elemental.")
         rows = [list(row) for row in self.data]
         rows[i - 1] = [value * factor for value in rows[i - 1]]
         return Matrix(rows)
@@ -153,7 +153,7 @@ class Matrix:
     def add_scaled_row(self, i: int, j: int, factor: NumberLike) -> "Matrix":
         """f_i -> f_i + k*f_j"""
         if i == j:
-            raise ValueError("A row cannot be added to itself.")
+            raise ValueError("Una fila no se puede sumar consigo misma.")
         factor = to_scalar(factor)
         rows = [list(row) for row in self.data]
         rows[i - 1] = [
@@ -166,7 +166,7 @@ class Matrix:
     def __add__(self, other: "Matrix") -> "Matrix":
         if not isinstance(other, Matrix):
             return NotImplemented
-        self._require_same_size(other, "added")
+        self._require_same_size(other, "sumar")
         return Matrix([
             [a + b for a, b in zip(left, right)]
             for left, right in zip(self.data, other.data)
@@ -175,7 +175,7 @@ class Matrix:
     def __sub__(self, other: "Matrix") -> "Matrix":
         if not isinstance(other, Matrix):
             return NotImplemented
-        self._require_same_size(other, "subtracted")
+        self._require_same_size(other, "restar")
         return Matrix([
             [a - b for a, b in zip(left, right)]
             for left, right in zip(self.data, other.data)
@@ -186,7 +186,7 @@ class Matrix:
         if isinstance(other, Matrix):
             if self.cols != other.rows:
                 raise ValueError(
-                    f"Cannot multiply: A has {self.cols} columns and B has {other.rows} rows."
+                    f"No se puede multiplicar: A tiene {self.cols} columnas y B tiene {other.rows} filas."
                 )
             return Matrix([
                 [
@@ -215,8 +215,8 @@ class Matrix:
     def _require_same_size(self, other: "Matrix", verb: str) -> None:
         if self.size() != other.size():
             raise ValueError(
-                f"Cannot be {verb}: A is {self.rows}x{self.cols} "
-                f"and B is {other.rows}x{other.cols}."
+                f"No se pueden {verb}: A es {self.rows} × {self.cols} "
+                f"y B es {other.rows} × {other.cols}."
             )
 
     # ----- construccion -----

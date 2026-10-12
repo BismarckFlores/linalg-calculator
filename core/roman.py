@@ -45,7 +45,7 @@ class BadLetter(RomanError):
     """Un caracter que no es un simbolo romano. letter es ese caracter."""
 
     def __init__(self, letter: str) -> None:
-        super().__init__(f"'{letter}' is not a Roman symbol.")
+        super().__init__(f"'{letter}' no es un símbolo romano.")
         self.letter = letter
 
 class NotCanonical(RomanError):
@@ -57,7 +57,7 @@ class NotCanonical(RomanError):
     """
 
     def __init__(self, numeral: str, canonical: str) -> None:
-        super().__init__(f"'{numeral}' is written '{canonical}'.")
+        super().__init__(f"'{numeral}' se escribe '{canonical}'.")
         self.numeral = numeral
         self.canonical = canonical
 
@@ -70,14 +70,14 @@ class BadOrder(RomanError):
     """
 
     def __init__(self, numeral: str) -> None:
-        super().__init__(f"'{numeral}' is not how a numeral is put together.")
+        super().__init__(f"'{numeral}' no es una forma válida de armar un número romano.")
         self.numeral = numeral
 
 class OutOfRange(RomanError):
     """Un valor sin numero romano: cero, negativo, o mayor que LARGEST."""
 
     def __init__(self, value: int) -> None:
-        super().__init__(f"{value} cannot be written in Roman numerals.")
+        super().__init__(f"{value} no se puede escribir en números romanos.")
         self.value = value
 
 @dataclass(frozen=True)
@@ -184,7 +184,7 @@ def read(text: str) -> Numeral:
     """
     numeral = "".join(text.split()).upper()
     if not numeral:
-        raise EmptyRoman("There is no numeral to read.")
+        raise EmptyRoman("No hay ningún número romano que leer.")
     for letter in numeral:
         if letter not in SYMBOLS:
             raise BadLetter(letter)

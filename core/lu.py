@@ -193,7 +193,7 @@ def factorize(matrix: Matrix, partial: bool = False, strict: bool = False) -> Fa
         if pivot is None:
             if strict:
                 raise SingularMatrix(
-                    f"Column {column} has no pivot: the matrix is singular.", column
+                    f"La columna {column} no tiene pivote: la matriz es singular.", column
                 )
             continue
         rank += 1
@@ -247,12 +247,12 @@ def solve_with_lu(matrix: Matrix, constants: Matrix, partial: bool = False) -> L
     no confia ni en la factorizacion ni en las sustituciones.
     """
     if constants.size() != (matrix.rows, 1):
-        raise ValueError("The constants must be a column with one entry per row.")
+        raise ValueError("Los términos independientes deben ser una columna con una entrada por fila.")
 
     factorization = factorize(matrix, partial)
     zero = next((i for i, entry in enumerate(factorization.diagonal, start=1) if entry == 0), None)
     if zero is not None:
-        raise SingularMatrix(f"U has a zero on its diagonal at {zero}: the matrix is singular.", zero)
+        raise SingularMatrix(f"U tiene un cero en la diagonal, en la posición {zero}: la matriz es singular.", zero)
 
     permuted = factorization.permutation * constants
     forward = _substitute_forward(factorization.lower, permuted)
@@ -266,7 +266,7 @@ def solve_with_lu(matrix: Matrix, constants: Matrix, partial: bool = False) -> L
     check = matrix * solution
 
     if check != constants:
-        raise ArithmeticError("The solution failed verification.")
+        raise ArithmeticError("La comprobación de la solución falló.")
 
     return LUSystem(
         factorization, constants, permuted, forward, intermediate, backward, solution, check

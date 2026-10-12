@@ -22,7 +22,7 @@ def to_scalar(value: NumberLike) -> Scalar:
 
     if isinstance(value, bool):
         # bool hereda de int, y un True como entrada de una matriz siempre es un error.
-        raise TypeError("A boolean is not a valid matrix entry.")
+        raise TypeError("Un booleano no es una entrada válida de una matriz.")
 
     if isinstance(value, int):
         return Fraction(value)
@@ -32,14 +32,14 @@ def to_scalar(value: NumberLike) -> Scalar:
     if isinstance(value, str):
         text = value.strip().replace(",", ".")
         if not text:
-            raise ValueError("Empty value.")
+            raise ValueError("Falta el valor: la casilla está vacía.")
         try:
             return Fraction(text)
         except ZeroDivisionError:
-            raise ValueError(f"'{value}' divides by zero.") from None
+            raise ValueError(f"'{value}' divide entre cero.") from None
         except ValueError:
-            raise ValueError(f"'{value}' is not a valid number.") from None
-    raise TypeError(f"Cannot read {value!r} as a number.")
+            raise ValueError(f"'{value}' no es un número válido.") from None
+    raise TypeError(f"No se puede leer {value!r} como un número.")
 
 def format_scalar(value: NumberLike) -> str:
     """Escribe un numero como se escribe en el pizarron: 3, -4, 1/3."""
