@@ -121,6 +121,12 @@ class DeterminantPage(ResultsPage):
             anchor="w",
         )
         self._advice_text.pack(anchor="w", padx=16, pady=(0, 12))
+        # El consejo de una matriz grande es largo: sin ajustar el texto al ancho
+        # del marco, la ultima frase se sale y se corta por la derecha.
+        self._advice.bind(
+            "<Configure>",
+            lambda event: self._advice_text.configure(wraplength=max(200, event.width - 32)),
+        )
 
         self._error = ErrorBanner(inside)
 
