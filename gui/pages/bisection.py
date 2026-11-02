@@ -34,14 +34,14 @@ BISECTION_PAGE_SIZE = 15
 
 
 def bisection_text(
-    value: float | None, *, decimals: int | None = None, scientific: bool = False,
+    value: float | None, *, decimals: int | None = None,
 ) -> str:
     """El redondeo pertenece a la presentacion, nunca al calculo."""
     if value is None:
         return "—"
     if decimals is None:
         return format(value, ".10g")
-    return format(value, f".{decimals}{'e' if scientific else 'f'}")
+    return format(value, f".{decimals}f")
 
 
 class BisectionPlot(ctk.CTkFrame):
@@ -393,19 +393,23 @@ class BisectionPage(ResultsPage):
         formatting = ctk.CTkFrame(inside, fg_color="transparent")
         formatting.pack(fill="x", pady=(12, 8))
         self._format_choice = SegmentedControl(
-            formatting, ("Decimal", "Científico"), self._choose_table_format,
+            formatting, ("Decimal", "Automático"), self._choose_table_format,
         )
         self._format_choice.set(self._table_format)
         self._format_choice.pack(side="left", padx=(0, 16))
-        self._label(formatting, "Decimales").pack(side="left", padx=(0, 8))
+        self._decimal_controls = ctk.CTkFrame(formatting, fg_color="transparent")
+        self._decimal_controls.pack(side="left")
+        self._label(self._decimal_controls, "Decimales").pack(side="left", padx=(0, 8))
         self._decimal_count = Stepper(
-            formatting, self._table_decimals, minimum=0, maximum=17,
+            self._decimal_controls, self._table_decimals, minimum=0, maximum=17,
             command=self._choose_table_decimals,
         )
         self._decimal_count.pack(side="left")
+        if self._table_format != "Decimal":
+            self._decimal_controls.pack_forget()
         self._muted(
             inside, "El formato solo cambia la vista; el cálculo conserva su precisión.\n"
-            "Si un valor pequeño se muestra como cero, aumenta los decimales o usa Científico.",
+            "Si un valor pequeño se muestra como cero, aumenta los decimales o usa Automático.",
         ).pack_configure(pady=(0, 10))
         self._table = ctk.CTkFrame(inside, fg_color="transparent")
         self._table.pack(fill="x")
@@ -421,6 +425,10 @@ class BisectionPage(ResultsPage):
 
     def _choose_table_format(self, selected: str) -> None:
         self._table_format = selected
+        if selected == "Decimal":
+            self._decimal_controls.pack(side="left")
+        else:
+            self._decimal_controls.pack_forget()
         self._show_table()
 
     def _choose_table_decimals(self, decimals: int) -> None:
@@ -443,7 +451,7 @@ class BisectionPage(ResultsPage):
         rows = [headers]
         for step in steps:
             rows.append((str(step.index), *(bisection_text(
-                v, decimals=self._table_decimals, scientific=self._table_format == "Científico",
+                v, decimals=self._table_decimals if self._table_format == "Decimal" else None,
             ) for v in (
                 step.a, step.b, step.c, step.fa, step.fb, step.fc,
                 step.width, step.bound, step.residual, step.relative_error,

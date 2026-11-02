@@ -60,13 +60,14 @@ midpoint, endpoint evaluations and sign decision. Its counter includes the
 initial setup, like the matrix reader includes its initial matrix. The same
 grey caption, clickable dots, previous/next links and all-steps view are used
 on both pages. It reads the saved trace. The table uses that trace, with 15 rows
-per page. The **Decimal / Científico** selector and the shared **Decimales**
-stepper select the notation and 0 to 17 decimal places. Decimal with 5 places
-is the default, matching the final Excel row. In scientific notation the count
-applies to digits after the decimal point in the mantissa. These settings only
+per page. The **Decimal / Automático** selector controls presentation. Decimal
+uses the shared **Decimales** stepper for 0 to 17 places; 5 is the default,
+matching the final Excel row. Automatic restores the original 10-significant-digit
+format: `0.6` stays `0.6`, while a small residual may appear as `6.538248167e-05`.
+The decimal-place controls are hidden in automatic mode. These settings only
 format the table, persist across calculations and do not change the saved
 trace, stop criterion or answer. Small values may display as zero in decimal
-mode; increase the places or switch to scientific notation to inspect them.
+mode; increase the places or switch to automatic notation to inspect them.
 Wide tables use the existing horizontal strip. Editing or pasting into any
 calculation input invalidates the result.
 

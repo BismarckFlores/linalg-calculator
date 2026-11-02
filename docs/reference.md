@@ -570,7 +570,7 @@ The window. `python -m gui`, from the repository root. Full notes in
 | `gui/pages/inverse.py` | `InversePage`: inverse and `Ax = b`, both entered through the shared coefficient grids or equation parser, with matrix displays, product checks and `StepWalker`. |
 | `gui/pages/echelon.py` | `EchelonPage`: the five properties, the leading entries and the pivots. Owns their Spanish, since no other front end says it. |
 | `gui/pages/bases.py` | `BasesPage`: decimal to base 2, 8, 16 or any other from 2 to 36 and back, with the divisions, the combination and a table of positions. |
-| `gui/pages/bisection.py` | `BisectionPage`: input, result, check, shared `StepWalker`, `SegmentedControl` choices and paginated table. Table notation is decimal/scientific, with a shared `Stepper` for 0–17 decimal places, default 5. `BisectionPlot`: Canvas with zoom, drag and reset, no cursor-value queries. Shares `LinkButton`, `MathBlock`, `MathLine`, theme and cards. |
+| `gui/pages/bisection.py` | `BisectionPage`: input, result, check, shared `StepWalker`, `SegmentedControl` choices and paginated table. Table notation is decimal/automatic. Decimal uses a shared `Stepper` for 0–17 places, default 5; automatic retains the original `.10g` formatting. `BisectionPlot`: Canvas with zoom, drag and reset, no cursor-value queries. Shares `LinkButton`, `MathBlock`, `MathLine`, theme and cards. |
 | `gui/pages/gauss.py` | `GaussPage`: `A x = b` by either method, from coefficients or from written equations, shown first as the matrix equation, with the step by step, and a unique solution checked with the product `A x` as well as equation by equation. |
 
 `GROUPS` holds only what works. A row is added when its page is; a program with
