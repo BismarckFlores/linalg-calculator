@@ -60,8 +60,15 @@ midpoint, endpoint evaluations and sign decision. Its counter includes the
 initial setup, like the matrix reader includes its initial matrix. The same
 grey caption, clickable dots, previous/next links and all-steps view are used
 on both pages. It reads the saved trace. The table uses that trace, with 15 rows
-per page and optional 17 significant digits. Wide tables use the existing
-horizontal strip. Editing or pasting into any input invalidates the result.
+per page. The **Decimal / Científico** selector and the shared **Decimales**
+stepper select the notation and 0 to 17 decimal places. Decimal with 5 places
+is the default, matching the final Excel row. In scientific notation the count
+applies to digits after the decimal point in the mantissa. These settings only
+format the table, persist across calculations and do not change the saved
+trace, stop criterion or answer. Small values may display as zero in decimal
+mode; increase the places or switch to scientific notation to inspect them.
+Wide tables use the existing horizontal strip. Editing or pasting into any
+calculation input invalidates the result.
 
 The graph draws f(x), the initial endpoints a and b, and the final estimate c.
 Use **Acercar**, **Alejar**, **Restablecer** and left-button dragging. There is
@@ -176,7 +183,8 @@ open and calculate successfully without repository imports.
 | Page, result lifecycle, cards and headings | `ResultsPage`, `Card`, `PageHeader`, `SectionTitle` and `_draw_walk`. |
 | Step navigation and all-steps view | `StepWalker`, with captions and a numerical-state drawing callback. Matrix callers retain their `StepLog` route. |
 | Secondary actions | `LinkButton`, using the reader's text-button style, also used for zoom/reset, help and table pagination. |
-| Criterion and example selection | Existing `SegmentedControl`, matching method/operation selection elsewhere. |
+| Criterion, example and table-format selection | Existing `SegmentedControl`, matching method/operation selection elsewhere. |
+| Table decimal places | Existing `Stepper`, bounded from 0 to 17; initial value 5. |
 | Working and numerical values | Existing `MathBlock` and `MathLine`. |
 | Primary action, errors and horizontal overflow | `PrimaryButton`, `ErrorBanner` and `Wide`. |
 

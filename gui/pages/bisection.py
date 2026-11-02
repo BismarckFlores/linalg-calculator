@@ -15,7 +15,7 @@ from core.bisection import (
 from .. import theme
 from ..widgets import (
     Card, ErrorBanner, LinkButton, MathBlock, MathLine, PageHeader, PrimaryButton,
-    ResultsPage, SectionTitle, SegmentedControl,
+    ResultsPage, SectionTitle, SegmentedControl, Stepper,
 )
 
 
@@ -33,9 +33,15 @@ BISECTION_EXAMPLES = {
 BISECTION_PAGE_SIZE = 15
 
 
-def bisection_text(value: float | None, full: bool = False) -> str:
+def bisection_text(
+    value: float | None, *, decimals: int | None = None, scientific: bool = False,
+) -> str:
     """El redondeo pertenece a la presentacion, nunca al calculo."""
-    return "—" if value is None else format(value, ".17g" if full else ".10g")
+    if value is None:
+        return "—"
+    if decimals is None:
+        return format(value, ".10g")
+    return format(value, f".{decimals}{'e' if scientific else 'f'}")
 
 
 class BisectionPlot(ctk.CTkFrame):
@@ -175,6 +181,8 @@ class BisectionPage(ResultsPage):
         super().__init__(master)
         self._result: BisectionResult | None = None
         self._table_page = 0
+        self._table_format = "Decimal"
+        self._table_decimals = 5
         self._variables: list[ctk.StringVar] = []
         PageHeader(
             self, "½", "Método de Bisección",
@@ -382,11 +390,23 @@ class BisectionPage(ResultsPage):
         inside = self._card("Tabla de iteraciones")
         self._muted(inside, "Ancho = b − a · Cota ≈ (b − a)/2 · Ea = |(c − c anterior)/c| × 100 %.\n"
                     "Ea no aplica en la primera iteración, si c = 0 o si no se puede representar.")
-        self._full = ctk.CTkSwitch(
-            inside, text="Mostrar 17 cifras significativas", command=self._show_table,
-            font=theme.font("body"), text_color=theme.INK, progress_color=theme.ACCENT,
+        formatting = ctk.CTkFrame(inside, fg_color="transparent")
+        formatting.pack(fill="x", pady=(12, 8))
+        self._format_choice = SegmentedControl(
+            formatting, ("Decimal", "Científico"), self._choose_table_format,
         )
-        self._full.pack(anchor="w", pady=(12, 10))
+        self._format_choice.set(self._table_format)
+        self._format_choice.pack(side="left", padx=(0, 16))
+        self._label(formatting, "Decimales").pack(side="left", padx=(0, 8))
+        self._decimal_count = Stepper(
+            formatting, self._table_decimals, minimum=0, maximum=17,
+            command=self._choose_table_decimals,
+        )
+        self._decimal_count.pack(side="left")
+        self._muted(
+            inside, "El formato solo cambia la vista; el cálculo conserva su precisión.\n"
+            "Si un valor pequeño se muestra como cero, aumenta los decimales o usa Científico.",
+        ).pack_configure(pady=(0, 10))
         self._table = ctk.CTkFrame(inside, fg_color="transparent")
         self._table.pack(fill="x")
         controls = ctk.CTkFrame(inside, fg_color="transparent")
@@ -397,6 +417,14 @@ class BisectionPage(ResultsPage):
         self._table_next.pack(side="right")
         self._table_count = self._label(controls, "")
         self._table_count.pack(side="left", expand=True, padx=12)
+        self._show_table()
+
+    def _choose_table_format(self, selected: str) -> None:
+        self._table_format = selected
+        self._show_table()
+
+    def _choose_table_decimals(self, decimals: int) -> None:
+        self._table_decimals = decimals
         self._show_table()
 
     def _move_table(self, delta: int) -> None:
@@ -414,7 +442,9 @@ class BisectionPage(ResultsPage):
         steps = self._result.steps[start:start + BISECTION_PAGE_SIZE]
         rows = [headers]
         for step in steps:
-            rows.append((str(step.index), *(bisection_text(v, bool(self._full.get())) for v in (
+            rows.append((str(step.index), *(bisection_text(
+                v, decimals=self._table_decimals, scientific=self._table_format == "Científico",
+            ) for v in (
                 step.a, step.b, step.c, step.fa, step.fb, step.fc,
                 step.width, step.bound, step.residual, step.relative_error,
             ))))

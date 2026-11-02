@@ -457,7 +457,10 @@ all-steps view. `LinkButton` shares the reader's existing text-button styling
 with the plot controls, pagination and help disclosure.
 The graph has a responsive Canvas, zoom buttons, reset and left-button drag.
 It has no motion-value callback, picker or coordinate readout. The table is
-paginated to avoid oversized Tk canvases. See [bisection.md](bisection.md) for
+paginated to avoid oversized Tk canvases. Its `SegmentedControl` selects decimal
+or scientific notation, and the existing `Stepper` selects 0 to 17 decimal
+places (5 initially). Display settings persist through calculations and never
+alter the saved numerical trace. See [bisection.md](bisection.md) for
 the stopping rules, source discrepancies and verification examples.
 
 The sidebar scrolls independently when the rows exceed the available height;

@@ -107,6 +107,48 @@ class StepWalkerTests(unittest.TestCase):
         self.assertEqual(page._output, [])
         self.assertFalse(walker.winfo_exists())
 
+    def test_table_format_changes_only_the_display_and_persists(self):
+        from gui.pages.bisection import BisectionPage
+        from gui.widgets import SegmentedControl, Stepper
+        page = BisectionPage(self.root)
+        page.pack()
+        page._example("Polinomio del Excel")
+        page._calculate()
+        result = page._result
+
+        def cell(row, column):
+            return page._table.grid_slaves(row=row, column=column)[0].cget("text")
+
+        self.assertIsInstance(page._format_choice, SegmentedControl)
+        self.assertIsInstance(page._decimal_count, Stepper)
+        self.assertEqual(cell(15, 0), "15")
+        self.assertEqual(cell(15, 3), "0.76393")
+        self.assertEqual(cell(15, 9), "0.00007")
+        self.assertEqual(cell(1, 10), "—")
+        page._format_choice.set("Científico")
+        page._choose_table_format("Científico")
+        self.assertEqual(cell(15, 9), "6.53825e-05")
+        page._decimal_count._more.invoke()
+        self.assertEqual(cell(15, 9), "6.538248e-05")
+        self.assertIs(page._result, result)
+
+        page._calculate()
+        self.assertEqual(page._format_choice.get(), "Científico")
+        self.assertEqual(page._decimal_count._value, 6)
+        self.assertEqual(cell(15, 9), "6.538248e-05")
+        page._example("Raíz de 2")
+        page._tolerance.delete(0, "end")
+        page._tolerance.insert(0, "1e-12")
+        page._calculate()
+        page._move_table(1)
+        result = page._result
+        self.assertEqual(page._table_page, 1)
+        self.assertEqual(cell(1, 0), "16")
+        page._decimal_count._less.invoke()
+        self.assertEqual(page._table_page, 1)
+        self.assertIs(page._result, result)
+        self.assertIn("e+00", cell(1, 3))
+
 
 if __name__ == "__main__":
     unittest.main()
