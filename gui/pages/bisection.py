@@ -13,7 +13,10 @@ from core.bisection import (
 )
 
 from .. import theme
-from ..widgets import Card, ErrorBanner, PageHeader, PrimaryButton, ResultsPage, SectionTitle
+from ..widgets import (
+    Card, ErrorBanner, LinkButton, MathBlock, MathLine, PageHeader, PrimaryButton,
+    ResultsPage, SectionTitle, SegmentedControl,
+)
 
 
 BISECTION_CRITERIA = {
@@ -50,11 +53,7 @@ class BisectionPlot(ctk.CTkFrame):
             ("−  Alejar", lambda: self.zoom(1 / 0.7)),
             ("Restablecer", self.reset),
         ):
-            ctk.CTkButton(
-                controls, text=text, command=command, width=100, height=30,
-                fg_color=theme.FIELD, hover_color=theme.FIELD_HOVER,
-                text_color=theme.INK, font=theme.font("button"), corner_radius=15,
-            ).pack(side="left", padx=(0, 8))
+            LinkButton(controls, text, command).pack(side="left", padx=(0, 8))
         self._plot_canvas = tkinter.Canvas(
             self, width=1, height=300, highlightthickness=0, borderwidth=0, cursor="fleur",
         )
@@ -175,7 +174,6 @@ class BisectionPage(ResultsPage):
     def __init__(self, master: Any) -> None:
         super().__init__(master)
         self._result: BisectionResult | None = None
-        self._step_index = 0
         self._table_page = 0
         self._variables: list[ctk.StringVar] = []
         PageHeader(
@@ -195,20 +193,17 @@ class BisectionPage(ResultsPage):
         self._tolerance = self._grid_field(boxes, 1, 0, "Tolerancia E", "0.0001")
         self._limit = self._grid_field(boxes, 1, 1, "Máximo de iteraciones", "100")
         self._label(inside, "Criterio de parada").pack(anchor="w", pady=(12, 4))
-        self._criterion = ctk.CTkOptionMenu(
-            inside, values=list(BISECTION_CRITERIA), command=lambda _value: self._changed(),
-            fg_color=theme.FIELD, button_color=theme.FIELD_HOVER,
-            button_hover_color=theme.BORDER, text_color=theme.INK, font=theme.font("body"),
+        self._criterion = SegmentedControl(
+            inside, tuple(BISECTION_CRITERIA), lambda _value: self._changed(),
         )
-        self._criterion.pack(fill="x")
+        self._criterion.pack(anchor="w")
         self._muted(
             inside, "Ancho: b − a < E · Residuo: |f(c)| < E · Relativo: |(c − c anterior)/c| × 100 < E.\n"
             "En el criterio relativo, E se escribe en porcentaje: 1 significa 1 %.",
         ).pack_configure(pady=(8, 0))
-        self._help_button = ctk.CTkButton(
-            inside, text="Sintaxis y condiciones  ▾", command=self._toggle_help,
-            fg_color="transparent", hover_color=theme.FIELD, text_color=theme.MUTED,
-            font=theme.font("button"), anchor="w",
+        self._help_button = LinkButton(
+            inside, "Sintaxis y condiciones  ▾", self._toggle_help,
+            color=theme.MUTED, anchor="w",
         )
         self._help_button.pack(fill="x", pady=(12, 0))
         self._help = ctk.CTkLabel(
@@ -220,16 +215,10 @@ class BisectionPage(ResultsPage):
             justify="left", anchor="w", wraplength=580,
             font=theme.font("small"), text_color=theme.MUTED,
         )
-        examples = ctk.CTkFrame(inside, fg_color="transparent")
-        examples.pack(fill="x", pady=(14, 0))
-        self._label(examples, "Cargar ejemplo").pack(side="left", padx=(0, 12))
-        self._examples = ctk.CTkOptionMenu(
-            examples, values=list(BISECTION_EXAMPLES), command=self._example,
-            fg_color=theme.FIELD, button_color=theme.FIELD_HOVER,
-            button_hover_color=theme.BORDER, text_color=theme.INK, font=theme.font("body"),
-        )
-        self._examples.set("Elegir ejemplo…")
-        self._examples.pack(side="left", fill="x", expand=True)
+        self._label(inside, "Cargar ejemplo").pack(anchor="w", pady=(14, 4))
+        self._examples = SegmentedControl(inside, tuple(BISECTION_EXAMPLES), self._example)
+        self._examples.set("")
+        self._examples.pack(anchor="w")
         self._error = ErrorBanner(inside)
         buttons = ctk.CTkFrame(inside, fg_color="transparent")
         buttons.pack(fill="x", pady=(18, 0))
@@ -297,7 +286,7 @@ class BisectionPage(ResultsPage):
             self._error.show(str(problem))
             return
         self._result = result
-        self._step_index = self._table_page = 0
+        self._table_page = 0
         self._draw_answer(result)
         self._draw_plot(result)
         if result.steps:
@@ -330,7 +319,7 @@ class BisectionPage(ResultsPage):
         )
         for label, value in details:
             self._muted(inside, label)
-            ctk.CTkLabel(inside, text=value, font=theme.font("mono"), text_color=theme.INK).pack(anchor="w", pady=(0, 8))
+            MathLine(inside, value).pack(anchor="w", pady=(0, 8))
         self._muted(
             inside, "La cota en x supone continuidad. El residuo y el cambio relativo no son el error real en x.\n"
             "Los valores se redondean solo al mostrarlos; el cálculo usa toda la precisión disponible.",
@@ -347,52 +336,46 @@ class BisectionPage(ResultsPage):
                     "El muestreo puede omitir discontinuidades; los puntos fuera del dominio se dejan sin unir.")
 
     def _draw_steps(self) -> None:
-        self._step_body, self._step_title = self._titled_card("Procedimiento paso a paso", " ")
-        self._step_text = ctk.CTkLabel(
-            self._step_body, text="", justify="left", anchor="w",
-            font=theme.font("mono"), text_color=theme.INK, wraplength=580,
-        )
-        self._step_text.pack(fill="x")
-        controls = ctk.CTkFrame(self._step_body, fg_color="transparent")
-        controls.pack(fill="x", pady=(16, 0))
-        self._previous = self._nav_button(controls, "‹  Anterior", lambda: self._move_step(-1))
-        self._next = self._nav_button(controls, "Siguiente  ›", lambda: self._move_step(1))
-        self._show_step()
-
-    def _nav_button(self, master: Any, text: str, command: Any) -> ctk.CTkButton:
-        button = ctk.CTkButton(
-            master, text=text, command=command, width=110, height=30,
-            fg_color=theme.FIELD, hover_color=theme.FIELD_HOVER,
-            text_color=theme.INK, font=theme.font("button"), corner_radius=15,
-        )
-        button.pack(side="left", padx=(0, 8))
-        return button
-
-    def _move_step(self, delta: int) -> None:
-        assert self._result is not None
-        self._step_index = max(0, min(len(self._result.steps) - 1, self._step_index + delta))
-        self._show_step()
-
-    def _show_step(self) -> None:
         result = self._result
         assert result is not None
-        step = result.steps[self._step_index]
-        if self._step_index == len(result.steps) - 1:
+        captions = (
+            "Intervalo inicial  [ a, b ]",
+            *(f"Iteración {step.index}: punto medio y cambio de signo" for step in result.steps),
+        )
+        self._walker, self._step_title = self._draw_walk(
+            None, captions[0], captions=captions, draw_snapshot=self._draw_iteration,
+        )
+
+    def _draw_iteration(self, master: Any, index: int) -> None:
+        """El contenido numerico; StepWalker ya pone el titulo y los controles."""
+        result = self._result
+        assert result is not None
+        if index == 0:
+            first = result.steps[0]
+            MathBlock(master, (
+                f"f(x) = {result.function.text}\n"
+                f"a = {result.initial_a:.12g}    b = {result.initial_b:.12g}\n"
+                f"f(a) = {first.fa:.10g}\nf(b) = {first.fb:.10g}\n"
+                f"E = {bisection_text(result.tolerance)}"
+            ), "left", "mono").pack(anchor="w")
+            self._muted(master, "Los extremos tienen signos opuestos. La garantía de una raíz exige "
+                        "continuidad en todo el intervalo.").pack_configure(pady=(14, 0))
+            return
+        step = result.steps[index - 1]
+        if index == len(result.steps):
             decision = self._reason(result)
         elif step.keep_left:
             decision = "f(a) y f(c) tienen signos opuestos: conservar [a, c], sustituir b por c."
         else:
             decision = "f(a) y f(c) tienen el mismo signo: conservar [c, b], sustituir a por c."
-        self._step_title.set_badge(f"{step.index} / {len(result.steps)}")
-        self._step_text.configure(text=(
+        MathBlock(master, (
             f"a = {step.a:.12g}    b = {step.b:.12g}\n"
             f"c = (a + b) / 2 = {step.c:.12g}\n\n"
             f"f(a) = {step.fa:.10g}\nf(b) = {step.fb:.10g}\nf(c) = {step.fc:.10g}\n\n"
             f"Ancho = {step.width:.10g}\n|f(c)| = {step.residual:.10g}\n"
-            f"Error relativo (%) = {bisection_text(step.relative_error)}\n\n{decision}"
-        ))
-        self._previous.configure(state="normal" if self._step_index else "disabled")
-        self._next.configure(state="normal" if self._step_index + 1 < len(result.steps) else "disabled")
+            f"Error relativo (%) = {bisection_text(step.relative_error)}"
+        ), "left", "mono").pack(anchor="w")
+        self._muted(master, decision).pack_configure(pady=(14, 0))
 
     def _draw_table(self) -> None:
         inside = self._card("Tabla de iteraciones")
@@ -400,17 +383,19 @@ class BisectionPage(ResultsPage):
                     "Ea no aplica en la primera iteración, si c = 0 o si no se puede representar.")
         self._full = ctk.CTkSwitch(
             inside, text="Mostrar 17 cifras significativas", command=self._show_table,
-            font=theme.font("small"), text_color=theme.INK, progress_color=theme.ACCENT,
+            font=theme.font("body"), text_color=theme.INK, progress_color=theme.ACCENT,
         )
         self._full.pack(anchor="w", pady=(12, 10))
         self._table = ctk.CTkFrame(inside, fg_color="transparent")
         self._table.pack(fill="x")
         controls = ctk.CTkFrame(inside, fg_color="transparent")
         controls.pack(fill="x", pady=(12, 0))
-        self._table_previous = self._nav_button(controls, "‹  Anterior", lambda: self._move_table(-1))
-        self._table_next = self._nav_button(controls, "Siguiente  ›", lambda: self._move_table(1))
+        self._table_previous = LinkButton(controls, "‹  Anterior", lambda: self._move_table(-1))
+        self._table_previous.pack(side="left")
+        self._table_next = LinkButton(controls, "Siguiente  ›", lambda: self._move_table(1))
+        self._table_next.pack(side="right")
         self._table_count = self._label(controls, "")
-        self._table_count.pack(side="left", padx=12)
+        self._table_count.pack(side="left", expand=True, padx=12)
         self._show_table()
 
     def _move_table(self, delta: int) -> None:

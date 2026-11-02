@@ -61,13 +61,24 @@ the matrix scalars. Width, residual and relative change are separate measures,
 and a stagnation or iteration-limit stop is not successful convergence. See
 [bisection.md](bisection.md) for the assumptions and numerical limitations.
 
-## Bisection reuses the page, not the matrix record
+## Bisection reuses the page and step reader
 
-`ResultsPage`, the cards, theme and wide strips already express the surrounding
-interface. `StepLog` and `StepWalker` specifically express row-equivalent
-matrices, so forcing a root interval into them would obscure both algorithms.
-Frozen bisection records keep only the intervals and evaluations needed by the
-step reader and table. Retained endpoint values mean one new function
+`ResultsPage`, the cards, theme and wide strips express the surrounding
+interface. `StepLog` remains a record of row-equivalent matrices; frozen
+bisection records keep the intervals and evaluations. Both are shown by
+`StepWalker`: its existing matrix route reads `StepLog.snapshot`, while the
+non-matrix route receives captions and a callback that draws each saved state.
+The header, dots, previous/next controls, counter and all-steps view are shared.
+`ResultsPage._draw_walk` constructs the same reader for both routes.
+
+`LinkButton` holds the text-button styling used by the reader and by secondary
+actions in the bisection graph, table and help disclosure. `SegmentedControl`
+selects criteria and examples, as it already selects methods and operations on
+other pages. `MathBlock` and `MathLine` draw the numerical working and values.
+The scalar fields and iteration columns remain page-specific because the
+existing matrix input and matrix display do not represent those data.
+
+Retained endpoint values mean one new function
 evaluation per iteration. A restricted AST interpreter evaluates f(x) without
 `eval` or a solver dependency.
 

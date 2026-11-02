@@ -896,9 +896,12 @@ class ResultsPage(ctk.CTkFrame):
         self,
         inside: ctk.CTkFrame,
         counter: "SectionTitle",
-        log: StepLog,
+        log: StepLog | None,
         first_caption: str,
         bar_after: int | None = None,
+        *,
+        captions: Sequence[str] | None = None,
+        draw_snapshot: Callable[[Any, int], None] | None = None,
     ) -> "StepWalker":
         """
         Un recorrido paso a paso dentro de una tarjeta, llevando su cuenta en el titulo.
@@ -914,23 +917,31 @@ class ResultsPage(ctk.CTkFrame):
             bar_after=bar_after,
             first_caption=first_caption,
             on_step=lambda index, total: counter.set_badge(f"{index + 1} / {total}"),
+            captions=captions,
+            draw_snapshot=draw_snapshot,
         )
         walker.pack(fill="x")
         return walker
 
     def _draw_walk(
         self,
-        log: StepLog,
+        log: StepLog | None,
         first_caption: str,
         bar_after: int | None = None,
         title: str = "Paso a paso",
         intro: str = "",
+        *,
+        captions: Sequence[str] | None = None,
+        draw_snapshot: Callable[[Any, int], None] | None = None,
     ) -> tuple["StepWalker", "SectionTitle"]:
         """La tarjeta del paso a paso entera: titulo con cuenta, una explicacion y el recorrido."""
         inside, counter = self._titled_card(title, " ")
         if intro:
             self._muted(inside, intro).pack_configure(pady=(0, 14))
-        return self._walker_in(inside, counter, log, first_caption, bar_after), counter
+        return self._walker_in(
+            inside, counter, log, first_caption, bar_after,
+            captions=captions, draw_snapshot=draw_snapshot,
+        ), counter
 
     def _product_check(
         self, inside: ctk.CTkFrame, matrix: Matrix, solution: Matrix, constants: Matrix
@@ -1075,6 +1086,26 @@ class PrimaryButton(ctk.CTkButton):
             font=theme.font("button"),
         )
 
+class LinkButton(ctk.CTkButton):
+    """El boton de texto del recorrido, compartido por las acciones secundarias."""
+
+    def __init__(
+        self,
+        master: Any,
+        text: str,
+        command: Callable[[], None],
+        *,
+        color: Color = theme.ACCENT,
+        width: int = 100,
+        anchor: str = "center",
+    ) -> None:
+        super().__init__(
+            master, text=text, command=command, width=width, height=30,
+            corner_radius=15, fg_color="transparent", hover_color=theme.FIELD,
+            text_color=color, text_color_disabled=theme.FAINT,
+            font=theme.font("button"), anchor=anchor,
+        )
+
 class ErrorBanner(ctk.CTkLabel):
     """La linea roja que aparece cuando lo que se escribio no sirve."""
 
@@ -1131,7 +1162,7 @@ class Chip(ctk.CTkLabel):
 
 class StepWalker(ctk.CTkFrame):
     """
-    Una eliminacion, recorrida operacion por operacion.
+    El recorrido comun: titulo, contenido, puntos y anterior/siguiente o todos.
 
     Todo esto es StepLog.snapshot(k): el registro ya guarda la matriz despues de
     cada operacion, asi que ir y venir no recalcula nada y no puede contradecir
@@ -1139,18 +1170,30 @@ class StepWalker(ctk.CTkFrame):
 
     La matriz inicial cuenta como paso. Es sobre la que actua la primera
     operacion, y un recorrido que empezara despues nunca ensenaria lo escrito.
+    Para una traza no matricial se reciben sus titulos y como dibujar cada
+    estado: los controles y las dos maneras de recorrerla siguen siendo estos.
     """
 
     def __init__(
         self,
         master: Any,
-        log: StepLog,
+        log: StepLog | None = None,
         bar_after: int | None = None,
         first_caption: str = "Matriz inicial",
         on_step: Callable[[int, int], None] | None = None,
+        *,
+        captions: Sequence[str] | None = None,
+        draw_snapshot: Callable[[Any, int], None] | None = None,
     ) -> None:
+        if log is None:
+            if not captions or draw_snapshot is None:
+                raise ValueError("Un recorrido necesita una traza o títulos y un dibujante.")
+        elif captions is not None or draw_snapshot is not None:
+            raise ValueError("El recorrido matricial ya define sus títulos y su dibujo.")
         super().__init__(master, fg_color="transparent")
         self._log = log
+        self._captions = tuple(captions) if captions is not None else None
+        self._draw_content = draw_snapshot
         self._bar_after = bar_after
         self._first_caption = first_caption
         self._on_step = on_step
@@ -1174,16 +1217,11 @@ class StepWalker(ctk.CTkFrame):
         self._previous.pack(side="left")
         self._next = self._link(self._navigation, "Siguiente  ›", 1)
         self._next.pack(side="right")
-        self._unfold = ctk.CTkButton(
+        self._unfold = LinkButton(
             self._navigation,
             text=ALL_STEPS,
             width=1,
-            height=30,
-            corner_radius=15,
-            fg_color="transparent",
-            hover_color=theme.FIELD,
-            text_color=theme.MUTED,
-            font=theme.font("button"),
+            color=theme.MUTED,
             command=self._toggle_all,
         )
         self._unfold.pack(side="left", expand=True)
@@ -1200,7 +1238,7 @@ class StepWalker(ctk.CTkFrame):
         """
         # Todo se vuelve a colocar delante de la fila de controles, que no se
         # mueve: eso es lo que mantiene las dos vistas en el mismo orden.
-        if self._list.winfo_ismapped():
+        if self._list.winfo_manager():
             self._list.pack_forget()
             self._operation.pack(fill="x", before=self._navigation)
             self._holder.pack(anchor="w", pady=(14, 0), before=self._navigation)
@@ -1223,7 +1261,7 @@ class StepWalker(ctk.CTkFrame):
             self._on_step(self.total() - 1, self.total())
 
     def _draw_list(self) -> None:
-        """Cada paso debajo del anterior, con su titulo y su matriz."""
+        """Cada estado debajo del anterior, con el mismo titulo y contenido."""
         for widget in self._list.winfo_children():
             widget.destroy()
 
@@ -1232,19 +1270,33 @@ class StepWalker(ctk.CTkFrame):
             block.pack(fill="x", pady=(0, 16))
             caption = ctk.CTkFrame(block, fg_color=theme.FIELD, corner_radius=12)
             caption.pack(fill="x")
-            MathLine(
-                caption,
-                self._first_caption
-                if index == 0
-                else f"Paso {index}:   {pretty_label(self._log[index - 1].label)}",
-            ).pack(anchor="w", padx=16, pady=10)
-            MatrixDisplay(
-                block, self._log.snapshot(index), bar_after=self._bar_after
-            ).pack(anchor="w", pady=(10, 0))
+            text = self._caption_at(index)
+            if self._log is not None and index:
+                text = f"Paso {index}:   {text}"
+            MathLine(caption, text).pack(anchor="w", padx=16, pady=10)
+            holder = ctk.CTkFrame(block, fg_color="transparent")
+            holder.pack(anchor="w", pady=(10, 0))
+            self._draw_snapshot(holder, index)
 
     def total(self) -> int:
-        """Cuantas matrices hay que recorrer, contando la inicial."""
+        """Cuantos estados hay que recorrer, contando el planteamiento."""
+        if self._captions is not None:
+            return len(self._captions)
+        assert self._log is not None
         return len(self._log) + 1
+
+    def _caption_at(self, index: int) -> str:
+        if self._captions is not None:
+            return self._captions[index]
+        assert self._log is not None
+        return self._first_caption if index == 0 else pretty_label(self._log[index - 1].label)
+
+    def _draw_snapshot(self, master: Any, index: int) -> None:
+        if self._draw_content is not None:
+            self._draw_content(master, index)
+        else:
+            assert self._log is not None
+            MatrixDisplay(master, self._log.snapshot(index), bar_after=self._bar_after).pack(anchor="w")
 
     def go(self, index: int) -> None:
         """Saltar directamente a una de ellas."""
@@ -1260,20 +1312,14 @@ class StepWalker(ctk.CTkFrame):
 
     def show(self) -> None:
         """Dibuja el paso en el que esta el recorrido."""
-        self._caption = (
-            self._first_caption
-            if self._index == 0
-            else pretty_label(self._log[self._index - 1].label)
-        )
+        self._caption = self._caption_at(self._index)
         for widget in self._operation.winfo_children():
             widget.destroy()
         MathLine(self._operation, self._caption).pack(anchor="w", padx=16, pady=10)
 
         for widget in self._holder.winfo_children():
             widget.destroy()
-        MatrixDisplay(
-            self._holder, self._log.snapshot(self._index), bar_after=self._bar_after
-        ).pack(anchor="w")
+        self._draw_snapshot(self._holder, self._index)
 
         self._draw_dots()
         total = self.total()
@@ -1283,19 +1329,7 @@ class StepWalker(ctk.CTkFrame):
             self._on_step(self._index, total)
 
     def _link(self, master: ctk.CTkFrame, text: str, delta: int) -> ctk.CTkButton:
-        return ctk.CTkButton(
-            master,
-            text=text,
-            width=100,
-            height=30,
-            corner_radius=15,
-            fg_color="transparent",
-            hover_color=theme.FIELD,
-            text_color=theme.ACCENT,
-            text_color_disabled=theme.FAINT,
-            font=theme.font("button"),
-            command=lambda: self.move(delta),
-        )
+        return LinkButton(master, text, lambda: self.move(delta))
 
     def _draw_dots(self) -> None:
         """Un punto por paso, mientras sean pocos y eso ayude."""

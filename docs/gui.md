@@ -449,8 +449,12 @@ number that produced it.
 ### Bisection
 
 The page reuses `ResultsPage`, `Card`, `PageHeader`, `SectionTitle`,
-`ErrorBanner`, `PrimaryButton`, `Wide` and the theme. Its non-matrix iteration
-records have their own reader instead of adapting the matrix-only `StepWalker`.
+`ErrorBanner`, `PrimaryButton`, `Wide`, `MathBlock`, `MathLine`,
+`SegmentedControl` and the theme. `_draw_walk` creates the same `StepWalker`
+used by matrix pages. Captions and a drawing callback let it display the initial
+interval and numerical iterations, with the shared header, dots, navigation and
+all-steps view. `LinkButton` shares the reader's existing text-button styling
+with the plot controls, pagination and help disclosure.
 The graph has a responsive Canvas, zoom buttons, reset and left-button drag.
 It has no motion-value callback, picker or coordinate readout. The table is
 paginated to avoid oversized Tk canvases. See [bisection.md](bisection.md) for
@@ -487,6 +491,12 @@ the input card with its pill, its grids and its text box, and `StepWalker` in
 `widgets.py` is the step by step with its dots and its two links. Each was
 written inside the elimination page first and moved out when the echelon page
 asked for the same thing.
+
+`StepWalker` also accepts a non-empty sequence of captions and a drawing
+callback instead of a `StepLog`. Bisection uses that route; the default matrix
+route and its callers stay the same. The callback owns the content, while the
+reader owns navigation and the single/all-states views. `LinkButton` is the
+reader's secondary-action button, shared with other controls that need it.
 
 A page lands here when it works. There is no placeholder page, and adding one
 would be the same mistake as a `Method` enum with a single member: weight that

@@ -49,8 +49,11 @@ assumes the bracket contains a root. It is not the residual, and the relative
 change is not the true relative error against a known root. A computed zero
 means zero in floating-point evaluation, not a proof of an exact symbolic root.
 
-The step reader explains each midpoint, endpoint evaluations and the sign
-decision. It reads the saved trace. The table uses the same trace, with 15 rows
+The shared `StepWalker` starts with the initial interval, then explains each
+midpoint, endpoint evaluations and sign decision. Its counter includes the
+initial setup, like the matrix reader includes its initial matrix. The same
+grey caption, clickable dots, previous/next links and all-steps view are used
+on both pages. It reads the saved trace. The table uses that trace, with 15 rows
 per page and optional 17 significant digits. Wide tables use the existing
 horizontal strip. Editing or pasting into any input invalidates the result.
 
@@ -155,3 +158,20 @@ the expression whitelist. GUI checks cover examples, pagination, step controls,
 input invalidation, light/dark appearance, window resizing, zoom, dragging,
 reset and the absence of a hover-value binding. The generated file must also
 open and calculate successfully without repository imports.
+
+## UI reuse
+
+| UI need | Shared implementation |
+| --- | --- |
+| Page, result lifecycle, cards and headings | `ResultsPage`, `Card`, `PageHeader`, `SectionTitle` and `_draw_walk`. |
+| Step navigation and all-steps view | `StepWalker`, with captions and a numerical-state drawing callback. Matrix callers retain their `StepLog` route. |
+| Secondary actions | `LinkButton`, using the reader's text-button style, also used for zoom/reset, help and table pagination. |
+| Criterion and example selection | Existing `SegmentedControl`, matching method/operation selection elsewhere. |
+| Working and numerical values | Existing `MathBlock` and `MathLine`. |
+| Primary action, errors and horizontal overflow | `PrimaryButton`, `ErrorBanner` and `Wide`. |
+
+The function/scalar fields use themed `CTkEntry` controls as on the other
+pages; matrix grids would be inappropriate for these inputs. The iteration
+columns have their own data layout because there is no shared general-purpose
+table widget. The graph is the new drawing component: other pages have no
+function plot. It reuses the palette, fonts, cards and shared action buttons.

@@ -561,12 +561,21 @@ The window. `python -m gui`, from the repository root. Full notes in
 | `gui/pages/inverse.py` | `InversePage`: inverse and `Ax = b`, both entered through the shared coefficient grids or equation parser, with matrix displays, product checks and `StepWalker`. |
 | `gui/pages/echelon.py` | `EchelonPage`: the five properties, the leading entries and the pivots. Owns their Spanish, since no other front end says it. |
 | `gui/pages/bases.py` | `BasesPage`: decimal to base 2, 8, 16 or any other from 2 to 36 and back, with the divisions, the combination and a table of positions. |
-| `gui/pages/bisection.py` | `BisectionPage`: input, result, check, step reader and paginated table; `BisectionPlot`: Canvas with zoom, drag and reset, no cursor-value queries. Uses the shared theme and cards. |
+| `gui/pages/bisection.py` | `BisectionPage`: input, result, check, shared `StepWalker`, `SegmentedControl` choices and paginated table; `BisectionPlot`: Canvas with zoom, drag and reset, no cursor-value queries. Shares `LinkButton`, `MathBlock`, `MathLine`, theme and cards. |
 | `gui/pages/gauss.py` | `GaussPage`: `A x = b` by either method, from coefficients or from written equations, shown first as the matrix equation, with the step by step, and a unique solution checked with the product `A x` as well as equation by equation. |
 
 `GROUPS` holds only what works. A row is added when its page is; a program with
 no page has no row, and `_build_page` raises for a key it does not know rather
 than falling back to something apologetic.
+
+`StepWalker(master, log, ...)` keeps its matrix contract: the initial snapshot
+and each operation, with the common header, dots, links and all-steps view.
+For non-matrix states, use `StepWalker(master, captions=..., draw_snapshot=...)`:
+captions must be non-empty and `draw_snapshot(parent, index)` draws one saved
+state. The two routes are exclusive. `ResultsPage._draw_walk` forwards those
+keywords and maintains the same card counter. `LinkButton` is the shared
+transparent text button with accent text and faint disabled text; the reader,
+bisection graph controls and pagination use it.
 
 `SystemInput(max_size=None)` and `MatrixEntryGrid(max_size=None)` remove the
 default dimension cap for the inverse page. Other callers retain the default
@@ -595,6 +604,7 @@ the deliverables that open a window.
 | --- | --- |
 | `check.py` | Runs the engine end to end and prints one line per claim. Run it after touching `core/`. |
 | `tests/test_bisection.py` | Numerical regression and boundary tests. Run with `python -m unittest discover -s tests -v`. |
+| `tests/test_step_walker.py` | Matrix and numerical reader compatibility, both views, common controls and input invalidation. Skips if CustomTkinter or a Tk display is unavailable. |
 | `build.py` | Assembles the handed-in files. `PROGRAMS` lists what gets built, each with a preamble and its blocks; `ENGINE` is what they share, `WINDOW_BLOCKS` and `CONSOLE_BLOCKS` what each adds. `GROUP_NUMBER` and each program's `number` name the output; an assignment with a name instead of a number uses the name. `clashes` refuses a program whose blocks define the same global twice. |
 | `requirements-gui.txt` | CustomTkinter. Needed by `gui/` and by nothing else. |
 
