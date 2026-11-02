@@ -15,6 +15,7 @@ from decimal import Decimal
 from enum import Enum
 
 from .scalar import NumberLike, to_scalar
+from .notation import explicit_products
 
 
 class BisectionError(ValueError):
@@ -84,11 +85,12 @@ class RealFunction:
         if not self.text or len(self.text) > 1024:
             raise BisectionError("Escribe f(x) con entre 1 y 1024 caracteres.")
         normalized = self.text.replace("^", "**").replace("−", "-").replace("×", "*")
+        normalized = explicit_products(normalized, _BISECTION_FUNCTIONS)
         self._source = normalized
         try:
             self._tree = ast.parse(normalized, mode="eval").body
         except (SyntaxError, RecursionError) as problem:
-            raise BisectionError("No se puede leer f(x). Usa x, paréntesis y * para multiplicar.") from problem
+            raise BisectionError("No se puede leer f(x). Prueba con 5x^3, 2(x+1) o sin(x).") from problem
         if sum(1 for _ in ast.walk(self._tree)) > 160:
             raise BisectionError("La expresión es demasiado larga.")
         self._validate(self._tree)

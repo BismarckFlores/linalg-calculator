@@ -255,10 +255,19 @@ exact check `Ax`.
 | `rank`, `coefficient_rank` | `rank(A\|b)` and `rank(A)`. Comparing them is the classification. |
 | `reduction` | The `Elimination` underneath, if the pivots are needed. |
 
+## `core/notation.py`
+
+`explicit_products(text, functions=(), *, scientific=True)` inserts explicit
+multiplication at adjacent factor boundaries, preserving the original text and
+complete names. Known function names followed by parentheses remain calls.
+It is shared by `RealFunction` and the linear-equation reader; validation stays
+with each reader. `scientific=False` preserves the linear reader's existing
+interpretation of identifiers such as `e3x` after a coefficient.
+
 ## `core/equations.py`
 
-Reading a system the way it is written down. Imports `matrix` and `scalar`
-only, and says nothing to anybody: the Spanish for a mistake is decided in
+Reading a system the way it is written down. Imports `matrix`, `scalar` and
+the shared notation normalizer, and says nothing to anybody: the Spanish for a mistake is decided in
 `ui/prompts.py`.
 
 | Name | Meaning |

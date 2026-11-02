@@ -61,6 +61,9 @@ What the parser accepts:
 | `x1`, `x_2`, `X` | names are letters, digits and `_`, and case is ignored |
 
 `1/3x` is read as `(1/3)x`, never as `1/(3x)`.
+Powers such as `x^2` and products of unknowns such as `x*y` are rejected in
+linear-system input. Bisection accepts those expressions using its function
+reader, including implicit products such as `5x^3` and `2(x+1)`.
 
 ### Giving the coefficients one at a time
 

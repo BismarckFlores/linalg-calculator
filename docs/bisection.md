@@ -9,12 +9,18 @@ behaviour. It adds no dependencies.
 ## Inputs and stopping rules
 
 Enter the left side of `f(x) = 0`, the initial interval `[a, b]`, tolerance E
-and an iteration limit from 1 to 1000 (default 100). Multiplication is explicit:
-`5*x`, not `5x`. Both `^` and `**` mean exponentiation. Supported elementary
+and an iteration limit from 1 to 1000 (default 100). Multiplication can be
+implicit: `5x^3`, `(1/2)x`, `2(x+1)`, `(x+1)(x-1)` and `2sin(x)` are accepted.
+Explicit `*` remains valid. Both `^` and `**` mean exponentiation. Supported elementary
 functions are `sin`, `cos`, `tan`, `exp`, `ln`, `log` (natural logarithm),
 `log10`, `sqrt` and `abs`, each with one argument; constants are `pi` and `e`.
 Function literals use a decimal point. The existing scalar reader accepts
 fractions and decimal commas in a, b and E.
+
+Function calls require parentheses, such as `sin(x)`. Complete names stay
+intact: write `pi x` or `pi*x`, rather than `pix`. Scientific notation such as
+`1e-3x` means `0.001*x`. Implicit products have the same precedence as `*`:
+`1/2x` means `(1/2)*x`; use `1/(2x)` for a product in the denominator.
 
 The three supplied sources use different measures. They are selectable rather
 than silently treated as interchangeable:
@@ -118,7 +124,11 @@ O(n p), with O(n) space for the pedagogical trace. Each additional midpoint
 halves the bracket. After n midpoint evaluations its width is
 `initial_width / 2**(n-1)`, before that row's next cut.
 
-The parser walks a restricted Python AST and interprets only allowed arithmetic,
+`core/notation.py` first makes implicit products explicit, using the same
+normalization helper as the linear-equation reader. It preserves function calls,
+whole identifiers and scientific literals. Each reader retains its own grammar:
+linear systems still reject powers and products of unknowns. The parser then
+walks a restricted Python AST and interprets only allowed arithmetic,
 names and single-argument functions. It never calls `eval` or executes the
 input as Python. Expression size and exponent limits bound evaluation work.
 Domain errors, non-finite results and detected underflow are reported.

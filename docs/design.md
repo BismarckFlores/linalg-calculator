@@ -63,6 +63,12 @@ and a stagnation or iteration-limit stop is not successful convergence. See
 
 ## Bisection reuses the page and step reader
 
+Mathematical text also has a shared piece: `core/notation.py` inserts omitted
+multiplication signs before each reader applies its own grammar. Bisection can
+therefore accept `5x^3` and `2(x+1)` while the linear reader still accepts `2x`
+and `(1/2)x` and rejects products of unknowns. Function calls and whole variable
+names are preserved. The normalizer does not solve, expand or evaluate input.
+
 `ResultsPage`, the cards, theme and wide strips express the surrounding
 interface. `StepLog` remains a record of row-equivalent matrices; frozen
 bisection records keep the intervals and evaluations. Both are shown by

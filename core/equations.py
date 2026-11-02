@@ -20,6 +20,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from .matrix import Matrix
+from .notation import explicit_products
 from .scalar import Scalar, to_scalar
 
 # Un termino: un signo opcional, un coeficiente opcional escrito tal cual o entre
@@ -119,11 +120,14 @@ def _parse_side(text: str) -> tuple[dict[str, Scalar], Scalar]:
     patron no consigue leer se informa junto al trozo que lo detuvo.
     """
     packed = re.sub(r"\s+", "", text).lower()
+    packed = explicit_products(packed, scientific=False)
     terms: dict[str, Scalar] = {}
     constant = Scalar(0)
     position = 0
 
     while position < len(packed):
+        if position and packed[position] not in "+-":
+            raise UnreadableTerm(packed[position:])
         match = _TERM.match(packed, position)
         if match is None or match.end() == position:
             raise UnreadableTerm(packed[position:])

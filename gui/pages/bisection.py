@@ -24,7 +24,7 @@ BISECTION_CRITERIA = {
     "Residuo |f(c)|": BisectionCriterion.RESIDUAL,
     "Error relativo (%)": BisectionCriterion.RELATIVE,
 }
-BISECTION_POLYNOMIAL = "x^4 - 5*x^3 + 0.5*x^2 - 11*x + 10"
+BISECTION_POLYNOMIAL = "x^4 - 5x^3 + 0.5x^2 - 11x + 10"
 BISECTION_EXAMPLES = {
     "Polinomio del Excel": (BISECTION_POLYNOMIAL, "0.6", "1", "0.0001", "Residuo |f(c)|"),
     "Raíz de 2": ("x^2 - 2", "1", "2", "0.0001", "Ancho del intervalo"),
@@ -207,7 +207,8 @@ class BisectionPage(ResultsPage):
         )
         self._help_button.pack(fill="x", pady=(12, 0))
         self._help = ctk.CTkLabel(
-            inside, text="Escribe el lado izquierdo de f(x) = 0. Multiplica con * y usa ^ o ** para potencias.\n"
+            inside, text="Escribe el lado izquierdo de f(x) = 0. Puedes usar 5x^3, 2(x+1) o 5*x^3.\n"
+            "Usa ^ o ** para potencias y paréntesis en las funciones: sin(x), ln(x), etc.\n"
             "Funciones: sin, cos, tan, exp, ln, log, log10, sqrt, abs. Constantes: pi, e.\n"
             "En a, b y E también se aceptan fracciones y coma decimal.\n"
             "La garantía exige continuidad en todo [a, b] y signos opuestos en los extremos.\n"

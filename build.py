@@ -131,6 +131,14 @@ ENGINE: list[Block] = [
         "hubo redondeo en ningún momento.",
     ),
     Block(
+        "core/notation.py",
+        "LA MULTIPLICACION IMPLICITA",
+        "Reconoce productos escritos sin asterisco, como 5x o (1/2)x. La misma\n"
+        "regla sirve a las ecuaciones lineales y a las funciones de biseccion,\n"
+        "que admiten ademas 2(x+1), productos de parentesis y funciones.\n"
+        "No evalua nada ni cambia las restricciones de cada metodo.",
+    ),
+    Block(
         "core/equations.py",
         "LA LECTURA DE UNA ECUACIÓN ESCRITA",
         "Convierte una ecuación escrita como se escribe, 2x + 3y - z = 5, en la\n"

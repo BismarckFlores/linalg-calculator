@@ -20,6 +20,7 @@ linalg-calculator/
 │   ├── systems.py        # classification and solution of a linear system
 │   ├── verification.py   # putting a solution back into the original system
 │   ├── equations.py      # `2x + 3y = 5` read into a row of the augmented matrix
+│   ├── notation.py       # shared implicit products: 2x, (1/2)x and 2(x+1)
 │   ├── echelon.py        # the five properties, the leading entries, the pivots
 │   ├── parametric.py     # the general solution, when there are infinitely many
 │   ├── bases.py          # whole numbers in any base from 2 to 36, working kept

@@ -138,7 +138,7 @@ class BisectionTests(unittest.TestCase):
 
     def test_code_and_unlisted_syntax_are_rejected(self):
         for expression in ("__import__('os')", "x.__class__", "[x][0]", "lambda: 1", "True",
-                           "sqrt(x, 2)", "sin(x=x)", "sum([x])", "x if x else 0", "2x", "x=0"):
+                           "sqrt(x, 2)", "sin(x=x)", "sum([x])", "x if x else 0", "x=0"):
             with self.subTest(expression=expression), self.assertRaises(BisectionError):
                 RealFunction(expression)
 
