@@ -159,6 +159,64 @@ class StepWalkerTests(unittest.TestCase):
         self.assertNotIn("e", cell(1, 3))
         self.assertEqual(len(cell(1, 3).split(".")[1]), 5)
 
+    def test_table_scrollbar_tracks_format_precision_and_window_width(self):
+        from gui.pages.bisection import BisectionPage
+        from gui.widgets import Wide
+        self.root.geometry("800x640")
+        self.root.deiconify()
+        scroller = self.ctk.CTkScrollableFrame(self.root)
+        scroller.pack(fill="both", expand=True)
+        try:
+            page = BisectionPage(scroller)
+            page.pack(fill="x")
+            page._example("Polinomio del Excel")
+            page._calculate()
+            page._decimal_count.set(0)
+            page._choose_table_decimals(0)
+            self.root.update()
+            wide = page._table_wide
+            self.assertIsInstance(wide, Wide)
+            self.assertLessEqual(wide.content.winfo_reqwidth(), wide._strip.winfo_width())
+            self.assertFalse(wide._bar.winfo_manager())
+
+            for mode, decimals in (("Automático", 0), ("Decimal", 17)):
+                with self.subTest(mode=mode, decimals=decimals):
+                    page._format_choice.set(mode)
+                    page._choose_table_format(mode)
+                    page._decimal_count.set(decimals)
+                    page._choose_table_decimals(decimals)
+                    self.root.update()
+                    self.assertGreater(wide.content.winfo_reqwidth(), wide._strip.winfo_width())
+                    self.assertEqual(wide._bar.winfo_manager(), "pack")
+                    fixed_controls_x = page._format_choice.winfo_rootx()
+                    fixed_pager_x = page._table_next.winfo_rootx()
+                    wide._strip.xview_moveto(1)
+                    self.root.update()
+                    left, right = wide._strip.xview()
+                    self.assertGreater(left, 0)
+                    self.assertEqual(right, 1)
+                    self.assertEqual(page._format_choice.winfo_rootx(), fixed_controls_x)
+                    self.assertEqual(page._table_next.winfo_rootx(), fixed_pager_x)
+                    self.assertTrue(wide.scroll(-1))
+                    self.assertLess(wide._strip.xview()[0], left)
+
+            page._decimal_count.set(0)
+            page._choose_table_decimals(0)
+            self.root.update()
+            self.assertFalse(wide._bar.winfo_manager())
+            self.assertEqual(wide._strip.xview(), (0, 1))
+            page._format_choice.set("Automático")
+            page._choose_table_format("Automático")
+            self.root.geometry("1600x640")
+            self.root.update()
+            self.assertFalse(wide._bar.winfo_manager())
+            self.root.geometry("800x640")
+            self.root.update()
+            self.assertEqual(wide._bar.winfo_manager(), "pack")
+        finally:
+            scroller.destroy()
+            self.root.withdraw()
+
 
 if __name__ == "__main__":
     unittest.main()

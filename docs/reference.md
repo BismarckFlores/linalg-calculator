@@ -577,6 +577,12 @@ The window. `python -m gui`, from the repository root. Full notes in
 no page has no row, and `_build_page` raises for a key it does not know rather
 than falling back to something apologetic.
 
+`Wide.refresh()` settles pending layout requests and remeasures the content and
+scroll region. Call it after changing the children of an existing strip;
+the canvas-assigned content width can stay fixed even when the required width
+changes. `_titled_card(..., scrollable=False)` returns a plain card body for
+pages that need to keep controls outside a more narrowly scoped `Wide`.
+
 `StepWalker(master, log, ...)` keeps its matrix contract: the initial snapshot
 and each operation, with the common header, dots, links and all-steps view.
 For non-matrix states, use `StepWalker(master, captions=..., draw_snapshot=...)`:

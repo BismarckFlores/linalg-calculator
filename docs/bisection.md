@@ -68,7 +68,10 @@ The decimal-place controls are hidden in automatic mode. These settings only
 format the table, persist across calculations and do not change the saved
 trace, stop criterion or answer. Small values may display as zero in decimal
 mode; increase the places or switch to automatic notation to inspect them.
-Wide tables use the existing horizontal strip. Editing or pasting into any
+Wide tables use the existing horizontal strip. Its scrollbar appears directly
+under the data whenever the current columns exceed the available width, and
+is refreshed after format, decimal-place or page changes. The heading, format
+controls and pagination remain fixed while the columns move. Editing or pasting into any
 calculation input invalidates the result.
 
 The graph draws f(x), the initial endpoints a and b, and the final estimate c.

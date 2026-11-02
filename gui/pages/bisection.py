@@ -15,7 +15,7 @@ from core.bisection import (
 from .. import theme
 from ..widgets import (
     Card, ErrorBanner, LinkButton, MathBlock, MathLine, PageHeader, PrimaryButton,
-    ResultsPage, SectionTitle, SegmentedControl, Stepper,
+    ResultsPage, SectionTitle, SegmentedControl, Stepper, Wide,
 )
 
 
@@ -387,9 +387,9 @@ class BisectionPage(ResultsPage):
         self._muted(master, decision).pack_configure(pady=(14, 0))
 
     def _draw_table(self) -> None:
-        inside = self._card("Tabla de iteraciones")
+        inside, _heading = self._titled_card("Tabla de iteraciones", scrollable=False)
         self._muted(inside, "Ancho = b − a · Cota ≈ (b − a)/2 · Ea = |(c − c anterior)/c| × 100 %.\n"
-                    "Ea no aplica en la primera iteración, si c = 0 o si no se puede representar.")
+                    "Ea no aplica en la primera iteración, si c = 0 o si no se puede representar.", width=480)
         formatting = ctk.CTkFrame(inside, fg_color="transparent")
         formatting.pack(fill="x", pady=(12, 8))
         self._format_choice = SegmentedControl(
@@ -410,8 +410,11 @@ class BisectionPage(ResultsPage):
         self._muted(
             inside, "El formato solo cambia la vista; el cálculo conserva su precisión.\n"
             "Si un valor pequeño se muestra como cero, aumenta los decimales o usa Automático.",
+            width=480,
         ).pack_configure(pady=(0, 10))
-        self._table = ctk.CTkFrame(inside, fg_color="transparent")
+        self._table_wide = Wide(inside)
+        self._table_wide.pack(fill="x")
+        self._table = ctk.CTkFrame(self._table_wide.content, fg_color="transparent")
         self._table.pack(fill="x")
         controls = ctk.CTkFrame(inside, fg_color="transparent")
         controls.pack(fill="x", pady=(12, 0))
@@ -468,3 +471,4 @@ class BisectionPage(ResultsPage):
         self._table_count.configure(text=f"{start + 1}–{start + len(steps)} de {total}")
         self._table_previous.configure(state="normal" if start else "disabled")
         self._table_next.configure(state="normal" if start + len(steps) < total else "disabled")
+        self._table_wide.refresh()

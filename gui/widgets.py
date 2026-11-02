@@ -804,6 +804,15 @@ class Wide(ctk.CTkFrame):
         theme.on_change(self._repaint)
         self._repaint()
 
+    def refresh(self) -> None:
+        """Mide de nuevo despues de cambiar el contenido de una franja ya dibujada.
+
+        El lienzo impone el ancho de content, asi que un cambio en el ancho
+        solicitado por sus hijos no siempre dispara Configure en content.
+        """
+        self.update_idletasks()
+        self._fit()
+
     def _fit(self) -> None:
         """
         Ajusta el lienzo a lo que lleva dentro, y pone o quita la barra.
@@ -875,7 +884,9 @@ class ResultsPage(ctk.CTkFrame):
         inside, _heading = self._titled_card(title, badge)
         return inside
 
-    def _titled_card(self, title: str, badge: str = "") -> tuple[ctk.CTkFrame, SectionTitle]:
+    def _titled_card(
+        self, title: str, badge: str = "", *, scrollable: bool = True,
+    ) -> tuple[ctk.CTkFrame, SectionTitle]:
         """
         La tarjeta con su titulo, y dentro la franja donde se dibuja el resultado.
 
@@ -883,11 +894,15 @@ class ResultsPage(ctk.CTkFrame):
         con fracciones, o cuatro matrices en fila como P A = L U, pasan del ancho
         de la ventana, y antes eso se cortaba sin avisar. Al deslizar, el titulo
         tiene que seguir diciendo que es lo que se esta mirando.
+        scrollable=False deja colocar un Wide solo alrededor de la parte que
+        desborda, manteniendo los controles de la tarjeta fuera del recorrido.
         """
         inside = ctk.CTkFrame(self._add_card(), fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=22)
         heading = SectionTitle(inside, title, badge)
         heading.pack(fill="x", pady=(0, 12))
+        if not scrollable:
+            return inside, heading
         wide = Wide(inside)
         wide.pack(fill="x")
         return wide.content, heading

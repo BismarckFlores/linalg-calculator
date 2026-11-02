@@ -464,6 +464,11 @@ scientific notation only where appropriate. In decimal mode the existing
 alter the saved numerical trace. See [bisection.md](bisection.md) for
 the stopping rules, source discrepancies and verification examples.
 
+Only the table data is inside its `Wide`; the format controls and pagination
+stay fixed. The page calls `Wide.refresh()` after drawing rows, since a change
+in requested content width need not resize the canvas window. The horizontal
+bar therefore updates immediately when notation, precision or page changes.
+
 The sidebar scrolls independently when the rows exceed the available height;
 the selected row is brought into view on selection or window resize.
 
