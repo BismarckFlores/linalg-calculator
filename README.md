@@ -26,6 +26,7 @@ linalg-calculator/
 │   ├── roman.py          # Roman numerals, read, written and operated on
 │   ├── lu.py             # PA = LU, and Ax = b by two substitutions
 │   ├── determinant.py    # det A by cofactors and by LU, and what each costs
+│   ├── bisection.py      # numerical roots, stopping rules and the saved intervals
 │   └── vectors.py        # vectors of Rⁿ, and whether b combines the others
 ├── ui/                   # everything a person reads, in Spanish
 │   ├── presentation.py   # engine objects → the words that go on screen
@@ -37,7 +38,7 @@ linalg-calculator/
 │   ├── app.py            # the window, the sidebar, which page is open
 │   └── pages/            # grouped in the sidebar: matrices (operations, inverse,
 │                         # elimination, echelon forms), vectors, numeral systems
-│                         # (conversions, Roman numerals)
+│                         # (conversions, Roman numerals), numerical methods
 ├── deliverables/         # the scripts handed in to the course
 │   ├── program1.py       # Programa 1: systems by row elimination
 │   └── out/              # generated single files, not versioned
@@ -56,6 +57,7 @@ python -m deliverables.program1     # run Programa 1
 python -m gui                       # the same engine in a window
 python build.py                     # write every file in deliverables/out/
 python check.py                     # smoke test the engine
+python -m unittest discover -s tests -v  # bisection regression and boundary cases
 ```
 
 This section grows as modules land. Nothing is listed here before it exists.
@@ -67,6 +69,8 @@ This section grows as modules land. Nothing is listed here before it exists.
 something: it lists what every module exposes without you having to read it.
 [docs/inverse.md](docs/inverse.md) covers the inverse method, applications,
 theorems and course exercises.
+[docs/bisection.md](docs/bisection.md) covers numerical roots, the course
+examples, the graph restrictions and the points to explain in the oral defence.
 
 ## Rules
 
@@ -81,14 +85,17 @@ returns data and raises exceptions, worded in Spanish. The
 wording a user reads is decided in the interface layer, which is why every front
 end says exactly the same thing.
 
-**Standard library only.** No NumPy, no SciPy, no linear algebra helpers from
+**Standard library only in the engine.** No NumPy, no SciPy, no linear algebra helpers from
 `math`: the assignments require the algorithms to be built from lists,
 conditionals, loops and functions. `fractions`, `dataclasses`, `enum` and
 `tkinter` are standard and are allowed. `gui/` is the one exception: it imports
 CustomTkinter, which draws and does nothing else. No mathematics anywhere in
 this repository depends on it — the engine, the terminal program and the
-terminal deliverable import nothing at all — and the window's deliverable says
+terminal deliverable require no external packages — and the window's deliverable says
 so at the top of its own first page, next to the two commands that install it.
+The bisection module uses elementary `math` functions to evaluate f(x), and
+implements the root-finding loop itself. Its graph uses Tkinter Canvas, with
+zoom and pan and no cursor-value queries.
 
 **Deliverables are generated, not written.** Each file handed in is a single
 self-contained script produced out of the modules in this repository. The
@@ -186,6 +193,14 @@ left becomes `Iₙ`, and checks both products with the original A. The inverse
 page also solves `Ax = b` as `x = A⁻¹b` when A is invertible. Its matrix and equation inputs have
 no fixed order limit; [docs/inverse.md](docs/inverse.md) gives the conditional
 theorems and exercises.
+
+`core/bisection.py` solves `f(x) = 0` by repeatedly halving a sign-changing
+interval, keeping every midpoint, evaluation and error measure. It uses
+floating-point arithmetic rather than the exact matrix scalars, and reports
+which stopping rule was reached. The page **Método de Bisección**, under
+**Métodos Numéricos**, shows the answer, original-function check, graph,
+step reader and iteration table. `python build.py` also generates
+`deliverables/out/Programa Biseccion_Grupo5.py` for this assignment.
 
 ## The wording
 

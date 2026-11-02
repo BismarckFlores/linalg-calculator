@@ -181,6 +181,15 @@ CONSOLE_BLOCKS: list[Block] = [
 
 WINDOW_BLOCKS: list[Block] = [
     Block(
+        "core/bisection.py",
+        "EL METODO DE BISECCION",
+        "Evalua una funcion real y divide un intervalo con cambio de signo.\n"
+        "Guarda cada iteracion y distingue ancho, residuo y error relativo.\n"
+        "El algoritmo es propio, con Python estandar; math solo evalua las\n"
+        "funciones elementales que se escriben en f(x). No se usa eval.\n"
+        "La garantia de existencia de raiz supone continuidad en todo [a,b].",
+    ),
+    Block(
         "core/echelon.py",
         "LAS FORMAS ESCALONADAS Y LOS PIVOTES",
         "Lee la forma de una matriz, en vez de ponerla en una. Comprueba las cinco\n"
@@ -411,6 +420,14 @@ WINDOW_BLOCKS: list[Block] = [
         "respuesta, porque los romanos no escribían esos números.",
     ),
     Block(
+        "gui/pages/bisection.py",
+        "LA PESTANA DE BISECCION",
+        "Recibe f(x), a, b, tolerancia y limite de iteraciones. Muestra la raiz,\n"
+        "la sustitucion en la funcion original, la tabla y el paso a paso.\n"
+        "La grafica usa el Canvas de Tkinter: permite acercar, alejar y arrastrar,\n"
+        "sin consultas de valores al cursor ni dependencias adicionales.",
+    ),
+    Block(
         "gui/app.py",
         "LA VENTANA",
         "El menú de la izquierda, la página abierta a la derecha y el cambio de\n"
@@ -452,6 +469,28 @@ Hace falta Python 3.12 o posterior. El comando deactivate cierra el entorno
 virtual al terminar, y borrar la carpeta .venv lo deshace todo."""
 
 PROGRAMS: list[Program] = [
+    Program(
+        number="Biseccion",
+        title="Solucion de Ecuaciones por el Metodo de Biseccion",
+        preamble=WINDOW_HOWTO + """
+
+El metodo esta en Metodos Numericos > Metodo de Biseccion, en el menu lateral.
+Escriba f(x), los extremos a y b, la tolerancia E y el limite de iteraciones.
+El criterio inicial es ancho del intervalo < E. Tambien se puede detener por
+residuo |f(c)| o error relativo porcentual. Se informa cual detuvo el calculo.
+
+La grafica permite zoom con los botones + y -, y movimiento por arrastre.
+No hay consultas de coordenadas ni valores de la funcion al pasar el cursor.
+La tabla y el paso a paso son el registro del calculo, no lecturas de la grafica.
+
+La biseccion esta escrita con Python estandar. math solo evalua funciones
+elementales (por ejemplo sin, exp o ln); no resuelve ecuaciones. No se usan
+NumPy, SciPy, SymPy, Matplotlib ni eval. CustomTkinter solamente dibuja.
+Los calculos de biseccion usan float sin redondear los pasos intermedios.
+La garantia matematica exige continuidad en todo el intervalo inicial.
+""",
+        blocks=[*ENGINE, *WINDOW_BLOCKS],
+    ),
     Program(
         number=1,
         title="Solucion de Sistemas de Ecuaciones Lineales por Eliminacion por Filas",

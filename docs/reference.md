@@ -72,6 +72,22 @@ computed twice.
 
 ---
 
+## `core/bisection.py`
+
+Numerical real roots, separate from exact matrix arithmetic. See
+[bisection.md](bisection.md) for the algorithm, assumptions and course cases.
+
+| Name | Contract |
+| --- | --- |
+| `RealFunction(text)` | Validates and interprets arithmetic in x with an AST whitelist. Callable; raises `BisectionError` for invalid/domain/non-finite evaluations. |
+| `bisection_number(value)` | Reuses `to_scalar` for scalar inputs and converts to a finite float. |
+| `BisectionCriterion` | `WIDTH`, `RESIDUAL`, `RELATIVE` (percent). |
+| `BisectionStop` | `ZERO`, `TOLERANCE`, `LIMIT`, `STAGNATION`. |
+| `bisect(function, a, b, tolerance="0.0001", *, criterion=WIDTH, max_iterations=100)` | Returns a `BisectionResult`, including unsuccessful limit/stagnation stops. Needs opposite endpoint signs or an endpoint zero; root guarantees require continuity. |
+| `BisectionStep` | Frozen iteration with index, a, b, c, fa, fb, fc, relative_error; exposes width, geometric bound, residual and sign decision. |
+| `BisectionResult` | Frozen result with function, initial/final endpoints, tolerance, criterion, steps, stop, root, value, converged and bound. |
+| `sample_bisection(function, a, b, count=401)` | Plot samples; undefined evaluations produce `(x, None)` gaps. Does not solve or prove continuity. |
+
 ## `core/scalar.py`
 
 The number every matrix entry is stored as.
@@ -545,6 +561,7 @@ The window. `python -m gui`, from the repository root. Full notes in
 | `gui/pages/inverse.py` | `InversePage`: inverse and `Ax = b`, both entered through the shared coefficient grids or equation parser, with matrix displays, product checks and `StepWalker`. |
 | `gui/pages/echelon.py` | `EchelonPage`: the five properties, the leading entries and the pivots. Owns their Spanish, since no other front end says it. |
 | `gui/pages/bases.py` | `BasesPage`: decimal to base 2, 8, 16 or any other from 2 to 36 and back, with the divisions, the combination and a table of positions. |
+| `gui/pages/bisection.py` | `BisectionPage`: input, result, check, step reader and paginated table; `BisectionPlot`: Canvas with zoom, drag and reset, no cursor-value queries. Uses the shared theme and cards. |
 | `gui/pages/gauss.py` | `GaussPage`: `A x = b` by either method, from coefficients or from written equations, shown first as the matrix equation, with the step by step, and a unique solution checked with the product `A x` as well as equation by equation. |
 
 `GROUPS` holds only what works. A row is added when its page is; a program with
@@ -567,7 +584,8 @@ exactly what `prompts.ask_system` hands the terminal, or raises with a Spanish
 message. The names are empty for the grid route, because nothing there ever says
 what the unknowns are called.
 
-Nothing in `gui/` calculates. `build.py` assembles it into
+Nothing in `gui/` solves the mathematics; graph view transformations belong
+to drawing. `build.py` assembles it into `Programa Biseccion_Grupo5.py`,
 `Programa 2_Grupo5.py` and `Programa Vectores y Sistemas Numericos_Grupo5.py`,
 the deliverables that open a window.
 
@@ -576,6 +594,7 @@ the deliverables that open a window.
 | File | Does |
 | --- | --- |
 | `check.py` | Runs the engine end to end and prints one line per claim. Run it after touching `core/`. |
+| `tests/test_bisection.py` | Numerical regression and boundary tests. Run with `python -m unittest discover -s tests -v`. |
 | `build.py` | Assembles the handed-in files. `PROGRAMS` lists what gets built, each with a preamble and its blocks; `ENGINE` is what they share, `WINDOW_BLOCKS` and `CONSOLE_BLOCKS` what each adds. `GROUP_NUMBER` and each program's `number` name the output; an assignment with a name instead of a number uses the name. `clashes` refuses a program whose blocks define the same global twice. |
 | `requirements-gui.txt` | CustomTkinter. Needed by `gui/` and by nothing else. |
 

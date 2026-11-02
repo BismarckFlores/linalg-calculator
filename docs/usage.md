@@ -152,6 +152,22 @@ expected. Run it after touching anything in `core/`.
 
 ## Building the files to hand in
 
+For the bisection assignment, open **Métodos Numéricos > Método de Bisección**
+in `python -m gui`. Enter f(x), a, b and E; select the stopping measure and
+press **Calcular raíz**. The default is interval width; **Polinomio del Excel**
+loads the spreadsheet's residual criterion. The graph supports zoom buttons,
+dragging and reset without cursor-value queries. See [bisection.md](bisection.md)
+for syntax, examples and the oral-defence guide.
+
+Run `python -m unittest discover -s tests -v` for the bisection checks in
+addition to `python check.py`. The build generates
+`deliverables/out/Programa Biseccion_Grupo5.py`, the same application packaged
+as one self-contained source file for this assignment. Run it with:
+
+```bash
+python "deliverables/out/Programa Biseccion_Grupo5.py"
+```
+
 `python build.py` assembles the modules into single self-contained scripts under
 `deliverables/out/`, with a Spanish heading in front of each block. The comments
 are already in Spanish in the modules, so they travel across untouched. One file
@@ -159,23 +175,12 @@ per assignment:
 
 ```
 Escrito: deliverables/out/Programa 1_Grupo5.py
-  1742 lineas, 12 bloques
-  Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa 2_Grupo5.py
-  8246 lineas, 32 bloques
-  Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Determinante_Grupo5.py
-  8260 lineas, 32 bloques
-  Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Matriz Inversa_Grupo5.py
-  8256 lineas, 32 bloques
-  Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Numeros Romanos_Grupo5.py
-  8251 lineas, 32 bloques
-  Todo el texto del archivo esta en castellano.
 Escrito: deliverables/out/Programa Vectores y Sistemas Numericos_Grupo5.py
-  8267 lineas, 32 bloques
-  Todo el texto del archivo esta en castellano.
+Escrito: deliverables/out/Programa Biseccion_Grupo5.py
 ```
 
 **`Programa 1_Grupo5.py`** is the terminal program: the seven sections of the

@@ -21,6 +21,7 @@ import customtkinter as ctk
 
 from . import theme
 from .pages.bases import BasesPage
+from .pages.bisection import BisectionPage
 from .pages.determinant import DeterminantPage
 from .pages.echelon import EchelonPage
 from .pages.gauss import GaussPage
@@ -71,6 +72,9 @@ GROUPS = (
     Group("Sistemas Numéricos", (
         Module("bases", "⇄", "Conversiones"),
         Module("roman", "Ⅻ", "Aritmética Romana"),
+    )),
+    Group("Métodos Numéricos", (
+        Module("bisection", "½", "Método de Bisección"),
     )),
 )
 
@@ -188,6 +192,16 @@ class Application(ctk.CTk):
         """Una muesca: baja la pagina, salvo que algo bajo el puntero la quiera."""
         if scrolls_itself(event.widget):
             return
+        widget = event.widget
+        while widget is not None:
+            if widget is self._navigation:
+                canvas = self._navigation._parent_canvas
+                if canvas.yview() != (0.0, 1.0):
+                    up = event.num == 4 or getattr(event, "delta", 0) > 0
+                    canvas.yview_scroll(-WHEEL_STEP if up else WHEEL_STEP, "units")
+                    return
+                break
+            widget = getattr(widget, "master", None)
         canvas = self._container._parent_canvas
         if canvas.yview() == (0.0, 1.0):
             return
@@ -242,8 +256,10 @@ class Application(ctk.CTk):
             fill="x", padx=14
         )
 
-        navigation = ctk.CTkFrame(sidebar, fg_color="transparent")
+        navigation = ctk.CTkScrollableFrame(sidebar, fg_color="transparent", corner_radius=0)
         navigation.pack(fill="both", expand=True, padx=10, pady=10)
+        self._navigation = navigation
+        navigation._parent_canvas.bind("<Configure>", lambda _event: self._show_nav_row(), add=True)
         for index, group in enumerate(GROUPS):
             ctk.CTkLabel(
                 navigation,
@@ -281,9 +297,27 @@ class Application(ctk.CTk):
         # Una pagina se abre por su principio. Conservar el desplazamiento de la que
         # se acaba de dejar soltaria a alguien en mitad de otra que no ha leido.
         self.update_idletasks()
+        # Una ventana baja necesita desplazar el menu. La fila elegida debe
+        # quedar a la vista tambien al seleccionar una pagina desde codigo.
+        self._show_nav_row()
         self._container._parent_canvas.yview_moveto(0.0)
 
+    def _show_nav_row(self) -> None:
+        """Mantiene la seleccion a la vista cuando el menu necesita desplazarse."""
+        if self._open is None:
+            return
+        canvas = self._navigation._parent_canvas
+        height = max(self._navigation.winfo_height(), 1)
+        row = self._rows[self._open]
+        top = canvas.yview()[0] * height
+        if row.winfo_y() < top:
+            canvas.yview_moveto(row.winfo_y() / height)
+        elif row.winfo_y() + row.winfo_height() > top + canvas.winfo_height():
+            canvas.yview_moveto((row.winfo_y() + row.winfo_height() - canvas.winfo_height()) / height)
+
     def _build_page(self, key: str) -> ctk.CTkFrame:
+        if key == "bisection":
+            return BisectionPage(self._container)
         if key == "vectors":
             return VectorsPage(self._container)
         if key == "operations":

@@ -15,9 +15,9 @@ when the root is the directory Python started from.
 
 ## What is on it
 
-The sidebar lists what works, and nothing else, in four groups ordered by what
+The sidebar lists what works, and nothing else, in five groups ordered by what
 somebody sets out to do: **Sistemas Lineales**, **Matrices**, **Vectores** and
-**Sistemas Numéricos**. Every row has the same square badge for its symbol, in
+**Sistemas Numéricos**, and **Métodos Numéricos**. Every row has the same square badge for its symbol, in
 the menu and again in the page title, so a wide symbol such as `LU` or `|A|`
 never pushes a name out of line.
 
@@ -32,6 +32,7 @@ never pushes a name out of line.
 | Vectores | **Operaciones Vectoriales** | `u + v`, `u − v` and `k · u`, as columns side by side and component by component, and whether b is a linear combination of v₁, …, vₖ, solved as the system it is. Nobody says what n is: it is however many components were typed. |
 | Sistemas Numéricos | **Conversiones** | A whole number from decimal to binary, octal, hexadecimal or any base from 2 to 36 by repeated division, and back by the linear combination of powers it stands for. `Romano` converts to and from Roman numerals, which are no base at all. Each direction is checked with the other. |
 | Sistemas Numéricos | **Aritmética Romana** | Adds, subtracts and multiplies Roman numerals, with a switch that writes a multiplication out as the repeated addition it stands for. Says when an answer is one the Romans could not write. |
+| Métodos Numéricos | **Método de Bisección** | Solves f(x) = 0 with selectable stopping measures, original-function substitution, an iteration table and step reader. Canvas graph with zoom and drag, without cursor-value queries. See [bisection.md](bisection.md). |
 
 The order is by priority. Solving a system comes first and opens the window,
 with reading the form of a matrix next to it. Matrices goes from the basic
@@ -40,7 +41,7 @@ the determinant, which reads the diagonal of that factorization. The pages that
 have two modes name them the same way: a verb and the object, `Calcular A⁻¹`,
 `Factorizar A`, `Resolver A x = b`.
 
-Vectores holds one page today and keeps a heading anyway. The four subjects
+Vectores holds one page today and keeps a heading anyway. The subjects
 then read the same way, and a second vector page has somewhere to land.
 
 The whole menu is one tuple, `GROUPS` in `gui/app.py`, and nothing else depends
@@ -445,9 +446,18 @@ The answer is read back at the end, through the same code the operands went
 through, so the writing is checked against the reading rather than against the
 number that produced it.
 
-### What it does not do yet
+### Bisection
 
-- Determinants and later course topics do not have their own calculator page.
+The page reuses `ResultsPage`, `Card`, `PageHeader`, `SectionTitle`,
+`ErrorBanner`, `PrimaryButton`, `Wide` and the theme. Its non-matrix iteration
+records have their own reader instead of adapting the matrix-only `StepWalker`.
+The graph has a responsive Canvas, zoom buttons, reset and left-button drag.
+It has no motion-value callback, picker or coordinate readout. The table is
+paginated to avoid oversized Tk canvases. See [bisection.md](bisection.md) for
+the stopping rules, source discrepancies and verification examples.
+
+The sidebar scrolls independently when the rows exceed the available height;
+the selected row is brought into view on selection or window resize.
 
 ## How it is put together
 
@@ -467,6 +477,7 @@ gui/
     ├── determinant.py  det A by cofactors or by LU, and which one to use
     ├── echelon.py      the five properties, the reduction, the pivots
     ├── bases.py        whole numbers between base 10 and bases 2 to 36
+    ├── bisection.py    numerical roots, graph, steps and iteration table
     └── roman.py        Roman numerals, and the three operations on them
 ```
 
@@ -484,10 +495,12 @@ has to be read and kept correct for no return.
 Three rules hold the package together, and they are the same three that hold the
 rest of the repository together.
 
-**No arithmetic in `gui/`.** Every number on screen came out of `core/`. The
+**No solving arithmetic in `gui/`.** Every calculated mathematical result came out of `core/`. The
 pages read matrices out of their cells, call `solve`, `to_rref`, `verify` or a
 `Matrix` operator, and arrange what comes back. If a calculation ever appears in
 this package it is in the wrong place.
+Graph coordinate transformations and viewport navigation live with the drawing;
+function evaluation and plot sampling remain in `core/bisection.py`.
 
 **No wording in `gui/` that another front end also needs.** The five properties
 of the echelon forms are the exception that proves it: only this window says

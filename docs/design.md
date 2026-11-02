@@ -46,7 +46,7 @@ is a bug in the algorithm, not an operation that happens to be redundant.
 does not fail where it was built; it fails much later, inside some unrelated
 `elem`, with an `IndexError` that explains nothing.
 
-## Exact numbers, all the way down
+## Exact matrix numbers, all the way down
 
 Every entry is a `Fraction`. Rounding never enters the calculation, so a third
 prints as `1/3` and not as `0.3333333333333333`, the elimination is exact from
@@ -54,6 +54,29 @@ end to end, and a result can be checked against the same exercise done by hand.
 The cost is that a decimal typed in becomes a fraction on the way out — `0.18`
 comes back as `9/50` — which is the right trade for a course where the answers
 are fractions.
+
+Numerical root finding has a different contract. `core/bisection.py` uses
+`float` and supports elementary transcendental functions; it does not change
+the matrix scalars. Width, residual and relative change are separate measures,
+and a stagnation or iteration-limit stop is not successful convergence. See
+[bisection.md](bisection.md) for the assumptions and numerical limitations.
+
+## Bisection reuses the page, not the matrix record
+
+`ResultsPage`, the cards, theme and wide strips already express the surrounding
+interface. `StepLog` and `StepWalker` specifically express row-equivalent
+matrices, so forcing a root interval into them would obscure both algorithms.
+Frozen bisection records keep only the intervals and evaluations needed by the
+step reader and table. Retained endpoint values mean one new function
+evaluation per iteration. A restricted AST interpreter evaluates f(x) without
+`eval` or a solver dependency.
+
+The graph uses the existing Tkinter dependency. Its only interactions are zoom,
+pan and reset; the assignment prohibits cursor-value inspection. Geometry is
+owned by the graph, function sampling by the core. A dedicated graph backend,
+browser integration or general chart framework is unnecessary here. The
+sidebar gains scrolling because the additional group no longer fits in the
+minimum window height.
 
 ## Only what has been asked for
 
