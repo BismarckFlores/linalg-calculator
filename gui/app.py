@@ -30,7 +30,7 @@ from .pages.lu import LUPage
 from .pages.operations import OperationsPage
 from .pages.roman import RomanPage
 from .pages.vectors import VectorsPage
-from .widgets import WHEEL_STEP, Card, GlyphBadge, Wide
+from .widgets import WHEEL_STEP, Card, GlyphBadge, Wide, PageHeader, SectionTitle, LinkButton
 
 @dataclass(frozen=True)
 class Module:
@@ -39,6 +39,7 @@ class Module:
     key: str
     glyph: str
     name: str
+    description: str = ""
 
 @dataclass(frozen=True)
 class Group:
@@ -57,29 +58,30 @@ class Group:
 # titulo para que una segunda tenga donde aterrizar.
 GROUPS = (
     Group("Sistemas Lineales", (
-        Module("gauss", "▦", "Eliminación Gaussiana"),
-        Module("echelon", "▧", "Formas Escalonadas"),
+        Module("gauss", "▦", "Eliminación Gaussiana", "Resuelve sistemas con Gauss o Gauss-Jordan, clasifica sus soluciones y comprueba el resultado."),
+        Module("echelon", "▧", "Formas Escalonadas", "Comprueba las propiedades de una matriz escalonada, reduce por filas y localiza sus pivotes."),
     )),
     Group("Matrices", (
-        Module("operations", "⊞", "Operaciones Matriciales"),
-        Module("inverse", "⁻¹", "Matriz Inversa"),
-        Module("lu", "LU", "Factorización LU"),
-        Module("determinant", "|A|", "Determinante"),
+        Module("operations", "⊞", "Operaciones Matriciales", "Suma, resta y multiplica matrices; calcula productos por escalares y transpuestas."),
+        Module("inverse", "⁻¹", "Matriz Inversa", "Calcula la inversa mediante Gauss-Jordan, verifica los productos y resuelve Ax = b."),
+        Module("lu", "LU", "Factorización LU", "Descompone una matriz en factores triangulares y resuelve sistemas por sustitución."),
+        Module("determinant", "|A|", "Determinante", "Calcula determinantes por cofactores o factorización LU y consulta el procedimiento."),
     )),
     Group("Vectores", (
-        Module("vectors", "↗", "Operaciones Vectoriales"),
+        Module("vectors", "↗", "Operaciones Vectoriales", "Suma y resta vectores, multiplica por escalares y estudia combinaciones lineales."),
     )),
     Group("Sistemas Numéricos", (
-        Module("bases", "⇄", "Conversiones"),
-        Module("roman", "Ⅻ", "Aritmética Romana"),
+        Module("bases", "⇄", "Conversiones", "Convierte números entre decimal y otras bases, incluyendo la representación romana."),
+        Module("roman", "Ⅻ", "Aritmética Romana", "Suma, resta y multiplica números romanos con el desarrollo de cada operación."),
     )),
     Group("Métodos Numéricos", (
-        Module("bisection", "½", "Método de Bisección"),
+        Module("bisection", "½", "Método de Bisección", "Grafica una función y aproxima una raíz con intervalos, pasos y tabla de iteraciones."),
     )),
 )
 
-# Todas las paginas, en el orden en que el menu las dibuja. La primera se abre.
+# Todas las herramientas, en el orden en que el menu las dibuja.
 MODULES = tuple(module for group in GROUPS for module in group.modules)
+HOME = Module("home", "⌂", "Inicio")
 
 SIDEBAR_WIDTH = 268
 
@@ -90,6 +92,51 @@ def scrolls_itself(widget: Any) -> bool:
             return True
         widget = getattr(widget, "master", None)
     return False
+
+class HomePage(ctk.CTkFrame):
+    """El catalogo usa el mismo registro y navegacion que el menu lateral."""
+
+    def __init__(self, master: Any, select: Callable[[str], None]) -> None:
+        super().__init__(master, fg_color="transparent")
+        PageHeader(self, "⌂", "Inicio", "Elige una herramienta para comenzar.").pack(anchor="w", pady=(0, 18))
+        self._shortcuts: dict[str, LinkButton] = {}
+        self._sections = []
+        self._columns = 0
+        for group in GROUPS:
+            count = len(group.modules)
+            SectionTitle(self, group.name, f"{count} {'herramienta' if count == 1 else 'herramientas'}").pack(fill="x", pady=(16, 10))
+            grid = ctk.CTkFrame(self, fg_color="transparent")
+            grid.pack(fill="x")
+            cards = []
+            for module in group.modules:
+                card = Card(grid)
+                heading = ctk.CTkFrame(card, fg_color="transparent")
+                heading.pack(fill="x", padx=20, pady=(20, 10))
+                GlyphBadge(heading, module.glyph, size=32).pack(side="left", padx=(0, 10))
+                ctk.CTkLabel(heading, text=module.name, font=theme.font("heading"), text_color=theme.INK).pack(side="left")
+                description = ctk.CTkLabel(card, text=module.description, font=theme.font("body"),
+                    text_color=theme.MUTED, justify="left", anchor="nw", wraplength=260)
+                description.pack(fill="x", padx=20, pady=(0, 10))
+                button = LinkButton(card, "Abrir  →", lambda key=module.key: select(key))
+                button.pack(anchor="e", padx=14, pady=(0, 14))
+                self._shortcuts[module.key] = button
+                cards.append((card, description))
+            self._sections.append((grid, cards))
+        self.bind("<Configure>", self._layout)
+
+    def _layout(self, event: Any) -> None:
+        columns = 2 if event.width >= 720 else 1
+        for grid, cards in self._sections:
+            if columns != self._columns:
+                grid.grid_columnconfigure(0, weight=1, uniform="home")
+                grid.grid_columnconfigure(1, weight=1 if columns == 2 else 0, uniform="home" if columns == 2 else "")
+                for index, (card, _description) in enumerate(cards):
+                    card.grid(row=index // columns, column=index % columns, sticky="nsew",
+                              padx=(0, 12) if columns == 2 and index % 2 == 0 else 0, pady=(0, 12))
+            for _card, description in cards:
+                description.configure(wraplength=max(200, event.width // columns - 64))
+        self._columns = columns
+
 
 class NavRow(ctk.CTkFrame):
     """
@@ -155,7 +202,7 @@ class Application(ctk.CTk):
         self._container.grid_columnconfigure(0, weight=1)
 
         self._wire_wheel()
-        self.select(MODULES[0].key)
+        self.select(HOME.key)
 
     # ----- La rueda del raton -----
 
@@ -264,6 +311,9 @@ class Application(ctk.CTk):
         navigation.pack(fill="both", expand=True, padx=10, pady=10)
         self._navigation = navigation
         navigation._parent_canvas.bind("<Configure>", lambda _event: self._show_nav_row(), add=True)
+        home_row = NavRow(navigation, HOME, self.select)
+        home_row.pack(fill="x", pady=(0, 10))
+        self._rows[HOME.key] = home_row
         for index, group in enumerate(GROUPS):
             ctk.CTkLabel(
                 navigation,
@@ -320,6 +370,8 @@ class Application(ctk.CTk):
             canvas.yview_moveto((row.winfo_y() + row.winfo_height() - canvas.winfo_height()) / height)
 
     def _build_page(self, key: str) -> ctk.CTkFrame:
+        if key == HOME.key:
+            return HomePage(self._container, self.select)
         if key == "bisection":
             return BisectionPage(self._container)
         if key == "vectors":

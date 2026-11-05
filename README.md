@@ -7,6 +7,9 @@ A linear algebra engine written in plain Python. It grows one assignment at a
 time, and the files handed in to the course are generated from it rather than
 written by hand.
 
+The desktop app opens on **Inicio**, with a grouped catalogue and shortcuts to
+all ten tools. Return through the sidebar without losing work in each module.
+
 ## Layout
 
 ```

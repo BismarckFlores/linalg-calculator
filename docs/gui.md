@@ -34,7 +34,15 @@ never pushes a name out of line.
 | Sistemas Numéricos | **Aritmética Romana** | Adds, subtracts and multiplies Roman numerals, with a switch that writes a multiplication out as the repeated addition it stands for. Says when an answer is one the Romans could not write. |
 | Métodos Numéricos | **Método de Bisección** | Solves f(x) = 0 with selectable stopping measures, original-function substitution, an iteration table and step reader. Canvas graph with zoom and drag, without cursor-value queries. See [bisection.md](bisection.md). |
 
-The order is by priority. Solving a system comes first and opens the window,
+The window opens on **Inicio**, a catalogue of all ten tools grouped by the
+same subjects as the sidebar. Each card explains its capabilities and provides
+an **Abrir** shortcut. It reuses `Card`, `GlyphBadge`, `PageHeader`,
+`SectionTitle` and `LinkButton`; descriptions live in the existing `Module`
+registry. Cards use one column in narrow content areas and two from 720 pixels.
+The permanent **Inicio** sidebar entry returns to the catalogue without
+recreating tools or losing their inputs. No dependency was added.
+
+The tool order is by priority. Solving a system comes first among the tools,
 with reading the form of a matrix next to it. Matrices goes from the basic
 arithmetic to what is computed with it: the inverse, the LU factorization, and
 the determinant, which reads the diagonal of that factorization. The pages that
@@ -44,9 +52,9 @@ have two modes name them the same way: a verb and the object, `Calcular A⁻¹`,
 Vectores holds one page today and keeps a heading anyway. The subjects
 then read the same way, and a second vector page has somewhere to land.
 
-The whole menu is one tuple, `GROUPS` in `gui/app.py`, and nothing else depends
-on it: the headings and rows are drawn by walking it, `MODULES` is flattened
-out of it, and the first row is the page that opens. The headings are labels,
+The tool registry is `GROUPS` in `gui/app.py`: the sidebar headings, rows and
+home catalogue are drawn by walking it, and `MODULES` is flattened out of it.
+The separate `HOME` entry is the page that opens. The headings are labels,
 not buttons — everything stays one click away, which is worth more here than a
 tidier sidebar.
 
