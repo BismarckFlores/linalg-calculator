@@ -170,6 +170,10 @@ class Application(ctk.CTk):
         cuarenta. Esto sustituye esa asociacion en vez de sumarse a ella, para que
         nada se desplace dos veces.
         """
+        # CTk usa unidades de 1 px en Windows y 30 px en Linux. Nuestro
+        # WHEEL_STEP cuenta unidades: fijarlas evita avances casi invisibles.
+        for frame in (self._container, self._navigation):
+            frame._parent_canvas.configure(yscrollincrement=30)
         for sequence in ("<Button-4>", "<Button-5>", "<MouseWheel>"):
             self.unbind_all(sequence)
             self.bind_all(sequence, self._wheel, add=True)

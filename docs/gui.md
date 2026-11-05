@@ -607,6 +607,13 @@ characters. The window puts the missing space back after the colon.
 
 ## The design
 
+The application's wheel handler sets the page and sidebar canvases to a
+30-pixel vertical scroll unit on every platform. CustomTkinter otherwise uses
+one pixel on Windows, making the same application wheel step almost invisible.
+`tests/test_scroll.py` recreates that default and checks Windows delta events,
+Linux button events and both directions. Graph-local wheel zoom still consumes
+its own events before the application handler.
+
 It follows a mockup made in Figma, close enough that the two are recognisably
 the same program: the blue `#0071e3`, the rounded cards, the pill of choices,
 the sidebar.
