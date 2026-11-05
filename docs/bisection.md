@@ -8,7 +8,10 @@ behaviour. It adds no dependencies.
 
 ## Inputs and stopping rules
 
-The page starts with the function field and **Graficar función**. Graphing
+The page starts with the function field, **Cargar ejemplo** and **Graficar función**.
+Examples are available before any graph is drawn. Choosing one fills its
+function and bisection parameters and immediately draws its preview, revealing
+the controls without calculating a root. Graphing
 requires no bisection endpoints and initially displays x in [-10, 10]. Only
 after the graph is created are the bisection controls shown below it. Editing
 the function closes its expanded graph and hides both graph and controls

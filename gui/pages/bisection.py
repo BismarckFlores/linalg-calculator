@@ -231,6 +231,10 @@ class BisectionPage(ResultsPage):
         self._function = self._field(inside, "Función f(x)", BISECTION_POLYNOMIAL)
         self._function.bind("<Return>", lambda _event: self._graph())
         self._variables[-1].trace_add("write", lambda *_args: self._function_changed())
+        self._label(inside, "Cargar ejemplo").pack(anchor="w", pady=(14, 4))
+        self._examples = SegmentedControl(inside, tuple(BISECTION_EXAMPLES), self._example)
+        self._examples.set("")
+        self._examples.pack(anchor="w")
         PrimaryButton(inside, "Graficar función  →", self._graph).pack(anchor="e", pady=(14, 0))
         self._graph_error = ErrorBanner(inside)
         self._preview_host = Card(self)
@@ -268,10 +272,6 @@ class BisectionPage(ResultsPage):
             justify="left", anchor="w", wraplength=580,
             font=theme.font("small"), text_color=theme.MUTED,
         )
-        self._label(inside, "Cargar ejemplo").pack(anchor="w", pady=(14, 4))
-        self._examples = SegmentedControl(inside, tuple(BISECTION_EXAMPLES), self._example)
-        self._examples.set("")
-        self._examples.pack(anchor="w")
         self._error = ErrorBanner(inside)
         buttons = ctk.CTkFrame(inside, fg_color="transparent")
         buttons.pack(fill="x", pady=(18, 0))
