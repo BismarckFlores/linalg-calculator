@@ -9,7 +9,7 @@ import customtkinter as ctk
 
 from core.bisection import (
     BisectionCriterion, BisectionError, BisectionResult, BisectionStop,
-    bisect, sample_bisection,
+    bisect, sample_bisection, RealFunction,
 )
 
 from .. import theme
@@ -47,9 +47,12 @@ def bisection_text(
 class BisectionPlot(ctk.CTkFrame):
     """Lienzo con zoom y arrastre; no consulta puntos ni muestra valores al cursor."""
 
-    def __init__(self, master: Any, result: BisectionResult) -> None:
+    def __init__(self, master: Any, result: BisectionResult | None = None, *,
+                 function: RealFunction | None = None, expandable: bool = True) -> None:
         super().__init__(master, fg_color="transparent")
         self._result = result
+        self._function = result.function if result else function
+        self._popup = None
         self._drag_origin: tuple[int, int, tuple[float, ...]] | None = None
         self._points: tuple[tuple[float, float | None], ...] = ()
         controls = ctk.CTkFrame(self, fg_color="transparent")
@@ -60,22 +63,25 @@ class BisectionPlot(ctk.CTkFrame):
             ("Restablecer", self.reset),
         ):
             LinkButton(controls, text, command).pack(side="left", padx=(0, 8))
+        if expandable:
+            LinkButton(controls, "Maximizar", self.maximize).pack(side="right")
         self._plot_canvas = tkinter.Canvas(
             self, width=1, height=300, highlightthickness=0, borderwidth=0, cursor="fleur",
         )
-        self._plot_canvas.pack(fill="x")
+        self._plot_canvas.pack(fill="both", expand=True)
         self._plot_canvas.bind("<Configure>", lambda _event: self._paint())
         self._plot_canvas.bind("<ButtonPress-1>", self._start_drag)
         self._plot_canvas.bind("<B1-Motion>", self._drag)
         self._plot_canvas.bind("<ButtonRelease-1>", self._end_drag)
-        self.bind("<Destroy>", lambda event: theme.off_change(self._paint) if event.widget is self else None)
+        for event in ("<MouseWheel>", "<Button-4>", "<Button-5>"):
+            self._plot_canvas.bind(event, self._wheel)
         theme.on_change(self._paint)
         self.reset()
 
     def reset(self) -> None:
         result = self._result
-        a, b = result.initial_a, result.initial_b
-        self._points = sample_bisection(result.function, a, b)
+        a, b = (result.initial_a, result.initial_b) if result else (-10.0, 10.0)
+        self._points = sample_bisection(self._function, a, b)
         values = [y for _, y in self._points if y is not None]
         low, high = min([0.0, *values]), max([0.0, *values])
         # Normalizar evita que el margen desborde con ordenadas cercanas a float.max.
@@ -101,7 +107,7 @@ class BisectionPlot(ctk.CTkFrame):
         if x0 == x0 + (x1 - x0) / 2 or y0 == y0 + (y1 - y0) / 2:
             return
         if (x0, x1) != self._view[:2]:
-            self._points = sample_bisection(self._result.function, x0, x1)
+            self._points = sample_bisection(self._function, x0, x1)
         self._view = view
         self._paint()
 
@@ -110,6 +116,36 @@ class BisectionPlot(ctk.CTkFrame):
         mx, my = x0 + (x1 - x0) / 2, y0 + (y1 - y0) / 2
         dx, dy = (x1 - x0) * factor / 2, (y1 - y0) * factor / 2
         self._set_view((mx - dx, mx + dx, my - dy, my + dy))
+
+    def _wheel(self, event: Any) -> str:
+        direction = 1 if getattr(event, "num", None) == 4 else -1 if getattr(event, "num", None) == 5 else getattr(event, "delta", 0)
+        if direction:
+            self.zoom(0.8 if direction > 0 else 1.25)
+        return "break"
+
+    def destroy(self) -> None:
+        theme.off_change(self._paint)
+        if self._popup is not None and self._popup.winfo_exists():
+            self._popup.destroy()
+        super().destroy()
+
+    def maximize(self) -> None:
+        if self._popup is not None and self._popup.winfo_exists():
+            self._popup.lift()
+            return
+        owner = self.winfo_toplevel()
+        owner.update_idletasks()
+        popup = self._popup = ctk.CTkToplevel(owner)
+        popup.title("Gráfica de la función")
+        popup.geometry(f"{owner.winfo_width()}x{owner.winfo_height()}+{owner.winfo_rootx()}+{owner.winfo_rooty()}")
+        popup.transient(owner)
+        LinkButton(popup, "Cerrar  ×", popup.destroy).pack(anchor="e", padx=12, pady=8)
+        plot = BisectionPlot(popup, self._result, function=self._function, expandable=False)
+        plot.pack(fill="both", expand=True, padx=16, pady=(0, 16))
+        plot._y_scale = self._y_scale
+        plot._set_view(self._view)
+        popup.bind("<Escape>", lambda _event: popup.destroy())
+        popup.lift()
 
     def _start_drag(self, event: Any) -> None:
         self._drag_origin = (event.x, event.y, self._view)
@@ -161,11 +197,11 @@ class BisectionPlot(ctk.CTkFrame):
             if point and previous and abs(point[1] - previous[1]) < (bottom - top) * 0.8:
                 canvas.create_line(*previous, *point, fill=theme.ACCENT, width=2)
             previous = point
-        for x, color, label in (
+        for x, color, label in ((
             (self._result.initial_a, muted, "a"),
             (self._result.initial_b, muted, "b"),
             (self._result.root, theme.ORANGE, "c"),
-        ):
+        ) if self._result else ()):
             if x0 <= x <= x1:
                 px = sx(x)
                 canvas.create_line(px, top, px, bottom, fill=color, dash=(4, 4))
@@ -193,6 +229,14 @@ class BisectionPage(ResultsPage):
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=24)
         self._function = self._field(inside, "Función f(x)", BISECTION_POLYNOMIAL)
+        self._function.bind("<Return>", lambda _event: self._graph())
+        self._variables[-1].trace_add("write", lambda *_args: self._function_changed())
+        PrimaryButton(inside, "Graficar función  →", self._graph).pack(anchor="e", pady=(14, 0))
+        self._graph_error = ErrorBanner(inside)
+        self._preview_host = Card(self)
+        self._controls = Card(self)
+        inside = ctk.CTkFrame(self._controls, fg_color="transparent")
+        inside.pack(fill="x", padx=24, pady=24)
         boxes = ctk.CTkFrame(inside, fg_color="transparent")
         boxes.pack(fill="x", pady=(14, 0))
         boxes.grid_columnconfigure((0, 1), weight=1, uniform="bisection")
@@ -267,8 +311,40 @@ class BisectionPage(ResultsPage):
     def _changed(self) -> None:
         self._clear_output()
         self._result = None
+        plot = getattr(self, "_plot", None)
+        if plot is not None and plot.winfo_exists() and plot._result is not None:
+            plot._result = None
+            if plot._popup is not None and plot._popup.winfo_exists():
+                plot._popup.destroy()
+            plot._paint()
         if hasattr(self, "_error"):
             self._error.hide()
+
+    def _function_changed(self) -> None:
+        if not hasattr(self, "_controls"):
+            return
+        self._controls.pack_forget()
+        self._preview_host.pack_forget()
+        for child in self._preview_host.winfo_children():
+            child.destroy()
+        self._graph_error.hide()
+
+    def _graph(self) -> None:
+        try:
+            function = RealFunction(self._function.get())
+        except BisectionError as problem:
+            self._graph_error.show(str(problem))
+            return
+        self._changed()
+        self._graph_error.hide()
+        for child in self._preview_host.winfo_children():
+            child.destroy()
+        self._preview_host.pack(fill="x", pady=(16, 0))
+        SectionTitle(self._preview_host, "Gráfica de la función").pack(fill="x", padx=24, pady=(22, 12))
+        self._plot = BisectionPlot(self._preview_host, function=function)
+        self._plot.pack(fill="x", padx=24)
+        self._muted(self._preview_host, "Vista inicial: x entre −10 y 10. Usa la rueda para acercar o alejar y arrastra para mover.\nInspecciona la gráfica antes de elegir [a, b]. El dibujo puede omitir discontinuidades; no demuestra continuidad.").pack_configure(padx=24, pady=(0, 22))
+        self._controls.pack(fill="x", pady=(16, 0))
 
     def _example(self, name: str) -> None:
         function, a, b, tolerance, criterion = BISECTION_EXAMPLES[name]
@@ -279,8 +355,12 @@ class BisectionPage(ResultsPage):
             entry.insert(0, value)
         self._criterion.set(criterion)
         self._changed()
+        self._graph()
 
     def _calculate(self) -> None:
+        if not self._controls.winfo_manager():
+            self._graph()
+            return
         self._changed()
         try:
             try:
@@ -335,14 +415,15 @@ class BisectionPage(ResultsPage):
         )
 
     def _draw_plot(self, result: BisectionResult) -> None:
-        inside = ctk.CTkFrame(self._add_card(), fg_color="transparent")
-        inside.pack(fill="x", padx=24, pady=22)
-        SectionTitle(inside, "La función y el intervalo").pack(fill="x", pady=(0, 12))
+        inside = self._preview_host
+        for child in inside.winfo_children():
+            child.destroy()
+        SectionTitle(inside, "La función y el intervalo").pack(fill="x", padx=24, pady=(22, 12))
         self._plot = BisectionPlot(inside, result)
-        self._plot.pack(fill="x")
+        self._plot.pack(fill="x", padx=24)
         self._muted(inside, "Azul: f(x) · Límites a y b: intervalo inicial · Naranja: aproximación c.\n"
                     "Acerca con +, aleja con − y arrastra para mover. Restablecer recupera la vista inicial.\n"
-                    "El muestreo puede omitir discontinuidades; los puntos fuera del dominio se dejan sin unir.")
+                    "El muestreo puede omitir discontinuidades; los puntos fuera del dominio se dejan sin unir.").pack_configure(padx=24, pady=(0, 22))
 
     def _draw_steps(self) -> None:
         result = self._result

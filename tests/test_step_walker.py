@@ -83,6 +83,7 @@ class StepWalkerTests(unittest.TestCase):
         from gui.widgets import LinkButton, SegmentedControl, StepWalker
         page = BisectionPage(self.root)
         page.pack()
+        page._graph()
         page._calculate()
         self.assertIsInstance(page._criterion, SegmentedControl)
         self.assertIsInstance(page._examples, SegmentedControl)
@@ -106,6 +107,36 @@ class StepWalkerTests(unittest.TestCase):
         self.assertIsNone(page._result)
         self.assertEqual(page._output, [])
         self.assertFalse(walker.winfo_exists())
+
+    def test_graph_precedes_controls_and_popup_supports_wheel(self):
+        from types import SimpleNamespace
+        from gui.pages.bisection import BisectionPage, BisectionPlot
+        page = BisectionPage(self.root)
+        page.pack(fill="x")
+        self.assertFalse(page._controls.winfo_manager())
+        page._function.delete(0, "end")
+        page._function.insert(0, "1/x")
+        page._graph()
+        self.assertIsNone(page._result)
+        self.assertEqual(page._controls.winfo_manager(), "pack")
+        plot = page._plot
+        width = plot._view[1] - plot._view[0]
+        self.assertEqual(plot._wheel(SimpleNamespace(num=4)), "break")
+        self.assertLess(plot._view[1] - plot._view[0], width)
+        plot._wheel(SimpleNamespace(num=5))
+        self.assertAlmostEqual(plot._view[1] - plot._view[0], width)
+        plot.maximize()
+        self.root.update_idletasks()
+        popup = plot._popup
+        expanded = next(child for child in popup.winfo_children() if isinstance(child, BisectionPlot))
+        self.assertFalse(expanded._plot_canvas.bind("<Motion>"))
+        self.assertTrue(expanded._plot_canvas.bind("<MouseWheel>"))
+        plot.maximize()
+        self.assertIs(plot._popup, popup)
+        page._function.insert("end", "+1")
+        self.assertFalse(popup.winfo_exists())
+        self.assertFalse(page._controls.winfo_manager())
+        self.assertFalse(page._preview_host.winfo_manager())
 
     def test_table_format_changes_only_the_display_and_persists(self):
         from gui.pages.bisection import BisectionPage

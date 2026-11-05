@@ -8,6 +8,15 @@ behaviour. It adds no dependencies.
 
 ## Inputs and stopping rules
 
+The page starts with the function field and **Graficar función**. Graphing
+requires no bisection endpoints and initially displays x in [-10, 10]. Only
+after the graph is created are the bisection controls shown below it. Editing
+the function closes its expanded graph and hides both graph and controls
+until it is graphed again. Invalid expressions remain in the first stage.
+Changing bisection parameters preserves the preview but invalidates the answer
+and its markers. Graphing is visual inspection, not an analytic continuity
+certificate; the proposed continuity-analysis action was withdrawn.
+
 Enter the left side of `f(x) = 0`, the initial interval `[a, b]`, tolerance E
 and an iteration limit from 1 to 1000 (default 100). Multiplication can be
 implicit: `5x^3`, `(1/2)x`, `2(x+1)`, `(x+1)(x-1)` and `2sin(x)` are accepted.
@@ -76,6 +85,12 @@ calculation input invalidates the result.
 
 The graph draws f(x), the initial endpoints a and b, and the final estimate c.
 Use **Acercar**, **Alejar**, **Restablecer** and left-button dragging. There is
+also mouse-wheel zoom (including Linux wheel events), consumed locally so the
+page does not scroll at the same time. **Maximizar** opens a transient window
+over the application with the same current view and a graph that fills the
+available space. It retains zoom, wheel and pan; Close or Escape dismisses it.
+Only one expanded window is opened per graph, and it closes when that graph
+is replaced or invalidated. There is
 no hover display, point picker, crosshair, cursor-coordinate readout or data
 inspection toolbar. Axis tick labels are fixed scale labels. Zoom and pan
 only change the view; they do not change the bisection result.
