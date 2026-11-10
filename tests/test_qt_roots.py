@@ -74,9 +74,23 @@ class QtRootTests(unittest.TestCase):
         QTest.mouseMove(page.plot, point + QPoint(30, 0))
         QTest.mouseRelease(page.plot, Qt.MouseButton.LeftButton, pos=point + QPoint(30, 0))
         self.assertNotEqual(page.plot._range, original)
-        self.window.theme_button.click()
-        self.assertTrue(page.plot.dark)
-        self.window.theme_button.click()
+        original = page.plot._view
+        QTest.mousePress(page.plot, Qt.MouseButton.LeftButton, pos=point)
+        QTest.mouseMove(page.plot, point + QPoint(0, 30))
+        QTest.mouseRelease(page.plot, Qt.MouseButton.LeftButton, pos=point + QPoint(0, 30))
+        self.assertEqual(page.plot._view[:2], original[:2])
+        self.assertGreater(page.plot._view[2], original[2])
+        self.assertAlmostEqual(page.plot._view[3] - page.plot._view[2], original[3] - original[2])
+        original_mode = self.window._theme_mode
+        try:
+            self.window._theme_actions["dark"].trigger()
+            self.assertTrue(page.plot.dark)
+            self.window._theme_actions["light"].trigger()
+            self.assertFalse(page.plot.dark)
+            self.window._theme_actions["auto"].trigger()
+            self.assertEqual(page.plot.dark, self.app.styleHints().colorScheme() == Qt.ColorScheme.Dark)
+        finally:
+            self.window.set_theme_mode(original_mode)
 
     def test_2_regula_falsi_errors_and_fallback(self):
         page = self.open_page("regula_falsi")

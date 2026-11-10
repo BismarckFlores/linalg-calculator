@@ -51,18 +51,95 @@ math-field:focus-within {
   padding: 0;
 }
 
-:root[data-kind="output"] math-field {
-  font-size: 16px;
-  background: transparent;
-  border-color: transparent;
-  padding: 4px 2px;
+[hidden] { display: none !important; }
+
+.result {
+  box-sizing: border-box;
+  min-height: 30px;
+  padding: 4px 0;
+  font: 13px/1.5 var(--app-sans, sans-serif), sans-serif;
+  overflow-x: auto;
 }
 
-:root[data-kind="output"] body {
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--app-border) var(--app-field);
+.result-line { overflow-wrap: anywhere; }
+.result-gap { height: 12px; }
+.result-equation, .result-step, .result-matrix, .result-product {
+  font-family: var(--app-mono, monospace), monospace;
 }
+
+.result-equation {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding-left: 14px;
+}
+
+.result-step {
+  white-space: pre-wrap;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--app-field);
+  margin-bottom: 10px;
+}
+
+.result-math { margin: 6px 0; }
+.result-product {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+.result-matrix {
+  position: relative;
+  border-spacing: 0;
+  border-left: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  background:
+    linear-gradient(currentColor, currentColor) left top / 6px 2px no-repeat,
+    linear-gradient(currentColor, currentColor) left bottom / 6px 2px no-repeat,
+    linear-gradient(currentColor, currentColor) right top / 6px 2px no-repeat,
+    linear-gradient(currentColor, currentColor) right bottom / 6px 2px no-repeat;
+}
+
+.result-matrix td {
+  min-width: 28px;
+  padding: 5px 9px;
+  text-align: center;
+  white-space: nowrap;
+}
+.result-divider { border-left: 1px solid var(--app-border); }
+.result-fraction {
+  display: inline-flex;
+  flex-direction: column;
+  text-align: center;
+  vertical-align: middle;
+  line-height: 1.1;
+  margin: 2px 1px;
+}
+.result-fraction span:first-child { border-bottom: 1px solid currentColor; }
+
+.result-chips, .result-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+.result-chips span, .result-values > span {
+  border-radius: 10px;
+  background: var(--app-field);
+  padding: 5px 10px;
+}
+.result-chips { color: var(--app-muted); }
+.result-values {
+  margin: 10px 0 0;
+  font-family: var(--app-mono, monospace), monospace;
+}
+.result-values > span { background: var(--app-accent-soft); }
+.result-status { margin: 8px 0; }
+.result-status::before { content: "●"; margin-right: 8px; color: #ff3b30; }
+.result-status[data-status="unique"]::before { color: #34c759; }
+.result-status[data-status="infinite"]::before { color: #ff9500; }
 
 math-field::part(virtual-keyboard-toggle),
 math-field::part(menu-toggle) {

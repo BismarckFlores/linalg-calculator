@@ -4,7 +4,9 @@ Abre la calculadora con `python main.py` después de instalar
 `requirements.txt`. **Inicio** y el menú lateral agrupan las once
 herramientas. Las tarjetas se muestran en dos columnas cuando hay espacio.
 Cada página se crea al abrirla por primera vez y conserva sus entradas al
-cambiar de herramienta. El botón junto a **Álgebra Lineal** cambia el tema.
+cambiar de herramienta. El botón junto a **Álgebra Lineal** abre el menú
+de tema. **Automático** sigue el modo del sistema. **Claro** y **Oscuro**
+lo fijan para la aplicación. La elección se conserva al volver a abrirla.
 
 ## Entrada y resultados
 
@@ -23,8 +25,10 @@ ajustan juntas.
 
 Cuando la operación tiene una traza, usa **Anterior**, **Siguiente** o
 los puntos bajo el procedimiento para navegar. En recorridos largos,
-los puntos se sustituyen por un contador. **Ver todos los pasos** reúne
-la traza. Las tablas permiten desplazarse para inspeccionar todas las
+los puntos se sustituyen por un contador. **Ver todos los pasos** despliega
+la traza completa y la rueda desplaza la página. Los resultados usan la
+tipografía de la interfaz y las operaciones y matrices usan monoespaciado.
+Las tablas permiten desplazarse para inspeccionar todas las
 columnas. Editar una entrada invalida el cálculo anterior.
 
 | Herramienta | Controles y resultados |

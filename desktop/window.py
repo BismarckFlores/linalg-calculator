@@ -6,10 +6,11 @@ from itertools import groupby
 import os
 import sys
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QSettings, Qt
+from PySide6.QtGui import QActionGroup
 from PySide6.QtQuick import QQuickWindow
 from PySide6.QtWidgets import (
-    QApplication, QButtonGroup, QFrame, QGridLayout, QHBoxLayout, QMainWindow,
+    QApplication, QButtonGroup, QFrame, QGridLayout, QHBoxLayout, QMainWindow, QMenu,
     QPushButton, QScrollArea, QStackedWidget, QVBoxLayout, QWidget,
 )
 
@@ -18,6 +19,8 @@ from .number_tools import bases_page, roman_page, vectors_page
 from .math_input import MathInput
 from .matrix_tools import determinant_page, echelon_page, factor_page, gauss_page, operations_page
 from .widgets import badge, card, label, link, page_header, stylesheet
+
+THEMES = {"auto": "Automático", "light": "Claro", "dark": "Oscuro"}
 
 
 @dataclass(frozen=True)
@@ -114,7 +117,12 @@ class CalculatorWindow(QMainWindow):
         self.setWindowTitle("Calculadora de Álgebra Lineal")
         self.resize(1180, 800)
         self.setMinimumSize(960, 640)
-        self._dark = False
+        self._settings = QSettings("linalg-calculator", "linalg-calculator")
+        self._theme_mode = self._settings.value("theme", "auto", type=str)
+        if self._theme_mode not in THEMES:
+            self._theme_mode = "auto"
+        self._style_hints = QApplication.styleHints()
+        self._dark = self._is_dark()
         self._tools = {tool.key: tool for tool in TOOLS}
         self.pages: dict[str, QWidget] = {}
         self._scroll: dict[str, QScrollArea] = {}
@@ -133,6 +141,7 @@ class CalculatorWindow(QMainWindow):
         self._add_page("home", Catalog(self.select))
         self.select("home")
         self._apply_theme()
+        self._style_hints.colorSchemeChanged.connect(self._system_theme_changed)
 
     def _sidebar(self) -> QFrame:
         sidebar = QFrame()
@@ -152,8 +161,16 @@ class CalculatorWindow(QMainWindow):
         self.theme_button = QPushButton("◐")
         self.theme_button.setObjectName("themeSwitch")
         self.theme_button.setFixedSize(42, 30)
-        self.theme_button.setAccessibleName("Cambiar tema")
-        self.theme_button.clicked.connect(self._toggle_theme)
+        menu = QMenu(self.theme_button)
+        choices = QActionGroup(menu)
+        self._theme_actions = {}
+        for mode, title in THEMES.items():
+            action = menu.addAction(title)
+            action.setCheckable(True)
+            choices.addAction(action)
+            action.triggered.connect(lambda checked=False, value=mode: self.set_theme_mode(value))
+            self._theme_actions[mode] = action
+        self.theme_button.setMenu(menu)
         brand.addWidget(self.theme_button)
         layout.addLayout(brand)
         separator = QFrame()
@@ -237,12 +254,27 @@ class CalculatorWindow(QMainWindow):
         self._nav_scroll.ensureWidgetVisible(self._nav[key], 0, 8)
         self.stack.setCurrentWidget(self._scroll[key])
 
-    def _toggle_theme(self) -> None:
-        self._dark = not self._dark
-        self.theme_button.setText("◑" if self._dark else "◐")
+    def _is_dark(self) -> bool:
+        return self._theme_mode == "dark" or (
+            self._theme_mode == "auto" and self._style_hints.colorScheme() == Qt.ColorScheme.Dark
+        )
+
+    def set_theme_mode(self, mode: str) -> None:
+        self._theme_mode = mode
+        self._settings.setValue("theme", mode)
         self._apply_theme()
 
+    def _system_theme_changed(self) -> None:
+        if self._theme_mode == "auto":
+            self._apply_theme()
+
     def _apply_theme(self) -> None:
+        self._dark = self._is_dark()
+        mode = THEMES[self._theme_mode]
+        self.theme_button.setText("◑" if self._dark else "◐")
+        self.theme_button.setAccessibleName(f"Tema: {mode}")
+        self.theme_button.setToolTip(f"Tema: {mode}")
+        self._theme_actions[self._theme_mode].setChecked(True)
         self.setStyleSheet(stylesheet(self._dark))
         for page in self.pages.values():
             self._apply_page_theme(page)

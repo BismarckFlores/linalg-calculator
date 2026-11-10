@@ -205,9 +205,16 @@ class Toggle(QCheckBox):
         painter.drawEllipse(QRectF(16 if active else 0, y - 9, 18, 18))
 
 
+def interface_fonts() -> tuple[str, str]:
+    installed = set(QFontDatabase.families())
+    sans = next((name for name in theme.SANS_FAMILIES if name in installed), "sans-serif")
+    mono = next((name for name in theme.MONO_FAMILIES if name in installed), "monospace")
+    return sans, mono
+
+
 def stylesheet(dark: bool) -> str:
     mode = int(dark)
-    installed = set(QFontDatabase.families())
+    sans, mono = interface_fonts()
     colors = {
         "surface": theme.BACKGROUND[mode], "card": theme.CARD[mode], "line": theme.BORDER[mode],
         "text": theme.INK[mode], "muted": theme.MUTED[mode], "faint": theme.FAINT[mode],
@@ -217,8 +224,8 @@ def stylesheet(dark: bool) -> str:
         "onAccent": theme.ON_ACCENT, "rule": theme.RULE[mode],
         "cardRadius": theme.CARD_RADIUS, "pillRadius": min(theme.PILL_RADIUS, 16),
         "fieldRadius": theme.FIELD_RADIUS, "navRadius": theme.NAV_RADIUS,
-        "sans": next((name for name in theme.SANS_FAMILIES if name in installed), "sans-serif"),
-        "mono": next((name for name in theme.MONO_FAMILIES if name in installed), "monospace"),
+        "sans": sans,
+        "mono": mono,
     }
     return """
     QWidget { color: %(text)s; font-family: "%(sans)s"; font-size: 13px; }
@@ -259,7 +266,8 @@ def stylesheet(dark: bool) -> str:
     QLabel#brandGlyph { background: %(blue)s; color: %(onAccent)s; border-radius: 9px; }
     QLabel#inputError { color: %(danger)s; }
     QLabel#advice { background: %(field)s; border-radius: 14px; padding: 12px 16px; }
-    QLabel#stepTitle { background: %(field)s; border-radius: 12px; padding: 13px 16px; }
+    QLabel#resultFallback { font-family: "%(mono)s"; }
+    QLabel#stepTitle { font-family: "%(mono)s"; background: %(field)s; border-radius: 12px; padding: 13px 16px; }
     QLineEdit, QPlainTextEdit, QTableWidget {
         background: %(field)s; border: 1px solid %(line)s;
         border-radius: %(fieldRadius)dpx; padding: 9px;
@@ -316,6 +324,10 @@ def stylesheet(dark: bool) -> str:
     QPushButton#stepDot { background: transparent; color: %(blue)s; padding: 4px; min-width: 19px; }
     QPushButton#stepDot:hover { background: %(field)s; }
     QPushButton#themeSwitch { border-radius: 15px; padding: 0; font-weight: 400; }
+    QPushButton#themeSwitch::menu-indicator { image: none; }
+    QMenu { background: %(card)s; border: 1px solid %(line)s; padding: 4px; }
+    QMenu::item { padding: 7px 18px 7px 24px; }
+    QMenu::item:selected { background: %(field)s; }
     QPushButton#navigation {
         background: transparent; border-radius: %(navRadius)dpx; padding: 0;
     }

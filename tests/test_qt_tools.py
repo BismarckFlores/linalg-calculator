@@ -52,7 +52,7 @@ class QtToolTests(unittest.TestCase):
         QTest.qWait(50)
         self.assertTrue(page.result.isVisible(), page.error.text())
         visible_results = (editor.value() for editor in page.result.findChildren(MathInput) if editor.isVisible())
-        self.assertIn(expected, "\n".join(visible_results))
+        self.assertIn(expected, "\n".join((*visible_results, page.result_title.text(), page.result_badge.text())))
 
     def test_catalog_and_matrix_operations(self):
         self.assertEqual(len(TOOLS), 11)
@@ -85,6 +85,19 @@ class QtToolTests(unittest.TestCase):
         method, entry = page.findChildren(SegmentedControl)
         self.calculate(page, "x = 29")
         self.assertTrue(page.walk.isVisible())
+        page.walk.all_steps.setChecked(True)
+        for _ in range(30):
+            if page.walk.output.web.height() > 264:
+                break
+            QTest.qWait(30)
+        self.assertGreater(page.walk.output.web.height(), 264)
+        expanded_height = page.walk.output.web.height()
+        page.walk.all_steps.setChecked(False)
+        for _ in range(30):
+            if page.walk.output.web.height() < expanded_height:
+                break
+            QTest.qWait(30)
+        self.assertLess(page.walk.output.web.height(), expanded_height)
         page.walk.index.stepUp()
         self.assertIn("f", page.walk.step_title.text())
         method.setCurrentIndex(1)

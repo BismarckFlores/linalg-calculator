@@ -67,5 +67,13 @@ Se compararon las once pantallas de entrada con la versión de CustomTkinter
 del commit `b106fce`. Qt recuperó los selectores segmentados, los controles
 horizontales de tamaño y la disposición compacta de los formularios. En
 Gauss, el planteamiento, el recorrido, el sistema equivalente y la
-comprobación se muestran en tarjetas separadas. Las celdas y fórmulas
-siguen editándose o mostrándose con MathLive.
+comprobación se muestran en tarjetas separadas.
+
+Los resultados usan bloques de lectura que crecen con el contenido.
+MathLive sigue a cargo de la entrada editable. El paso a paso conserva
+la banda de cada operación, las matrices y la separación de la columna
+aumentada. Las gráficas tienen ejes independientes y el tema puede seguir
+al sistema o fijarse en claro u oscuro.
+
+La rama de migración se integró en `main` y se retiró. El desarrollo
+continúa en `main`.

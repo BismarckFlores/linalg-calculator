@@ -65,7 +65,7 @@ def to_latex(text: str, kind: str, *, paste: bool = False) -> str:
         return str(int(text))
     if kind == "number":
         return _number_latex(text)
-    return _result_latex(text)
+    return _notation(text)
 
 
 def _number_latex(text: str) -> str:
@@ -99,45 +99,25 @@ def from_ascii(text: str, kind: str) -> str:
     return text
 
 
-def _result_latex(text: str) -> str:
-    def words(line: str) -> str:
-        escaped = re.sub(r"([%&$#_{}])", r"\\\1", line)
-        return rf"\text{{{escaped}}}"
-
-    def render_line(line: str) -> str:
-        if not line:
-            return r"\vphantom{X}"
-        if ("=" in line or "≈" in line) and not line.startswith("La fila "):
-            caption, separator, expression = line.partition(":")
-            prefix = words(caption + ": ") if separator else ""
-            expression = expression if separator else caption
-            expression, _, note = expression.strip().partition("   ")
-            return prefix + _notation(expression) + (r"\quad" + words(note.strip()) if note else "")
-        return words(line)
-
-    def matrix(cells) -> str:
-        rows = [[value.strip() for value in line.split(";")] for line in cells]
-        body = r"\\".join("&".join(_notation(value) for value in row if value != "|") for row in rows)
-        if "|" in rows[0]:
-            alignment = "".join("|" if value == "|" else "c" for value in rows[0])
-            return rf"\left[\begin{{array}}{{{alignment}}}{body}\end{{array}}\right]"
-        return r"\begin{bmatrix}" + body + r"\end{bmatrix}"
-
-    lines = []
+def result_blocks(text: str) -> list:
+    """Conserva las filas y las matrices como bloques separados para la vista."""
+    blocks = []
     for is_matrix, group in groupby(
-        map(str.strip, text.splitlines()), lambda line: line.startswith("[ ") and line.endswith(" ]")
+        text.splitlines(), lambda line: line.startswith("[ ") and line.endswith(" ]")
     ):
-        if is_matrix:
-            rows = [line[2:-2].split(" ] · [ ") for line in group]
-            if all(len(row) == 2 and " ] = [ " in row[1] for row in rows):
-                coefficients = matrix(row[0] for row in rows)
-                variables, constants = zip(*(row[1].split(" ] = [ ", 1) for row in rows))
-                lines.append(coefficients + r"\cdot " + matrix(variables) + "=" + matrix(constants))
-            else:
-                lines.append(matrix(row[0] for row in rows))
+        if not is_matrix:
+            blocks.extend(("line", line.rstrip()) for line in group)
             continue
-        lines.extend(render_line(line) for line in group)
-    return r"\begin{array}{l}" + r"\\".join(lines) + r"\end{array}"
+        rows = [line[2:-2].split(" ] · [ ") for line in group]
+        def cells(lines):
+            return [[value.strip() for value in line.split(";")] for line in lines]
+        if all(len(row) == 2 and " ] = [ " in row[1] for row in rows):
+            variables, constants = zip(*(row[1].split(" ] = [ ", 1) for row in rows))
+            blocks.append(("product", [cells(row[0] for row in rows), cells(variables), cells(constants)]))
+        else:
+            blocks.append(("matrix", cells(row[0] for row in rows)))
+    return blocks
+
 
 def formula_latex(text: str) -> str:
     """Convierte una expresión ya validada en LaTeX para el modo visual."""

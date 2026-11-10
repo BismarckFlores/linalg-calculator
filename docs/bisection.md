@@ -7,7 +7,7 @@ gráfica, selector de iteración y tabla.
 ## Entrada y gráfica
 
 Escribe la función y pulsa **Graficar función**. La vista inicial abarca
-`x ∈ [−4, 4]`. Los controles de resolución aparecen debajo. Editar la
+`x ∈ [−10, 10]`. Los controles de resolución aparecen debajo. Editar la
 función oculta la gráfica y los controles hasta volver a graficar.
 Editar los parámetros conserva la vista e invalida la respuesta y sus marcas.
 **Cargar ejemplo** llena la función y los parámetros. Pulsa **Graficar
@@ -29,10 +29,11 @@ función** y luego **Calcular raíz** para ejecutarlo.
 La gráfica permite **Acercar**, **Alejar**, **Restablecer**, zoom con la
 rueda y desplazamiento mediante arrastre. **Maximizar** abre una ventana
 con la vista actual. Puedes cerrarla con **Cerrar** o Escape.
-El zoom y el arrastre ajustan la vista. Las etiquetas de los ejes muestran
-la escala y las líneas verticales identifican a, b y la aproximación c al
-resolver. Si el intervalo inicial queda fuera de la vista, la gráfica se ajusta a él. Las muestras fuera del dominio dejan huecos. No hay lectura de
-valores al pasar el cursor.
+Arrastra para desplazar la vista en ambos ejes conservando la escala.
+La rueda amplía o reduce alrededor del puntero. Las líneas verticales
+identifican a, b y la aproximación c al resolver. **Restablecer** encuadra
+el intervalo inicial si ya hay un resultado. Las muestras fuera del
+dominio dejan huecos.
 
 ## Intervalo y criterios de parada
 

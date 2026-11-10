@@ -63,13 +63,15 @@ def gauss_page() -> ToolPage:
         jordan = method.currentIndex() == 1
         reduction = to_rref(augmented) if jordan else solution.reduction
         parts = [
-            describe(solution),
-            f"Rango de A: {solution.coefficient_rank} · Rango de [A | b]: {solution.rank}",
-            render_values(solution, names),
-            "Columnas pivote en A: " + (", ".join(
+            f"rango(A) = {solution.coefficient_rank} · rango(A|b) = {solution.rank} · incógnitas = {solution.unknowns}",
+            "Columnas pivote: " + (", ".join(
                 str(col) for _, col in reduction.pivots if col <= solution.unknowns
             ) or "ninguna"),
+            describe(solution),
+            render_values(solution, names),
         ]
+        if solution.free_columns:
+            parts.insert(2, "Columnas libres: " + ", ".join(map(str, solution.free_columns)))
         setup = "\n".join(
             f"[ {'; '.join(map(str, row))} ] · [ {unknown_name(index, names)} ] = [ {constant} ]"
             for index, (row, (constant,)) in enumerate(zip(solution.coefficients.data, solution.constants.data), 1)
@@ -197,7 +199,8 @@ def operations_page() -> ToolPage:
                 result = a - b
             else:
                 result = a * b
-        return Result(f"C = {operation.currentText()}\n{matrix_text(result)}\nDimensión: {result.rows} × {result.cols}")
+        return Result(matrix_text(result), title=f"Resultado  C = {operation.currentText()}",
+                      badge=f"Dimensión: {result.rows} × {result.cols}")
 
     page = ToolPage("⊞", "Operaciones Matriciales",
                     "Suma, resta, producto de matrices, producto por un escalar y transpuesta.",

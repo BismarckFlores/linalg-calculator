@@ -14,8 +14,8 @@ from PySide6.QtWidgets import (
 from ui import theme_tokens as theme
 
 from .math_keyboard import MathKeyboard
-from .math_notation import from_ascii, to_latex
-from .widgets import label
+from .math_notation import from_ascii, result_blocks, to_latex
+from .widgets import interface_fonts, label
 
 
 class EditorBridge(QObject):
@@ -81,8 +81,11 @@ class MathInput(QWidget):
         self.stack = QStackedWidget()
         self.web = QWebEngineView()
         self.web.setFixedHeight(50)
-        if kind in ("equations", "matrix", "output"):
-            self.text = QPlainTextEdit(readOnly=kind == "output")
+        if kind == "output":
+            self.text = label("", "resultFallback")
+            self.text.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        elif kind in ("equations", "matrix"):
+            self.text = QPlainTextEdit()
             self.text.textChanged.connect(self.changed)
         else:
             self.text = QLineEdit()
@@ -147,8 +150,10 @@ class MathInput(QWidget):
         self._value = text
         if self.stack.currentWidget() is self.text:
             self._set_fallback_value()
+            if self.kind == "output":
+                self._resize_fallback()
         if self._ready:
-            self._js(f"setFormula({json.dumps(to_latex(text, self.kind))})")
+            self._send_value()
         self.changed.emit()
 
     def _set_fallback_value(self) -> None:
@@ -161,7 +166,9 @@ class MathInput(QWidget):
     def set_dark(self, dark: bool) -> None:
         self._dark = dark
         mode = int(dark)
+        sans, mono = interface_fonts()
         colors = {
+            "sans": json.dumps(sans), "mono": json.dumps(mono), "muted": theme.MUTED[mode],
             "card": theme.CARD[mode], "field": theme.FIELD[mode],
             "border": theme.BORDER[mode], "ink": theme.INK[mode],
             "accent": theme.ACCENT, "on-accent": theme.ON_ACCENT,
@@ -196,7 +203,13 @@ class MathInput(QWidget):
             self.keyboard_button.show()
         self.set_dark(self._dark)
         self._js(f"configureEditor({json.dumps(self.kind)}, {json.dumps(self.name)})")
-        self._js(f"setFormula({json.dumps(to_latex(self._value, self.kind))})")
+        self._send_value()
+
+    def _send_value(self) -> None:
+        if self.kind == "output":
+            self._js(f"setResult({json.dumps(result_blocks(self._value))})")
+        else:
+            self._js(f"setFormula({json.dumps(to_latex(self._value, self.kind))})")
 
     def _check_load(self, ok: bool) -> None:
         if not ok:
@@ -223,7 +236,10 @@ class MathInput(QWidget):
             return
         self._set_fallback_value()
         self.stack.setCurrentWidget(self.text)
-        self.stack.setFixedHeight(112 if isinstance(self.text, QPlainTextEdit) else 48)
+        if self.kind == "output":
+            self._resize_fallback()
+        else:
+            self.stack.setFixedHeight(112 if isinstance(self.text, QPlainTextEdit) else 48)
         self.stack.show()
         self.text_button.hide()
         if self.kind == "output":
@@ -238,9 +254,15 @@ class MathInput(QWidget):
             self._value = value
             self.changed.emit()
 
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        if self.kind == "output" and self.stack.currentWidget() is self.text:
+            self._resize_fallback()
+
+    def _resize_fallback(self) -> None:
+        self.stack.setFixedHeight(max(24, self.text.heightForWidth(self.stack.width())))
+
     def _resize_field(self, height: int) -> None:
-        if self.kind == "output":
-            height = min(height, 264)
         if self.web.height() != height:
             self.web.setFixedHeight(height)
         if self.stack.currentWidget() is self.web and self.stack.height() != height:

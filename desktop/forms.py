@@ -155,6 +155,8 @@ class Result:
     headers: tuple[str, ...] = ()
     rows: tuple[tuple, ...] = ()
     sections: tuple[str, ...] = ()
+    title: str = ""
+    badge: str = ""
 
 
 def matrix_steps(log: StepLog, initial: str = "Matriz inicial", *, bar_after: int | None = None) -> tuple[str, ...]:
@@ -223,7 +225,9 @@ class StepView(QWidget):
             return
         show_all = self.all_steps.isChecked()
         current, count = self.index.value(), len(self.steps)
-        self.total.setText(f"{current} / {count}")
+        self.total.setText(f"{count} pasos" if show_all else f"{current} / {count}")
+        self.previous.setVisible(not show_all)
+        self.next_step.setVisible(not show_all)
         self.previous.setEnabled(not show_all and current > 1)
         self.next_step.setEnabled(not show_all and current < count)
         self.index.setEnabled(not show_all and count > 1)
@@ -308,7 +312,14 @@ class ToolPage(QWidget):
         for heading in between:
             add_section(heading)
         answer, result_layout = card()
-        result_layout.addWidget(label(answer_title, "heading"))
+        self.answer_title = answer_title
+        heading = QHBoxLayout()
+        self.result_title = label(answer_title, "heading")
+        self.result_badge = label("", "count")
+        self.result_badge.hide()
+        heading.addWidget(self.result_title, 1)
+        heading.addWidget(self.result_badge)
+        result_layout.addLayout(heading)
         self.output = MathInput("", "", "output")
         result_layout.addWidget(self.output)
         results.addWidget(answer)
@@ -348,6 +359,9 @@ class ToolPage(QWidget):
             self.error.show()
             return
         self.output.set_value(result.text)
+        self.result_title.setText(result.title or self.answer_title)
+        self.result_badge.setText(result.badge)
+        self.result_badge.setVisible(bool(result.badge))
         for index, (panel, editor) in enumerate(self._sections):
             value = result.sections[index] if index < len(result.sections) else ""
             editor.set_value(value)
