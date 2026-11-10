@@ -1,4 +1,4 @@
-"""Biseccion: entrada, resultado, grafica y el recorrido de los intervalos."""
+"""Pantallas de bisección y regla falsa. Comparten gráfica y recorrido."""
 
 import math
 import sys
@@ -9,7 +9,7 @@ import customtkinter as ctk
 
 from core.bisection import (
     BisectionCriterion, BisectionError, BisectionResult, BisectionStop,
-    bisect, sample_bisection, RealFunction,
+    RealFunction, bisect, regula_falsi, sample_bisection,
 )
 
 from .. import theme
@@ -213,6 +213,20 @@ class BisectionPlot(ctk.CTkFrame):
 class BisectionPage(ResultsPage):
     """La pagina conserva el calculo y navega su traza sin volver a resolverlo."""
 
+    _glyph = "½"
+    _title = "Método de Bisección"
+    _subtitle = "Encuentra una raíz de f(x) = 0 reduciendo un intervalo a la mitad."
+    _initial_inputs = (BISECTION_POLYNOMIAL, "0.6", "1", "0.0001")
+    _example_data = BISECTION_EXAMPLES
+    _criteria = BISECTION_CRITERIA
+    _criterion_help = (
+        "Ancho: b − a < E · Residuo: |f(c)| < E · Relativo: |(c − c anterior)/c| × 100 < E.\n"
+        "En el criterio relativo, E se escribe en porcentaje: 1 significa 1 %."
+    )
+    _step_caption = "punto medio y cambio de signo"
+    _estimate_formula = "(a + b) / 2"
+    _solve = staticmethod(bisect)
+
     def __init__(self, master: Any) -> None:
         super().__init__(master)
         self._result: BisectionResult | None = None
@@ -221,18 +235,18 @@ class BisectionPage(ResultsPage):
         self._table_decimals = 5
         self._variables: list[ctk.StringVar] = []
         PageHeader(
-            self, "½", "Método de Bisección",
-            "Encuentra una raíz de f(x) = 0 reduciendo un intervalo a la mitad.",
+            self, self._glyph, self._title, self._subtitle,
         ).pack(anchor="w", pady=(0, 18))
         card = Card(self)
         card.pack(fill="x")
         inside = ctk.CTkFrame(card, fg_color="transparent")
         inside.pack(fill="x", padx=24, pady=24)
-        self._function = self._field(inside, "Función f(x)", BISECTION_POLYNOMIAL)
+        function, a, b, tolerance = self._initial_inputs
+        self._function = self._field(inside, "Función f(x)", function)
         self._function.bind("<Return>", lambda _event: self._graph())
         self._variables[-1].trace_add("write", lambda *_args: self._function_changed())
         self._label(inside, "Cargar ejemplo").pack(anchor="w", pady=(14, 4))
-        self._examples = SegmentedControl(inside, tuple(BISECTION_EXAMPLES), self._example)
+        self._examples = SegmentedControl(inside, tuple(self._example_data), self._example)
         self._examples.set("")
         self._examples.pack(anchor="w")
         PrimaryButton(inside, "Graficar función  →", self._graph).pack(anchor="e", pady=(14, 0))
@@ -244,19 +258,16 @@ class BisectionPage(ResultsPage):
         boxes = ctk.CTkFrame(inside, fg_color="transparent")
         boxes.pack(fill="x", pady=(14, 0))
         boxes.grid_columnconfigure((0, 1), weight=1, uniform="bisection")
-        self._a = self._grid_field(boxes, 0, 0, "Extremo inferior a", "0.6")
-        self._b = self._grid_field(boxes, 0, 1, "Extremo superior b", "1")
-        self._tolerance = self._grid_field(boxes, 1, 0, "Tolerancia E", "0.0001")
+        self._a = self._grid_field(boxes, 0, 0, "Extremo inferior a", a)
+        self._b = self._grid_field(boxes, 0, 1, "Extremo superior b", b)
+        self._tolerance = self._grid_field(boxes, 1, 0, "Tolerancia E", tolerance)
         self._limit = self._grid_field(boxes, 1, 1, "Máximo de iteraciones", "100")
         self._label(inside, "Criterio de parada").pack(anchor="w", pady=(12, 4))
         self._criterion = SegmentedControl(
-            inside, tuple(BISECTION_CRITERIA), lambda _value: self._changed(),
+            inside, tuple(self._criteria), lambda _value: self._changed(),
         )
         self._criterion.pack(anchor="w")
-        self._muted(
-            inside, "Ancho: b − a < E · Residuo: |f(c)| < E · Relativo: |(c − c anterior)/c| × 100 < E.\n"
-            "En el criterio relativo, E se escribe en porcentaje: 1 significa 1 %.",
-        ).pack_configure(pady=(8, 0))
+        self._muted(inside, self._criterion_help).pack_configure(pady=(8, 0))
         self._help_button = LinkButton(
             inside, "Sintaxis y condiciones  ▾", self._toggle_help,
             color=theme.MUTED, anchor="w",
@@ -347,7 +358,7 @@ class BisectionPage(ResultsPage):
         self._controls.pack(fill="x", pady=(16, 0))
 
     def _example(self, name: str) -> None:
-        function, a, b, tolerance, criterion = BISECTION_EXAMPLES[name]
+        function, a, b, tolerance, criterion = self._example_data[name]
         self._examples.set(name)
         for entry, value in zip((self._function, self._a, self._b, self._tolerance, self._limit),
                                 (function, a, b, tolerance, "100")):
@@ -367,9 +378,9 @@ class BisectionPage(ResultsPage):
                 limit = int(self._limit.get())
             except ValueError:
                 raise BisectionError("El máximo de iteraciones debe ser un entero entre 1 y 1000.") from None
-            result = bisect(
+            result = self._solve(
                 self._function.get(), self._a.get(), self._b.get(), self._tolerance.get(),
-                criterion=BISECTION_CRITERIA[self._criterion.get()], max_iterations=limit,
+                criterion=self._criteria[self._criterion.get()], max_iterations=limit,
             )
         except BisectionError as problem:
             self._error.show(str(problem))
@@ -388,8 +399,8 @@ class BisectionPage(ResultsPage):
         if result.stop is BisectionStop.LIMIT:
             return "Se alcanzó el máximo de iteraciones sin cumplir la tolerancia."
         if result.stop is BisectionStop.STAGNATION:
-            return "La precisión numérica ya no permite dividir el intervalo; no se alcanzó la tolerancia."
-        name = next(name for name, criterion in BISECTION_CRITERIA.items() if criterion is result.criterion)
+            return "La aproximación coincide con un extremo por precisión numérica y el intervalo ya no se reduce."
+        name = next(name for name, criterion in self._criteria.items() if criterion is result.criterion)
         return f"{name} menor que E = {bisection_text(result.tolerance)}."
 
     def _draw_answer(self, result: BisectionResult) -> None:
@@ -430,7 +441,7 @@ class BisectionPage(ResultsPage):
         assert result is not None
         captions = (
             "Intervalo inicial  [ a, b ]",
-            *(f"Iteración {step.index}: punto medio y cambio de signo" for step in result.steps),
+            *(f"Iteración {step.index}: {self._step_caption}" for step in result.steps),
         )
         self._walker, self._step_title = self._draw_walk(
             None, captions[0], captions=captions, draw_snapshot=self._draw_iteration,
@@ -460,7 +471,7 @@ class BisectionPage(ResultsPage):
             decision = "f(a) y f(c) tienen el mismo signo: conservar [c, b], sustituir a por c."
         MathBlock(master, (
             f"a = {step.a:.12g}    b = {step.b:.12g}\n"
-            f"c = (a + b) / 2 = {step.c:.12g}\n\n"
+            f"c = {self._estimate_formula} = {step.c:.12g}\n\n"
             f"f(a) = {step.fa:.10g}\nf(b) = {step.fb:.10g}\nf(c) = {step.fc:.10g}\n\n"
             f"Ancho = {step.width:.10g}\n|f(c)| = {step.residual:.10g}\n"
             f"Error relativo (%) = {bisection_text(step.relative_error)}"
@@ -469,7 +480,7 @@ class BisectionPage(ResultsPage):
 
     def _draw_table(self) -> None:
         inside, _heading = self._titled_card("Tabla de iteraciones", scrollable=False)
-        self._muted(inside, "Ancho = b − a · Cota ≈ (b − a)/2 · Ea = |(c − c anterior)/c| × 100 %.\n"
+        self._muted(inside, "Ancho = b − a · Cota = max(c − a, b − c) · Ea = |(c − c anterior)/c| × 100 %.\n"
                     "Ea no aplica en la primera iteración, si c = 0 o si no se puede representar.", width=480)
         formatting = ctk.CTkFrame(inside, fg_color="transparent")
         formatting.pack(fill="x", pady=(12, 8))
@@ -553,3 +564,29 @@ class BisectionPage(ResultsPage):
         self._table_previous.configure(state="normal" if start else "disabled")
         self._table_next.configure(state="normal" if start + len(steps) < total else "disabled")
         self._table_wide.refresh()
+
+
+class RegulaFalsiPage(BisectionPage):
+    """Usa la secante para estimar c y conserva la misma pantalla de intervalos."""
+
+    _glyph = "RF"
+    _title = "Regula Falsi"
+    _subtitle = "Aproxima una raíz por el cruce de la secante con el eje x."
+    _initial_inputs = ("x^3 - 4.23603x^2 - 2.73620x - 13.09037", "4.95", "5.5", "0.01")
+    _example_data = {
+        "Ejercicio de la guía": (*_initial_inputs, "Error relativo (%)"),
+        "Raíz de 2": ("x^2 - 2", "1", "2", "0.0001", "Residuo |f(c)|"),
+        "Potencia décima": ("x^10 - 1", "0", "1.3", "0.0001", "Residuo |f(c)|"),
+    }
+    _criteria = {
+        "Error relativo (%)": BisectionCriterion.RELATIVE,
+        "Residuo |f(c)|": BisectionCriterion.RESIDUAL,
+    }
+    _criterion_help = (
+        "c es el cruce de la secante con el eje x. Se conserva el intervalo con cambio de signo.\n"
+        "Relativo: |(c − c anterior)/c| × 100 < E. En este criterio, 1 significa 1 %.\n"
+        "Residuo: |f(c)| < E. Un cambio relativo pequeño puede ocurrir aunque el residuo siga siendo grande."
+    )
+    _step_caption = "cruce de la secante y cambio de signo"
+    _estimate_formula = "b − f(b)(a − b) / (f(a) − f(b))"
+    _solve = staticmethod(regula_falsi)

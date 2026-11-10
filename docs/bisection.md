@@ -169,6 +169,49 @@ bisection algorithm itself uses conditionals and a loop, with no numerical
 solver library. The plot samples 401 points for each horizontal view, reuses
 them for repainting and never supplies the solver's answer.
 
+## Regula Falsi
+
+Open **Métodos Numéricos > Regula Falsi**. Enter f(x) and select **Graficar
+función**. Then enter the endpoints and tolerance below the graph. The page
+shares the function reader, examples control, graph and zoom, result cards,
+step reader, and scrollable table with Bisection. Selecting a preset fills the
+inputs and graphs the function before the first iteration.
+
+On each iteration `regula_falsi` chooses c (the guide's xᵣ), the intersection
+with the x-axis of the line through `(a, f(a))` and `(b, f(b))`:
+
+```text
+c = b − f(b)(a − b)/(f(a) − f(b))
+```
+
+The implementation computes the equivalent distance from the endpoint nearer
+the intersection, with a ratio of absolute values to avoid overflow when
+subtracting large ordinates with opposite signs. `_solve_bracket` shares the
+validation, sign comparisons, endpoint updates and trace with `bisect`.
+Only one new function evaluation is needed per iteration after the endpoints.
+
+The default precision is relative change below **0.01%**. The residual
+`|f(c)|` is the other selectable criterion. One endpoint may remain fixed for
+many iterations, so there is no halving rule and the bound shown is
+`max(c-a, b-c)`. The app reports a rounded estimate that lands on an endpoint
+as stagnation if tolerance was not reached. The final substitution and residual
+help assess the answer even when relative change is small. As with bisection,
+existence of a root in the sign-changing interval requires continuity.
+
+The preset **Ejercicio de la guía** uses `x^3 - 4.23603x^2 - 2.73620x - 13.09037`
+on `[4.95, 5.5]` from section 1.2 of `guia-busqueda-raices.pdf`. The printed
+table does not match the polynomial. Direct evaluation gives `f(4.95) =
+-9.140510075` and `f(5.5) = 10.0956225`. The first estimate is `5.2113457004`
+and the fourth is `5.2360505080`, which matches the iterates in the illustrated
+`Búsqueda_Numérica_de_Raíces.pdf` (pp. 5–7). The fourth step has relative change
+about `0.002862%` and residual about `0.0004642`. The implementation uses the
+classical update with the actual endpoint values. The illustrated handout
+also discusses the modified method and the slow `x^10 - 1` example, which is
+available for comparison with bisection.
+
+Build the independent submission with `python build.py` and run
+`python "deliverables/out/Programa Regula Falsi_Grupo5.py"`.
+
 ## Graph integration choice
 
 Tkinter Canvas was selected because it is already available and permits the

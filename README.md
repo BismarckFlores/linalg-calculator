@@ -8,7 +8,7 @@ time, and the files handed in to the course are generated from it rather than
 written by hand.
 
 The desktop app opens on **Inicio**, with a grouped catalogue and shortcuts to
-all ten tools. Return through the sidebar without losing work in each module.
+all eleven tools. Return through the sidebar without losing work in each module.
 
 ## Layout
 
@@ -205,6 +205,10 @@ which stopping rule was reached. The page **Método de Bisección**, under
 **Métodos Numéricos**, shows the answer, original-function check, graph,
 step reader and iteration table. `python build.py` also generates
 `deliverables/out/Programa Biseccion_Grupo5.py` for this assignment.
+
+**Regula Falsi** shares this workflow and uses the secant intersection as the
+estimate. It has its own entry under **Métodos Numéricos** and its own generated
+`deliverables/out/Programa Regula Falsi_Grupo5.py`. See [the method notes](docs/bisection.md#regula-falsi).
 
 ## The wording
 

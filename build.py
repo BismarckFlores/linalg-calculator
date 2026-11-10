@@ -190,8 +190,9 @@ CONSOLE_BLOCKS: list[Block] = [
 WINDOW_BLOCKS: list[Block] = [
     Block(
         "core/bisection.py",
-        "EL METODO DE BISECCION",
-        "Evalua una funcion real y divide un intervalo con cambio de signo.\n"
+        "BISECCION Y REGLA FALSA",
+        "Evalua una funcion real y reduce un intervalo con cambio de signo.\n"
+        "Biseccion usa el punto medio; regla falsa usa el cruce de la secante.\n"
         "Guarda cada iteracion y distingue ancho, residuo y error relativo.\n"
         "El algoritmo es propio, con Python estandar; math solo evalua las\n"
         "funciones elementales que se escriben en f(x). No se usa eval.\n"
@@ -429,8 +430,9 @@ WINDOW_BLOCKS: list[Block] = [
     ),
     Block(
         "gui/pages/bisection.py",
-        "LA PESTANA DE BISECCION",
-        "Recibe f(x), a, b, tolerancia y limite de iteraciones. Muestra la raiz,\n"
+        "LAS PESTANAS DE BISECCION Y REGLA FALSA",
+        "Grafica f(x) antes de mostrar a, b, tolerancia y limite de iteraciones.\n"
+        "Las dos pestanas reutilizan la misma pantalla. Muestran la raiz,\n"
         "la sustitucion en la funcion original, la tabla y el paso a paso.\n"
         "La grafica usa el Canvas de Tkinter: permite acercar, alejar y arrastrar,\n"
         "sin consultas de valores al cursor ni dependencias adicionales.",
@@ -477,6 +479,22 @@ Hace falta Python 3.12 o posterior. El comando deactivate cierra el entorno
 virtual al terminar, y borrar la carpeta .venv lo deshace todo."""
 
 PROGRAMS: list[Program] = [
+    Program(
+        number="Regula Falsi",
+        title="Solucion de Ecuaciones No Lineales por Regla Falsa",
+        preamble=WINDOW_HOWTO + """
+
+Abra Metodos Numericos > Regula Falsi desde Inicio o el menu lateral.
+Escriba f(x) y pulse Graficar funcion. Revise la grafica, elija a y b y
+verifique que la funcion sea continua y cambie de signo en el intervalo.
+La regla falsa usa el cruce con el eje x de la secante entre (a,f(a)) y
+(b,f(b)). Conserva el subintervalo con cambio de signo. El error relativo se
+expresa en porcentaje y tambien se puede detener por residuo |f(c)|.
+La tabla y el paso a paso muestran los calculos y la sustitucion final.
+Si se agota el limite o no hay avance numerico, se indica en el resultado.
+""",
+        blocks=[*ENGINE, *WINDOW_BLOCKS],
+    ),
     Program(
         number="Biseccion",
         title="Solucion de Ecuaciones por el Metodo de Biseccion",

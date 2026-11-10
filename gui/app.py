@@ -21,7 +21,7 @@ import customtkinter as ctk
 
 from . import theme
 from .pages.bases import BasesPage
-from .pages.bisection import BisectionPage
+from .pages.bisection import BisectionPage, RegulaFalsiPage
 from .pages.determinant import DeterminantPage
 from .pages.echelon import EchelonPage
 from .pages.gauss import GaussPage
@@ -76,6 +76,7 @@ GROUPS = (
     )),
     Group("Métodos Numéricos", (
         Module("bisection", "½", "Método de Bisección", "Grafica una función y aproxima una raíz con intervalos, pasos y tabla de iteraciones."),
+        Module("regula_falsi", "RF", "Regula Falsi", "Grafica una función y aproxima una raíz con secantes en un intervalo con cambio de signo."),
     )),
 )
 
@@ -374,6 +375,8 @@ class Application(ctk.CTk):
             return HomePage(self._container, self.select)
         if key == "bisection":
             return BisectionPage(self._container)
+        if key == "regula_falsi":
+            return RegulaFalsiPage(self._container)
         if key == "vectors":
             return VectorsPage(self._container)
         if key == "operations":

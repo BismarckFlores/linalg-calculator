@@ -33,8 +33,9 @@ never pushes a name out of line.
 | Sistemas Numéricos | **Conversiones** | A whole number from decimal to binary, octal, hexadecimal or any base from 2 to 36 by repeated division, and back by the linear combination of powers it stands for. `Romano` converts to and from Roman numerals, which are no base at all. Each direction is checked with the other. |
 | Sistemas Numéricos | **Aritmética Romana** | Adds, subtracts and multiplies Roman numerals, with a switch that writes a multiplication out as the repeated addition it stands for. Says when an answer is one the Romans could not write. |
 | Métodos Numéricos | **Método de Bisección** | Solves f(x) = 0 with selectable stopping measures, original-function substitution, an iteration table and step reader. Canvas graph with zoom and drag, without cursor-value queries. See [bisection.md](bisection.md). |
+| Métodos Numéricos | **Regula Falsi** | Graphs f(x) before showing the solver controls. Estimates the root using the secant of a sign-changing interval and records each iteration. See [the method notes](bisection.md#regula-falsi). |
 
-The window opens on **Inicio**, a catalogue of all ten tools grouped by the
+The window opens on **Inicio**, a catalogue of all eleven tools grouped by the
 same subjects as the sidebar. Each card explains its capabilities and provides
 an **Abrir** shortcut. It reuses `Card`, `GlyphBadge`, `PageHeader`,
 `SectionTitle` and `LinkButton`; descriptions live in the existing `Module`

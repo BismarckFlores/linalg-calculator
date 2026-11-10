@@ -1,5 +1,5 @@
 """
-Biseccion de una funcion real, con el intervalo de cada iteracion guardado.
+Busqueda de raices por biseccion y regla falsa, con el intervalo de cada iteracion.
 
 Este calculo es aproximado: usa float, no los racionales de las matrices.
 El ancho, el residuo y el cambio relativo son medidas distintas y nunca se
@@ -10,6 +10,7 @@ en todo el intervalo; evaluar unos cuantos puntos no puede demostrarla.
 import ast
 import math
 import operator
+from collections.abc import Callable
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
@@ -170,7 +171,7 @@ class RealFunction:
 
 @dataclass(frozen=True)
 class BisectionStep:
-    """El intervalo antes del corte, su punto medio y las medidas sin redondear."""
+    """El intervalo antes del corte, la aproximacion y las medidas sin redondear."""
 
     index: int
     a: float
@@ -235,6 +236,46 @@ def bisect(
     max_iterations: int = 100,
 ) -> BisectionResult:
     """Divide [a,b] y conserva cada fila; una cota en x supone continuidad."""
+    return _solve_bracket(
+        function, a, b, tolerance, criterion, max_iterations,
+        lambda left, right, _fa, _fb: left + (right - left) / 2,
+    )
+
+
+def regula_falsi(
+    function: RealFunction | str,
+    a: NumberLike,
+    b: NumberLike,
+    tolerance: NumberLike = "0.01",
+    *,
+    criterion: BisectionCriterion = BisectionCriterion.RELATIVE,
+    max_iterations: int = 100,
+) -> BisectionResult:
+    """Regla falsa clásica sobre un intervalo con cambio de signo."""
+    return _solve_bracket(function, a, b, tolerance, criterion, max_iterations, _false_position)
+
+
+def _false_position(a: float, b: float, fa: float, fb: float) -> float:
+    """Intersección de la secante con y = 0, con ordenadas de signos opuestos."""
+    # Calcular desde el extremo más cercano a la intersección. El cociente
+    # queda entre 0 y 1, sin restar dos ordenadas grandes de signo contrario.
+    if abs(fa) <= abs(fb):
+        ratio = abs(fa) / abs(fb)
+        return a + (b - a) * (ratio / (1 + ratio))
+    ratio = abs(fb) / abs(fa)
+    return b - (b - a) * (ratio / (1 + ratio))
+
+
+def _solve_bracket(
+    function: RealFunction | str,
+    a: NumberLike,
+    b: NumberLike,
+    tolerance: NumberLike,
+    criterion: BisectionCriterion,
+    max_iterations: int,
+    estimate: Callable[[float, float, float, float], float],
+) -> BisectionResult:
+    """Comparte validación, intervalo, condiciones de parada y registro."""
     if isinstance(function, str):
         function = RealFunction(function)
     a, b, tolerance = (bisection_number(v) for v in (a, b, tolerance))
@@ -267,13 +308,13 @@ def bisect(
         return finish(BisectionStop.ZERO, b, fb)
     if (fa < 0) == (fb < 0):
         raise BisectionError(
-            "f(a) y f(b) tienen el mismo signo. Este intervalo no permite aplicar "
-            "bisección; eso no demuestra que la función carezca de raíces."
+            "f(a) y f(b) tienen el mismo signo. El método requiere un intervalo "
+            "con cambio de signo."
         )
 
     previous: float | None = None
     for index in range(1, max_iterations + 1):
-        c = a + (b - a) / 2
+        c = estimate(a, b, fa, fb)
         fc = function(c)
         relative = abs((c - previous) / c) * 100 if previous is not None and c != 0 else None
         if relative is not None and not math.isfinite(relative):
