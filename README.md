@@ -25,13 +25,17 @@
 
 ---
 
+<p align="center">
+  <a href="docs/images/inicio.png"><img src="docs/images/inicio.png" width="900" alt="Inicio en tema claro, con accesos ilustrados a las herramientas y nuevos iconos en el menú lateral"></a>
+</p>
+
 <table>
   <tr>
     <th>Eliminación gaussiana · Tema claro</th>
     <th>Regula Falsi · Tema oscuro</th>
   </tr>
   <tr>
-    <td><a href="docs/images/eliminacion-gaussiana.png"><img src="docs/images/eliminacion-gaussiana.png" width="450" alt="Operación por filas, sistema equivalente y solución exacta"></a></td>
+    <td><a href="docs/images/eliminacion-gaussiana.png"><img src="docs/images/eliminacion-gaussiana.png" width="450" alt="Banner de Eliminación Gaussiana, entrada de coeficientes y ecuación matricial"></a></td>
     <td><a href="docs/images/regula-falsi.png"><img src="docs/images/regula-falsi.png" width="450" alt="Editor MathLive y gráfica de cos(x) menos x con el intervalo y la aproximación"></a></td>
   </tr>
 </table>
