@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QPushButton, QScrollArea, QStackedWidget, QVBoxLayout, QWidget,
 )
 
-from .bisection import BisectionPage
+from .bisection import RegulaFalsiPage, RootBracketPage
 from .examples import bases_page, determinant_page, gauss_page, vectors_page
 from .math_input import MathInput
 from .widgets import badge, card, label, link, page_header, stylesheet
@@ -38,14 +38,16 @@ DEMOS = (
     Demo("bases", "Sistemas Numéricos", "⇄", "Conversiones",
          "Convierte un entero y revisa las divisiones sucesivas.", bases_page),
     Demo("bisection", "Métodos Numéricos", "½", "Método de Bisección",
-         "Escribe con el editor matemático, grafica y aproxima una raíz.", BisectionPage),
+         "Escribe con el editor matemático, grafica y aproxima una raíz.", RootBracketPage),
+    Demo("regula_falsi", "Métodos Numéricos", "RF", "Regula Falsi",
+         "Aproxima una raíz por el cruce de la secante con el eje x.", RegulaFalsiPage),
 )
 
 
 class PreviewWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("Álgebra Lineal · Vista previa")
+        self.setWindowTitle("Calculadora de Álgebra Lineal")
         self.resize(1180, 800)
         self.setMinimumSize(960, 640)
         self._dark = False
@@ -104,10 +106,13 @@ class PreviewWindow(QMainWindow):
         links.setContentsMargins(0, 0, 0, 0)
         links.setSpacing(4)
         links.addWidget(self._navigation("home", "⌂", "Inicio"))
+        previous_section = None
         for demo in DEMOS:
-            heading = label(demo.section.upper(), "group")
-            heading.setContentsMargins(8, 16, 0, 8)
-            links.addWidget(heading)
+            if demo.section != previous_section:
+                heading = label(demo.section.upper(), "group")
+                heading.setContentsMargins(8, 16, 0, 8)
+                links.addWidget(heading)
+                previous_section = demo.section
             links.addWidget(self._navigation(demo.key, demo.glyph, demo.title))
         links.addStretch()
         scroll.setWidget(rows)
@@ -148,12 +153,16 @@ class PreviewWindow(QMainWindow):
         layout = QVBoxLayout(home)
         layout.setSpacing(10)
         layout.addWidget(page_header("⌂", "Inicio", "Elige una herramienta para comenzar."))
+        previous_section = None
         for demo in DEMOS:
-            layout.addSpacing(10)
-            section = QHBoxLayout()
-            section.addWidget(label(demo.section, "heading"), 1)
-            section.addWidget(label("1 herramienta", "count"))
-            layout.addLayout(section)
+            if demo.section != previous_section:
+                layout.addSpacing(10)
+                section = QHBoxLayout()
+                section.addWidget(label(demo.section, "heading"), 1)
+                count = sum(tool.section == demo.section for tool in DEMOS)
+                section.addWidget(label("1 herramienta" if count == 1 else f"{count} herramientas", "count"))
+                layout.addLayout(section)
+                previous_section = demo.section
             tile, content = card()
             heading = QHBoxLayout()
             heading.setSpacing(10)
@@ -204,7 +213,7 @@ class PreviewWindow(QMainWindow):
     def _apply_page_theme(self, page: QWidget) -> None:
         for field in page.findChildren(MathInput):
             field.set_dark(self._dark)
-        if isinstance(page, BisectionPage):
+        if isinstance(page, RootBracketPage):
             page.set_dark(self._dark)
 
 
@@ -212,7 +221,7 @@ def run() -> None:
     # Todas las vistas matemáticas cargan el mismo editor local.
     os.environ.setdefault("QTWEBENGINE_CHROMIUM_FLAGS", "--process-per-site")
     app = QApplication(sys.argv)
-    app.setApplicationName("Álgebra Lineal · Vista previa")
+    app.setApplicationName("Calculadora de Álgebra Lineal")
     app.setStyle("Fusion")
     if sys.platform == "linux":
         # WebEngine cambia la superficie de la ventana si se activa OpenGL al abrir Bisección.

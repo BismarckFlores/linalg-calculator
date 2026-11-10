@@ -1,8 +1,14 @@
 # Bisección y Regula Falsi
 
-Abre `python main.py` y elige **Método de Bisección** o **Regula Falsi** en
-**Métodos Numéricos**. Ambos métodos reutilizan la misma pantalla de entrada,
-la gráfica, la navegación por pasos y la tabla.
+Abre `python revamp.py` y elige **Método de Bisección** o **Regula Falsi** en
+**Métodos Numéricos**. Ambos métodos comparten una página de Qt con MathLive,
+gráfica, selector de iteración y tabla. Tras resolver, la gráfica se ajusta
+al intervalo inicial si queda fuera de la vista. Consulta la [guía de PySide6](revamp-poc.md)
+para instalar y probar esta interfaz.
+
+Las secciones de uso que siguen describen los controles de la interfaz
+heredada, disponible con `python main.py`. Los criterios y algoritmos se
+comparten entre las dos interfaces.
 
 ## Entrada y gráfica
 

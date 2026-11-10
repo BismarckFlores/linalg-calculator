@@ -3,14 +3,21 @@
 Calculadora de Álgebra Lineal y Métodos Numéricos del curso MTM0120 de la
 Universidad Americana (UAM). La entrega del curso es este repositorio.
 
-La aplicación de escritorio abre en **Inicio**, con accesos a las once
-herramientas agrupadas por tema. Puedes volver al inicio desde el menú lateral
-y continuar con los datos que escribiste en cada herramienta.
+La interfaz oficial en desarrollo usa PySide6 y MathLive. Abre en **Inicio**
+y reúne seis herramientas, entre ellas Bisección y Regula Falsi. Durante
+la migración, la interfaz heredada conserva el catálogo de once herramientas.
 
 ## Ejecutar la calculadora
 
 Usa Python 3.12 o posterior. Primero [crea y activa `.venv`](docs/usage.md#preparar-el-entorno-virtual).
 Después ejecuta estos comandos desde la raíz del repositorio.
+
+```bash
+pip install -r requirements-poc.txt
+python revamp.py
+```
+
+Para usar la interfaz heredada, instala sus dependencias y ejecuta:
 
 ```bash
 pip install -r requirements-gui.txt
@@ -21,7 +28,7 @@ Si tu instalación de Python no incluye Tkinter, instala también el paquete de
 Tk de tu distribución. La [guía de uso](docs/usage.md) explica la entrada de
 datos y cómo ejecutar las pruebas.
 
-## Herramientas
+## Catálogo de la interfaz heredada
 
 | Área | Herramientas |
 | --- | --- |
@@ -120,4 +127,4 @@ CustomTkinter y una pantalla Tk.
 - [Matriz inversa y ejercicios](docs/inverse.md)
 - [Decisiones de diseño](docs/design.md)
 - [Referencia del código](docs/reference.md)
-- [Prueba de interfaz con PySide6 y MathLive](docs/revamp-poc.md)
+- [Interfaz PySide6 y estado de la migración](docs/revamp-poc.md)

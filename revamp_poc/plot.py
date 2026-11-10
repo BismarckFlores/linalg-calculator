@@ -31,6 +31,13 @@ class FunctionPlot(QWidget):
     def reset(self) -> None:
         self._set_range(-4.0, 4.0)
 
+    def show_result(self, result: BracketResult) -> None:
+        self.result = result
+        low, high = self._range
+        if result.initial_a < low or result.initial_b > high:
+            self._set_range(result.initial_a, result.initial_b)
+        self.update()
+
     def zoom(self, factor: float) -> None:
         low, high = self._range
         span = high - low
@@ -119,4 +126,7 @@ class FunctionPlot(QWidget):
                 if low <= x <= high:
                     painter.setPen(QPen(QColor(theme.ORANGE), 1, Qt.PenStyle.DashLine))
                     painter.drawLine(position(x, bottom), position(x, top))
-                    painter.drawText(position(x, top) + QPointF(4, 14), name)
+                    point = position(x, top)
+                    label_width = painter.fontMetrics().horizontalAdvance(name)
+                    text_x = min(point.x() + 4, rect.right() - label_width - 4)
+                    painter.drawText(QPointF(text_x, point.y() + 14), name)
