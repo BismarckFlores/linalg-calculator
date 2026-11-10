@@ -53,6 +53,8 @@ MathLive se ejecuta en una vista Qt WebEngine dentro del campo visual. Las
 teclas Qt le envían comandos de edición para conservar el cursor y la
 selección. El campo devuelve la expresión en texto al mismo lector de
 funciones y al mismo algoritmo de Bisección.
+En Linux, el editor usa renderizado por software para evitar que Qt vuelva a
+crear la superficie de la ventana al entrar por primera vez en Bisección.
 MathLive 0.111.4 y sus fuentes se cargan desde `revamp_poc/assets/vendor/`, que
 incluye los avisos de licencia. La prueba se puede abrir sin conexión una vez
 instaladas las dependencias.

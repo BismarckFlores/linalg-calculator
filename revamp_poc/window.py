@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import sys
 
 from PySide6.QtCore import Qt
+from PySide6.QtQuick import QQuickWindow
 from PySide6.QtWidgets import (
     QApplication, QButtonGroup, QFrame, QHBoxLayout, QMainWindow,
     QPushButton, QScrollArea, QStackedWidget, QVBoxLayout, QWidget,
@@ -201,6 +202,9 @@ def run() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("Álgebra Lineal · Vista previa")
     app.setStyle("Fusion")
+    if sys.platform == "linux":
+        # WebEngine cambia la superficie de la ventana si se activa OpenGL al abrir Bisección.
+        QQuickWindow.setSceneGraphBackend("software")
     window = PreviewWindow()
     window.show()
     sys.exit(app.exec())
