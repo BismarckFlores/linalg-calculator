@@ -8,6 +8,11 @@
   color-scheme: dark;
 }
 
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
 math-field {
   display: block;
   box-sizing: border-box;
@@ -32,58 +37,4 @@ math-field:focus-within {
 math-field::part(virtual-keyboard-toggle),
 math-field::part(menu-toggle) {
   display: none;
-}
-
-body {
-  margin: 0;
-  overflow: hidden;
-  --keyboard-background: var(--app-field);
-  --keyboard-accent-color: var(--app-accent);
-  --keyboard-toolbar-text: var(--app-muted);
-  --keyboard-horizontal-rule: 1px solid var(--app-border);
-  --keyboard-padding-top: 4px;
-  --keyboard-padding-bottom: 5px;
-  --keyboard-padding-horizontal: 8px;
-  --keyboard-toolbar-font-size: 16px;
-  --keycap-background: var(--app-card);
-  --keycap-background-hover: var(--app-hover);
-  --keycap-border: var(--app-border);
-  --keycap-border-bottom: var(--app-border);
-  --keycap-text: var(--app-ink);
-  --keycap-text-active: var(--app-on-accent);
-  --keycap-text-pressed: var(--app-on-accent);
-  --keycap-secondary-background: var(--app-accent-soft);
-  --keycap-secondary-background-hover: var(--app-hover);
-  --keycap-secondary-text: var(--app-ink);
-  --keycap-secondary-border: var(--app-border);
-  --keycap-secondary-border-bottom: var(--app-border);
-  --variant-panel-background: var(--app-card);
-  --keycap-height: 36px;
-  --keycap-font-size: 17px;
-  --keycap-gap: 6px;
-}
-
-:root[theme] body > .ML__keyboard {
-  --keyboard-toolbar-background-hover: var(--app-hover);
-}
-
-:root[theme] body > .ML__keyboard.is-visible > .MLK__backdrop {
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  box-shadow: none;
-}
-
-:root[theme] .MLK__row :is(.MLK__keycap, .action) {
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  box-shadow: none;
-}
-
-.MLK__rows > .MLK__row .action {
-  padding: 0;
-  justify-content: center;
-}
-
-.MLK__row .action svg {
-  margin: 0;
 }

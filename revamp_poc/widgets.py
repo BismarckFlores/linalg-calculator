@@ -136,6 +136,11 @@ def stylesheet(dark: bool) -> str:
         background: %(blue)s; color: %(onAccent)s; padding: 10px 20px;
     }
     QPushButton#action:hover { background: %(blueHover)s; }
+    QPushButton#keyboardToggle:checked { background: %(soft)s; }
+    QFrame#mathKeyboard {
+        background: %(card)s; border: 1px solid %(line)s; border-radius: %(fieldRadius)dpx;
+    }
+    QFrame#mathKeyboard QPushButton { padding: 8px 4px; }
     QPushButton:disabled { color: %(muted)s; }
     QPushButton#link { background: transparent; color: %(blue)s; }
     QPushButton#link:hover { background: %(field)s; }

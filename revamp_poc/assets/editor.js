@@ -33,17 +33,7 @@ customElements.whenDefined("math-field").then(() => {
   field.setAttribute("aria-label", "Función");
   field.mathVirtualKeyboardPolicy = "manual";
   document.querySelector("#editor").appendChild(field);
-  const keyboard = window.mathVirtualKeyboard;
-  keyboard.layouts = [{
-    label: "Funciones",
-    rows: [
-      ["7", "8", "9", "+", "-", "x", "\\pi", "e"],
-      ["4", "5", "6", "\\times", "\\frac{#@}{#?}", "#@^{#?}", "\\sqrt{#0}", "."],
-      ["1", "2", "3", "0", "(", ")", "\\sin\\left(#0\\right)", "\\cos\\left(#0\\right)"],
-      ["\\tan\\left(#0\\right)", "\\ln\\left(#0\\right)", "\\operatorname{abs}\\left(#0\\right)", "[left]", "[right]", "[backspace]"],
-    ],
-  }];
-
+  field.keybindings = field.keybindings.filter(({command}) => command !== "toggleVirtualKeyboard");
   new QWebChannel(qt.webChannelTransport, ({objects: {editorBridge}}) => {
     function sendValue() {
       const latex = field.getValue("latex");
@@ -61,22 +51,10 @@ customElements.whenDefined("math-field").then(() => {
         root.style.setProperty(`--app-${name}`, value);
       }
     };
-    window.toggleKeyboard = () => {
-      field.focus();
-      keyboard.visible = !keyboard.visible;
-    };
-    window.hideKeyboard = () => keyboard.hide();
-    let resizeFrame;
-    function resizeEditor() {
-      cancelAnimationFrame(resizeFrame);
-      resizeFrame = requestAnimationFrame(() => {
-        const fieldHeight = field.getBoundingClientRect().height;
-        const keyboardHeight = keyboard.boundingRect.height;
-        editorBridge.viewHeight(Math.ceil(fieldHeight + keyboardHeight + (keyboardHeight ? 16 : 2)));
-      });
-    }
-    keyboard.addEventListener("geometrychange", resizeEditor);
-    new ResizeObserver(resizeEditor).observe(field);
+    window.editFormula = (command) => field.executeCommand(command);
+    new ResizeObserver(() => {
+      editorBridge.viewHeight(Math.ceil(field.getBoundingClientRect().height) + 2);
+    }).observe(field);
     field.addEventListener("input", sendValue);
     editorBridge.ready();
   });
