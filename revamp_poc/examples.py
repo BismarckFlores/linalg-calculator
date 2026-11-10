@@ -3,10 +3,7 @@
 from collections.abc import Callable
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (
-    QFormLayout, QHeaderView, QLineEdit, QPlainTextEdit,
-    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
-)
+from PySide6.QtWidgets import QVBoxLayout, QWidget
 
 from core.bases import to_base
 from core.determinant import by_cofactors
@@ -18,12 +15,14 @@ from core.vectors import add, parse_vector
 from core.verification import verify
 from ui.presentation import describe, render_equations, render_values, render_verification
 
+from .math_input import MathInput
+from .math_notation import matrix_rows
 from .widgets import action, card, label, page_header
 
 
 class SamplePage(QWidget):
     def __init__(
-        self, glyph: str, title: str, subtitle: str, fields: list[tuple[str, QWidget]],
+        self, glyph: str, title: str, subtitle: str, fields: list[MathInput],
         button: str, calculate: Callable[[], str],
     ) -> None:
         super().__init__()
@@ -32,11 +31,8 @@ class SamplePage(QWidget):
         layout.setSpacing(14)
         layout.addWidget(page_header(glyph, title, subtitle))
         panel, panel_layout = card()
-        form = QFormLayout()
-        for name, field in fields:
-            field.setAccessibleName(name)
-            form.addRow(name, field)
-        panel_layout.addLayout(form)
+        for field in fields:
+            panel_layout.addWidget(field)
         submit = action(button)
         submit.clicked.connect(self._calculate)
         panel_layout.addWidget(submit, alignment=Qt.AlignmentFlag.AlignRight)
@@ -46,20 +42,15 @@ class SamplePage(QWidget):
         layout.addWidget(panel)
         self.result, result_layout = card()
         result_layout.addWidget(label("Resultado", "heading"))
-        self.output = QPlainTextEdit(readOnly=True)
-        self.output.setAccessibleName("Resultado")
-        self.output.setMinimumHeight(190)
+        self.output = MathInput("", "", "output")
         result_layout.addWidget(self.output)
         layout.addWidget(self.result)
         self.result.hide()
         layout.addStretch()
         self._solve = calculate
 
-        for _name, field in fields:
-            if isinstance(field, (QLineEdit, QPlainTextEdit)):
-                field.textChanged.connect(self._clear)
-            elif isinstance(field, QTableWidget):
-                field.itemChanged.connect(self._clear)
+        for field in fields:
+            field.changed.connect(self._clear)
 
     def _clear(self) -> None:
         self.result.hide()
@@ -68,7 +59,7 @@ class SamplePage(QWidget):
     def _calculate(self) -> None:
         self._clear()
         try:
-            self.output.setPlainText(self._solve())
+            self.output.set_value(self._solve())
         except (TypeError, ValueError, ArithmeticError) as problem:
             self.error.setText(str(problem))
             self.error.show()
@@ -77,11 +68,10 @@ class SamplePage(QWidget):
 
 
 def gauss_page() -> SamplePage:
-    equations = QPlainTextEdit("2x + y = 5\nx - y = 1")
-    equations.setFixedHeight(112)
+    equations = MathInput("2x + y = 5\nx - y = 1", "Ecuaciones", "equations")
 
     def calculate() -> str:
-        lines = [line.strip() for line in equations.toPlainText().splitlines() if line.strip()]
+        lines = [line.strip() for line in equations.value().splitlines() if line.strip()]
         if not 1 <= len(lines) <= 10:
             raise ValueError("Escribe entre 1 y 10 ecuaciones, una por línea.")
         parsed = [parse_equation(line) for line in lines]
@@ -95,38 +85,32 @@ def gauss_page() -> SamplePage:
         return "\n\n".join(parts)
 
     return SamplePage(
-        "▦", "Eliminación Gaussiana", "Escribe el sistema con una ecuación por línea.",
-        [("Ecuaciones", equations)], "Resolver sistema", calculate,
+        "▦", "Eliminación Gaussiana", "Escribe una ecuación por línea. Usa Enter para agregar otra.",
+        [equations], "Resolver sistema", calculate,
     )
 
 
 def determinant_page() -> SamplePage:
-    grid = QTableWidget(2, 2)
-    grid.setFixedHeight(106)
-    grid.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-    grid.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-    for row, values in enumerate((("3", "4"), ("5", "6"))):
-        for column, value in enumerate(values):
-            grid.setItem(row, column, QTableWidgetItem(value))
+    grid = MathInput("3;4\n5;6", "Matriz A", "matrix")
 
     def calculate() -> str:
-        matrix = Matrix([[grid.item(row, column).text() for column in range(2)] for row in range(2)])
+        matrix = Matrix(matrix_rows(grid.value()))
         a, b = matrix.row(1)
         c, d = matrix.row(2)
         return f"det(A) = ad − bc\n       = ({a})({d}) − ({b})({c})\n       = {by_cofactors(matrix).value}"
 
     return SamplePage(
         "|A|", "Determinante", "Edita los coeficientes de la matriz 2 × 2. Se admiten fracciones.",
-        [("Matriz A", grid)], "Calcular determinante", calculate,
+        [grid], "Calcular determinante", calculate,
     )
 
 
 def vectors_page() -> SamplePage:
-    first = QLineEdit("1, -2, 3")
-    second = QLineEdit("4, 0, -1/2")
+    first = MathInput("1, -2, 3", "Vector u", "vector")
+    second = MathInput("4, 0, -1/2", "Vector v", "vector")
 
     def calculate() -> str:
-        u, v = parse_vector(first.text()), parse_vector(second.text())
+        u, v = parse_vector(first.value()), parse_vector(second.value())
         result = add(u, v)
         entries = ", ".join(format_scalar(value) for value in result)
         lines = [f"Componente {index}: ({x}) + ({y}) = {total}"
@@ -135,16 +119,18 @@ def vectors_page() -> SamplePage:
 
     return SamplePage(
         "↗", "Operaciones Vectoriales", "Suma dos vectores. Escribe las componentes separadas por comas.",
-        [("Vector u", first), ("Vector v", second)], "Sumar vectores", calculate,
+        [first, second], "Sumar vectores", calculate,
     )
 
 
 def bases_page() -> SamplePage:
-    decimal = QLineEdit("43")
-    decimal.setMaxLength(33)
+    decimal = MathInput("43", "Número decimal", "integer")
 
     def calculate() -> str:
-        result = to_base(int(decimal.text()), 2)
+        value = decimal.value()
+        if len(value) > 33:
+            raise ValueError("Escribe un entero de hasta 33 caracteres.")
+        result = to_base(int(value), 2)
         divisions = [
             f"{division.dividend} = 2 · {division.quotient} + {division.remainder}"
             for division in result.divisions
@@ -153,5 +139,5 @@ def bases_page() -> SamplePage:
 
     return SamplePage(
         "⇄", "Conversiones", "Convierte un entero a binario con divisiones sucesivas entre 2.",
-        [("Número decimal", decimal)], "Convertir a binario", calculate,
+        [decimal], "Convertir a binario", calculate,
     )

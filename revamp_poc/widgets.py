@@ -2,7 +2,7 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QVBoxLayout, QWidget
 
 from ui import theme_tokens as theme
 
@@ -10,6 +10,7 @@ from ui import theme_tokens as theme
 def card() -> tuple[QFrame, QVBoxLayout]:
     panel = QFrame()
     panel.setObjectName("card")
+    panel.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
     layout = QVBoxLayout(panel)
     layout.setContentsMargins(24, 22, 24, 22)
     layout.setSpacing(10)
@@ -93,6 +94,7 @@ def stylesheet(dark: bool) -> str:
     QScrollBar::handle:vertical {
         min-height: 30px; background: %(rule)s; border-radius: 5px;
     }
+    QScrollBar:vertical:disabled, QScrollBar::handle:vertical:disabled { background: transparent; }
     QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
     QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: transparent; }
     QFrame#card, QFrame#sidebar {

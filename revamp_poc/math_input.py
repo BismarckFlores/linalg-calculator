@@ -1,70 +1,21 @@
 """Campo MathLive local con entrada de texto de respaldo."""
 
-import ast
 import json
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Qt, QTimer, QUrl, Signal, Slot
+from PySide6.QtCore import QObject, QSignalBlocker, Qt, QTimer, QUrl, Signal, Slot
 from PySide6.QtGui import QColor, QKeySequence, QShortcut
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import (
-    QLabel, QLineEdit, QPushButton, QStackedWidget, QVBoxLayout, QWidget,
+    QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit, QPushButton, QStackedWidget, QVBoxLayout, QWidget,
 )
 
-from core.real_function import RealFunction
 from ui import theme_tokens as theme
 
 from .math_keyboard import MathKeyboard
-
-
-def formula_latex(text: str) -> str:
-    """Convierte una expresión ya validada en LaTeX para el modo visual."""
-    if not text.strip():
-        return ""
-    function = RealFunction(text)
-
-    def render(node: ast.expr, minimum: int = 0) -> str:
-        if isinstance(node, ast.Constant):
-            if isinstance(node.value, int):
-                return str(node.value)
-            token = ast.get_source_segment(function._source, node)
-            number = token.replace("_", "") if token else str(node.value)
-            if "e" in number.lower():
-                mantissa, exponent = number.lower().split("e")
-                return rf"\left({mantissa}\times 10^{{{int(exponent)}}}\right)"
-            return number
-        if isinstance(node, ast.Name):
-            return r"\pi" if node.id == "pi" else node.id
-        if isinstance(node, ast.UnaryOp):
-            sign = "-" if isinstance(node.op, ast.USub) else "+"
-            precedence = 3
-            content = sign + render(node.operand, precedence)
-        elif isinstance(node, ast.Call):
-            name = node.func.id
-            argument = render(node.args[0])
-            if name == "sqrt":
-                return rf"\sqrt{{{argument}}}"
-            if name in ("sin", "cos", "tan", "exp", "ln", "log"):
-                return rf"\{name}\left({argument}\right)"
-            return rf"\operatorname{{{name}}}\left({argument}\right)"
-        else:
-            assert isinstance(node, ast.BinOp)
-            if isinstance(node.op, ast.Div):
-                precedence = 2
-                content = rf"\frac{{{render(node.left)}}}{{{render(node.right)}}}"
-            elif isinstance(node.op, ast.Pow):
-                precedence = 4
-                base = render(node.left, precedence + 1)
-                content = rf"{base}^{{{render(node.right)}}}"
-            else:
-                sign, precedence = {
-                    ast.Add: ("+", 1), ast.Sub: ("-", 1), ast.Mult: (r"\cdot ", 2),
-                }[type(node.op)]
-                content = render(node.left, precedence) + sign + render(node.right, precedence + 1)
-        return rf"\left({content}\right)" if precedence < minimum else content
-
-    return render(function._tree)
+from .math_notation import from_ascii, to_latex
+from .widgets import label
 
 
 class EditorBridge(QObject):
@@ -74,6 +25,10 @@ class EditorBridge(QObject):
     field_resized = Signal(int)
     initialized = Signal()
 
+    def __init__(self, kind: str, parent: QObject) -> None:
+        super().__init__(parent)
+        self.kind = kind
+
     @Slot(str)
     def changed(self, value: str) -> None:
         self.expression_changed.emit(value)
@@ -81,7 +36,7 @@ class EditorBridge(QObject):
     @Slot(str, result=str)
     def latexForPaste(self, text: str) -> str:
         try:
-            return formula_latex(text)
+            return to_latex(text, self.kind, paste=True)
         except ValueError:
             # MathLive también permite pegar fragmentos que aún no son una función completa.
             return ""
@@ -98,38 +53,52 @@ class EditorBridge(QObject):
 class MathInput(QWidget):
     changed = Signal()
 
-    def __init__(self) -> None:
+    def __init__(self, text: str, name: str, kind: str = "function") -> None:
         super().__init__()
-        self._value = "x^2 - 2"
+        self._value = text
+        self.kind = kind
+        self.name = name
         self._ready = False
         self._dark = False
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.keyboard_button = QPushButton("⌨  Teclado", checkable=True)
-        self.keyboard_button.setObjectName("keyboardToggle")
-        self.keyboard_button.setEnabled(False)
-        shortcut = QShortcut(QKeySequence("Alt+Shift+Space"), self)
-        shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
-        shortcut.activated.connect(self.keyboard_button.click)
-        layout.addWidget(self.keyboard_button, alignment=Qt.AlignmentFlag.AlignRight)
+        layout.setSpacing(6)
+        self.keyboard_button = None
+        if kind == "function":
+            header = QHBoxLayout()
+            header.addWidget(label(name, "caption"), 1)
+            self.keyboard_button = QPushButton("⌨  Teclado", checkable=True)
+            self.keyboard_button.setObjectName("keyboardToggle")
+            self.keyboard_button.setEnabled(False)
+            shortcut = QShortcut(QKeySequence("Alt+Shift+Space"), self)
+            shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+            shortcut.activated.connect(self.keyboard_button.click)
+            header.addWidget(self.keyboard_button)
+            layout.addLayout(header)
+        elif name:
+            layout.addWidget(label(name, "caption"))
 
         self.stack = QStackedWidget()
         self.web = QWebEngineView()
-        self.web.setFixedHeight(60)
-        self.text = QLineEdit(self._value)
-        self.text.setAccessibleName("Función f(x)")
-        self.text.textEdited.connect(lambda: self.changed.emit())
+        self.web.setFixedHeight(50)
+        if kind in ("equations", "matrix", "output"):
+            self.text = QPlainTextEdit(readOnly=kind == "output")
+            self.text.textChanged.connect(self.changed)
+        else:
+            self.text = QLineEdit()
+            self.text.textEdited.connect(self.changed)
+        self.text.setAccessibleName(name)
         self.stack.addWidget(self.web)
         self.stack.addWidget(self.text)
-        # El tamaño de la página sigue solo el modo visible.
-        self.stack.setFixedHeight(60)
+        self.stack.setFixedHeight(50)
         layout.addWidget(self.stack)
-        self.keyboard = MathKeyboard()
-        self.keyboard.hide()
-        self.keyboard.command.connect(self._edit_formula)
-        self.keyboard_button.toggled.connect(self.keyboard.setVisible)
-        self.keyboard_button.clicked.connect(self._focus_formula)
-        layout.addWidget(self.keyboard)
+        if self.keyboard_button is not None:
+            self.keyboard = MathKeyboard()
+            self.keyboard.hide()
+            self.keyboard.command.connect(self._edit_formula)
+            self.keyboard_button.toggled.connect(self.keyboard.setVisible)
+            self.keyboard_button.clicked.connect(self._focus_formula)
+            layout.addWidget(self.keyboard)
         self.message = QLabel()
         self.message.setObjectName("inputError")
         self.message.setWordWrap(True)
@@ -140,7 +109,7 @@ class MathInput(QWidget):
         self.text_button.clicked.connect(self._activate_text)
         layout.addWidget(self.text_button, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        self.bridge = EditorBridge(self)
+        self.bridge = EditorBridge(kind, self)
         self.channel = QWebChannel(self.web.page())
         self.channel.registerObject("editorBridge", self.bridge)
         self.web.page().setWebChannel(self.channel)
@@ -158,17 +127,28 @@ class MathInput(QWidget):
     def value(self) -> str:
         if self.stack.isHidden():
             raise ValueError("Activa la entrada de texto para continuar.")
-        return self.text.text() if self.stack.currentWidget() is self.text else self._value
+        if self.stack.currentWidget() is self.web:
+            return self._value
+        return self.text.toPlainText() if isinstance(self.text, QPlainTextEdit) else self.text.text()
 
     def hide_keyboard(self) -> None:
-        self.keyboard_button.setChecked(False)
+        if self.keyboard_button is not None:
+            self.keyboard_button.setChecked(False)
 
     def set_value(self, text: str) -> None:
-        self.text.setText(text)
         self._value = text
+        if self.stack.currentWidget() is self.text:
+            self._set_fallback_value()
         if self._ready:
-            self._js(f"setFormula({json.dumps(formula_latex(text))})")
+            self._js(f"setFormula({json.dumps(to_latex(text, self.kind))})")
         self.changed.emit()
+
+    def _set_fallback_value(self) -> None:
+        with QSignalBlocker(self.text):
+            if isinstance(self.text, QPlainTextEdit):
+                self.text.setPlainText(self._value)
+            else:
+                self.text.setText(self._value)
 
     def set_dark(self, dark: bool) -> None:
         self._dark = dark
@@ -203,10 +183,12 @@ class MathInput(QWidget):
         self.text_button.hide()
         self.message.hide()
         self.stack.show()
-        self.keyboard_button.setEnabled(True)
-        self.keyboard_button.show()
+        if self.keyboard_button is not None:
+            self.keyboard_button.setEnabled(True)
+            self.keyboard_button.show()
         self.set_dark(self._dark)
-        self._js(f"setFormula({json.dumps(formula_latex(self._value))})")
+        self._js(f"configureEditor({json.dumps(self.kind)}, {json.dumps(self.name)})")
+        self._js(f"setFormula({json.dumps(to_latex(self._value, self.kind))})")
 
     def _check_load(self, ok: bool) -> None:
         if not ok:
@@ -218,31 +200,39 @@ class MathInput(QWidget):
             return
         self._ready = False
         self.hide_keyboard()
-        self.keyboard_button.setEnabled(False)
-        self.keyboard_button.hide()
+        if self.keyboard_button is not None:
+            self.keyboard_button.setEnabled(False)
+            self.keyboard_button.hide()
         self.stack.hide()
         self.message.setText("El editor matemático no está disponible.")
         self.message.show()
         self.text_button.show()
+        if self.kind == "output":
+            self._activate_text()
 
     def _activate_text(self) -> None:
         if self.text_button.isHidden():
             return
-        self.text.setText(self._value)
+        self._set_fallback_value()
         self.stack.setCurrentWidget(self.text)
-        self.stack.setFixedHeight(40)
+        self.stack.setFixedHeight(112 if isinstance(self.text, QPlainTextEdit) else 48)
         self.stack.show()
         self.text_button.hide()
-        self.message.setText("Entrada de texto de respaldo activada.")
-        self.text.setFocus()
+        if self.kind == "output":
+            self.message.setText("Resultado en texto de respaldo.")
+        else:
+            self.message.setText("Entrada de texto de respaldo activada.")
+            self.text.setFocus()
 
     def _changed_visual(self, value: str) -> None:
-        value = value.replace("a b s (", "abs(").replace("l o g10 (", "log10(")
+        value = from_ascii(value, self.kind)
         if self._ready and value != self._value:
             self._value = value
             self.changed.emit()
 
     def _resize_field(self, height: int) -> None:
+        if self.kind == "output":
+            height = min(height, 264)
         if self.web.height() != height:
             self.web.setFixedHeight(height)
         if self.stack.currentWidget() is self.web and self.stack.height() != height:

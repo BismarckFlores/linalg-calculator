@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
+import os
 import sys
 
 from PySide6.QtCore import Qt
@@ -13,6 +14,7 @@ from PySide6.QtWidgets import (
 
 from .bisection import BisectionPage
 from .examples import bases_page, determinant_page, gauss_page, vectors_page
+from .math_input import MathInput
 from .widgets import badge, card, label, link, page_header, stylesheet
 
 
@@ -168,6 +170,10 @@ class PreviewWindow(QMainWindow):
 
     def _add_page(self, key: str, page: QWidget) -> None:
         scroll = QScrollArea()
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        scrollbar = scroll.verticalScrollBar()
+        scrollbar.setEnabled(False)
+        scrollbar.rangeChanged.connect(lambda low, high: scrollbar.setEnabled(high > low))
         scroll.viewport().setObjectName("pageViewport")
         page.setObjectName("pageContent")
         page.layout().setContentsMargins(20, 10, 24, 16)
@@ -180,8 +186,7 @@ class PreviewWindow(QMainWindow):
     def select(self, key: str) -> None:
         if key not in self.pages:
             page = self._demos[key].create()
-            if isinstance(page, BisectionPage):
-                page.set_dark(self._dark)
+            self._apply_page_theme(page)
             self._add_page(key, page)
         self._nav[key].setChecked(True)
         self.stack.setCurrentWidget(self._scroll[key])
@@ -193,12 +198,19 @@ class PreviewWindow(QMainWindow):
 
     def _apply_theme(self) -> None:
         self.setStyleSheet(stylesheet(self._dark))
-        page = self.pages.get("bisection")
+        for page in self.pages.values():
+            self._apply_page_theme(page)
+
+    def _apply_page_theme(self, page: QWidget) -> None:
+        for field in page.findChildren(MathInput):
+            field.set_dark(self._dark)
         if isinstance(page, BisectionPage):
             page.set_dark(self._dark)
 
 
 def run() -> None:
+    # Todas las vistas matemáticas cargan el mismo editor local.
+    os.environ.setdefault("QTWEBENGINE_CHROMIUM_FLAGS", "--process-per-site")
     app = QApplication(sys.argv)
     app.setApplicationName("Álgebra Lineal · Vista previa")
     app.setStyle("Fusion")

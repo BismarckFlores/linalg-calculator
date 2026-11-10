@@ -36,15 +36,35 @@ customElements.whenDefined("math-field").then(() => {
   document.querySelector("#editor").appendChild(field);
   field.keybindings = field.keybindings.filter(({command}) => command !== "toggleVirtualKeyboard");
   new QWebChannel(qt.webChannelTransport, ({objects: {editorBridge}}) => {
+    let kind = "function";
     let lastLatex = field.value;
+    const ascii = MathLive.convertLatexToAsciiMath;
+
+    function asInput(latex) {
+      if (kind === "matrix") {
+        const matrix = /^\\begin\{([pbBvV]?matrix)\}([\s\S]*)\\end\{\1\}$/.exec(latex);
+        if (!matrix) return "";
+        return matrix[2].split("\\\\").map(row => row.split("&").map(cell => ascii(cell)).join(";")).join("\n");
+      }
+      return ascii(kind === "function" ? groupFractions(latex) : latex);
+    }
+
     function sendValue() {
+      if (field.readOnly) return;
       const latex = field.value;
       if (latex === lastLatex) return;
       lastLatex = latex;
       const incomplete = latex.includes("\\placeholder") || latex.includes("^{}") || field.errors.length > 0;
-      editorBridge.changed(incomplete ? "" : MathLive.convertLatexToAsciiMath(groupFractions(latex)));
+      editorBridge.changed(incomplete ? "" : asInput(latex));
     }
 
+    window.configureEditor = (format, name) => {
+      kind = format;
+      document.documentElement.dataset.kind = format;
+      field.readOnly = format === "output";
+      field.setAttribute("aria-label", name || "Resultado");
+      if (format === "matrix") field.maxMatrixCols = 2;
+    };
     window.setFormula = (latex) => {
       field.setValue(latex, {silenceNotifications: true});
       lastLatex = field.value;
@@ -58,9 +78,20 @@ customElements.whenDefined("math-field").then(() => {
     };
     window.focusFormula = () => field.focus({preventScroll: true});
     window.editFormula = (command) => field.executeCommand(command);
+    field.addEventListener("keydown", (event) => {
+      if (kind !== "equations" || event.key !== "Enter" || event.ctrlKey || event.altKey ||
+          event.shiftKey || event.metaKey || field.mode !== "math") return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (field.value.startsWith("\\displaylines{") &&
+          field.position === field.lastOffset && field.selectionIsCollapsed) {
+        field.executeCommand("moveToPreviousChar");
+      }
+      field.executeCommand("addRowAfter");
+    }, true);
     field.addEventListener("paste", (event) => {
       const clipboard = event.clipboardData;
-      if (!clipboard || field.mode !== "math" ||
+      if (!clipboard || field.readOnly || field.mode !== "math" ||
           clipboard.getData("application/x-latex") || clipboard.getData("application/json+mathlive")) return;
       const text = clipboard.getData("text/plain").trim();
       if (!text || /[\\$]/.test(text)) return;
@@ -71,7 +102,11 @@ customElements.whenDefined("math-field").then(() => {
       const selection = JSON.stringify(field.selection);
       editorBridge.latexForPaste(text, (latex) => {
         if (field.value !== value || JSON.stringify(field.selection) !== selection) return;
-        field.insert(latex || text, {format: latex ? "latex" : "auto"});
+        const whole = latex.startsWith("\\begin{pmatrix}") || latex.startsWith("\\displaylines{");
+        field.insert(latex || text, {
+          format: latex ? "latex" : "auto",
+          insertionMode: latex && whole ? "replaceAll" : "replaceSelection",
+        });
       });
     }, true);
     new ResizeObserver(() => {

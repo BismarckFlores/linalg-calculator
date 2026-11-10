@@ -2,7 +2,7 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QAbstractItemView, QGridLayout, QHeaderView, QHBoxLayout, QLineEdit, QPushButton,
+    QAbstractItemView, QGridLayout, QHeaderView, QHBoxLayout, QPushButton,
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
@@ -27,8 +27,7 @@ class BisectionPage(QWidget):
         ))
 
         input_card, fields = card()
-        fields.addWidget(label("Función f(x)", "caption"))
-        self.editor = MathInput()
+        self.editor = MathInput("x^2 - 2", "Función f(x)")
         self.editor.changed.connect(self._invalidate)
         fields.addWidget(self.editor)
         fields.addSpacing(6)
@@ -71,19 +70,15 @@ class BisectionPage(QWidget):
 
         self.controls, control_layout = card()
         control_layout.addWidget(label("Intervalo de resolución", "heading"))
-        self.a = QLineEdit("1")
-        self.b = QLineEdit("2")
-        self.tolerance = QLineEdit("0.0001")
+        self.a = MathInput("1", "Extremo inferior a", "number")
+        self.b = MathInput("2", "Extremo superior b", "number")
+        self.tolerance = MathInput("0.0001", "Tolerancia E", "number")
         form = QGridLayout()
         form.setHorizontalSpacing(16)
-        for index, (name, field) in enumerate((
-            ("Extremo inferior a", self.a), ("Extremo superior b", self.b), ("Tolerancia E", self.tolerance),
-        )):
+        for index, field in enumerate((self.a, self.b, self.tolerance)):
             row, column = divmod(index, 2)
-            field.setAccessibleName(name)
-            form.addWidget(label(name, "caption"), 2 * row, column)
-            form.addWidget(field, 2 * row + 1, column)
-            field.textChanged.connect(self._clear_result)
+            form.addWidget(field, row, column)
+            field.changed.connect(self._clear_result)
         control_layout.addLayout(form)
         control_layout.addWidget(label(
             "Parada por ancho del intervalo. Máximo de 100 iteraciones. "
@@ -100,8 +95,10 @@ class BisectionPage(QWidget):
 
         self.result_card, result_layout = card()
         result_layout.addWidget(label("Resultado", "heading"))
-        self.answer = label("", "answer")
+        self.answer = MathInput("", "", "output")
         result_layout.addWidget(self.answer)
+        self.summary = label("", "muted")
+        result_layout.addWidget(self.summary)
         self.table = QTableWidget(0, 6)
         self.table.setHorizontalHeaderLabels(["i", "a", "b", "c", "f(c)", "Ancho"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -115,7 +112,6 @@ class BisectionPage(QWidget):
         layout.addStretch()
 
     def set_dark(self, dark: bool) -> None:
-        self.editor.set_dark(dark)
         self.plot.dark = dark
         self.plot.update()
 
@@ -134,9 +130,9 @@ class BisectionPage(QWidget):
 
     def _example(self, function: str, a: str, b: str) -> None:
         self.editor.set_value(function)
-        self.a.setText(a)
-        self.b.setText(b)
-        self.tolerance.setText("0.0001")
+        self.a.set_value(a)
+        self.b.set_value(b)
+        self.tolerance.set_value("0.0001")
 
     def _graph(self) -> None:
         self._invalidate()
@@ -156,7 +152,7 @@ class BisectionPage(QWidget):
             return
         self._clear_result()
         try:
-            result = bisect(self._function, self.a.text(), self.b.text(), self.tolerance.text())
+            result = bisect(self._function, self.a.value(), self.b.value(), self.tolerance.value())
         except ValueError as problem:
             self.solve_error.setText(str(problem))
             self.solve_error.show()
@@ -167,10 +163,8 @@ class BisectionPage(QWidget):
             RootStop.LIMIT: "Se alcanzó el máximo de iteraciones.",
             RootStop.STAGNATION: "La precisión numérica impidió seguir reduciendo el intervalo.",
         }[result.stop]
-        self.answer.setText(
-            f"x ≈ {result.root:.12g}    f(x) = {result.value:.8g}    "
-            f"Iteraciones: {len(result.steps)}\n{reason}"
-        )
+        self.answer.set_value(f"x ≈ {result.root:.12g}\nf(x) = {result.value:.8g}")
+        self.summary.setText(f"Iteraciones: {len(result.steps)}\n{reason}")
         self.table.setRowCount(len(result.steps))
         for row, step in enumerate(result.steps):
             values = (step.index, step.a, step.b, step.c, step.fc, step.width)
