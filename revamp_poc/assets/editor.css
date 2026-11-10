@@ -1,0 +1,55 @@
+:root {
+  color-scheme: light;
+  color: var(--app-ink);
+  background: var(--app-card);
+}
+
+:root[theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+math-field {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px 12px;
+  min-height: 48px;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  background: var(--app-field);
+  color: inherit;
+  font-size: 20px;
+  --primary-color: var(--app-accent);
+  --caret-color: var(--app-accent);
+  --smart-fence-color: var(--app-ink);
+  --smart-fence-opacity: 0.85;
+  --contains-highlight-color: var(--app-ink);
+  --contains-highlight-background-color: var(--app-accent-soft);
+  --selection-background-color: var(--app-accent);
+  --selection-color: var(--app-on-accent);
+}
+
+math-field:focus-within {
+  outline: none;
+  border-color: var(--app-accent);
+}
+
+:root[data-kind="output"] math-field {
+  font-size: 16px;
+}
+
+:root[data-kind="output"] body {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--app-border) var(--app-field);
+}
+
+math-field::part(virtual-keyboard-toggle),
+math-field::part(menu-toggle) {
+  display: none;
+}

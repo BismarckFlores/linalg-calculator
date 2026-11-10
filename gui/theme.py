@@ -20,41 +20,12 @@ from tkinter import font as tk_font
 
 import customtkinter as ctk
 
-Color = str | tuple[str, str]
-
-# ----- Colores, cada uno (claro, oscuro) -----
-
-BACKGROUND: Color = ("#f5f5f7", "#121212")
-CARD: Color = ("#ffffff", "#1c1c1e")
-FIELD: Color = ("#f2f2f5", "#2c2c2e")
-FIELD_HOVER: Color = ("#e6e6ea", "#3a3a3c")
-BORDER: Color = ("#e2e2e6", "#2f2f31")
-RULE: Color = ("#c7c7cc", "#48484a")
-INK: Color = ("#1d1d1f", "#f5f5f7")
-MUTED: Color = ("#6e6e73", "#aeaeb2")
-FAINT: Color = ("#b0b0b6", "#5a5a5e")
-
-ACCENT = "#0071e3"
-ACCENT_HOVER = "#0077ed"
-ACCENT_SOFT: Color = ("#e8f1fc", "#12283c")
-ON_ACCENT_SOFT: Color = ("#ffffff", "#e8f1fc")
-ON_ACCENT = "#ffffff"
-
-GREEN = "#34c759"
-ORANGE = "#ff9500"
-RED = "#ff3b30"
-RED_SOFT: Color = ("#fff1ef", "#2b1614")
-
-# ----- Formas -----
-
-CARD_RADIUS = 26
-PILL_RADIUS = 22
-FIELD_RADIUS = 10
-NAV_RADIUS = 12
-
-# Gana la primera familia que este instalada de verdad; la ultima es el respaldo.
-SANS_FAMILIES = ("Inter", "SF Pro Text", "Adwaita Sans", "Cantarell", "Segoe UI", "DejaVu Sans")
-MONO_FAMILIES = ("JetBrains Mono", "Fira Code", "SF Mono", "DejaVu Sans Mono", "Courier")
+from ui.theme_tokens import (
+    ACCENT, ACCENT_HOVER, ACCENT_SOFT, BACKGROUND, BORDER, CARD, CARD_RADIUS,
+    Color, FAINT, FIELD, FIELD_HOVER, FIELD_RADIUS, GREEN, INK, MONO_FAMILIES,
+    MUTED, NAV_RADIUS, ON_ACCENT, ON_ACCENT_SOFT, ORANGE, PILL_RADIUS, RED,
+    RED_SOFT, RULE, SANS_FAMILIES,
+)
 
 _fonts: dict[str, ctk.CTkFont] = {}
 _listeners: list[Callable[[], None]] = []
