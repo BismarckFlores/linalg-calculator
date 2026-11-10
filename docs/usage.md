@@ -4,7 +4,7 @@ Abre la calculadora desde la raíz del repositorio con Python 3.12 o posterior.
 
 ```bash
 python -m pip install -r requirements-gui.txt
-python -m gui
+python main.py
 ```
 
 **Inicio** presenta las herramientas por tema. Abre una tarjeta o elige una

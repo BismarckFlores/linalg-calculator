@@ -4,7 +4,7 @@ La calculadora usa CustomTkinter. Desde la raíz del repositorio:
 
 ```bash
 python -m pip install -r requirements-gui.txt
-python -m gui
+python main.py
 ```
 
 ## Inicio y navegación

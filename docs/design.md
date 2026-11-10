@@ -3,7 +3,7 @@
 El proyecto separa el cálculo, la presentación de resultados y la interfaz.
 `core/` contiene los algoritmos, `ui/presentation.py` prepara los textos
 matemáticos y `gui/` administra los controles. La entrega se ejecuta desde
-el repositorio con `python -m gui`.
+el repositorio con `python main.py`.
 
 ## Matriz, registro y hoja de trabajo
 

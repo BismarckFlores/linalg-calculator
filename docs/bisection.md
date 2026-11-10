@@ -1,6 +1,6 @@
 # Bisección y Regula Falsi
 
-Abre `python -m gui` y elige **Método de Bisección** o **Regula Falsi** en
+Abre `python main.py` y elige **Método de Bisección** o **Regula Falsi** en
 **Métodos Numéricos**. Ambos métodos reutilizan la misma pantalla de entrada,
 la gráfica, la navegación por pasos y la tabla.
 
@@ -180,7 +180,7 @@ existente. [Referencia de Tkinter](https://docs.python.org/3/library/tkinter.htm
 ```bash
 python -m unittest discover -s tests -v
 python check.py
-python -m gui
+python main.py
 ```
 
 Las pruebas cubren los ejemplos de clase, la conservación del intervalo,

@@ -13,7 +13,7 @@ Desde la raíz del repositorio, con Python 3.12 o posterior:
 
 ```bash
 python -m pip install -r requirements-gui.txt
-python -m gui
+python main.py
 ```
 
 Si tu instalación de Python no incluye Tkinter, instala también el paquete de
@@ -66,6 +66,7 @@ gui/
   pages/            Pantallas de cada herramienta
 tests/              Pruebas del motor y de la interfaz
 docs/               Guías de uso, diseño y referencia
+main.py             Punto de entrada de la calculadora
 check.py            Comprobaciones del motor
 ```
 

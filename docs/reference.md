@@ -350,7 +350,7 @@ paréntesis separan el valor sustituido de su coeficiente.
 
 ## `gui/`
 
-Abre la ventana con `python -m gui`. La [guía de la interfaz](gui.md)
+Abre la ventana con `python main.py`. La [guía de la interfaz](gui.md)
 describe qué muestra cada herramienta.
 
 | Módulo | Responsabilidad |

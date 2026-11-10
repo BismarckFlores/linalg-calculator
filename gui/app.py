@@ -6,10 +6,6 @@ fila, igual que este repositorio no tiene un modulo para el: una lista de cosas
 que no hacen nada es un plan, y un plan no va en un menu. Las paginas se
 construyen la primera vez que se abren y se conservan, asi que volver a una
 encuentra todavia la matriz que se habia escrito en ella.
-
-Se ejecuta desde la raiz del repositorio:
-
-    python -m gui
 """
 
 import tkinter
@@ -397,7 +393,3 @@ class Application(ctk.CTk):
         if key == "lu":
             return LUPage(self._container)
         raise KeyError(f"No hay ninguna página registrada para {key!r}.")
-
-def main() -> None:
-    """Abre la ventana y le cede el control."""
-    Application().mainloop()
