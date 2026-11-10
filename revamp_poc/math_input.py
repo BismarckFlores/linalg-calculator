@@ -1,23 +1,21 @@
-"""Entrada Qt con dos modos y un campo MathLive local."""
+"""Campo MathLive local con entrada de texto de respaldo."""
 
 import ast
 import json
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Qt, QUrl, Signal, Slot
+from PySide6.QtCore import QObject, Qt, QTimer, QUrl, Signal, Slot
 from PySide6.QtGui import QColor, QKeySequence, QShortcut
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import (
-    QButtonGroup, QHBoxLayout, QLabel, QLineEdit, QPushButton, QStackedWidget,
-    QVBoxLayout, QWidget,
+    QLabel, QLineEdit, QPushButton, QStackedWidget, QVBoxLayout, QWidget,
 )
 
 from core.real_function import RealFunction
 from ui import theme_tokens as theme
 
 from .math_keyboard import MathKeyboard
-from .widgets import pill_group
 
 
 def formula_latex(text: str) -> str:
@@ -107,25 +105,13 @@ class MathInput(QWidget):
         self._dark = False
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        choices = QHBoxLayout()
-        modes, mode_buttons = pill_group()
-        self._buttons = QButtonGroup(self)
-        self.visual_button = QPushButton("Editor matemático", checkable=True, checked=True)
-        self.text_button = QPushButton("Texto", checkable=True)
-        self._buttons.addButton(self.visual_button, 0)
-        self._buttons.addButton(self.text_button, 1)
-        mode_buttons.addWidget(self.visual_button)
-        mode_buttons.addWidget(self.text_button)
-        choices.addWidget(modes)
-        choices.addStretch()
         self.keyboard_button = QPushButton("⌨  Teclado", checkable=True)
         self.keyboard_button.setObjectName("keyboardToggle")
         self.keyboard_button.setEnabled(False)
         shortcut = QShortcut(QKeySequence("Alt+Shift+Space"), self)
         shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
         shortcut.activated.connect(self.keyboard_button.click)
-        choices.addWidget(self.keyboard_button)
-        layout.addLayout(choices)
+        layout.addWidget(self.keyboard_button, alignment=Qt.AlignmentFlag.AlignRight)
 
         self.stack = QStackedWidget()
         self.web = QWebEngineView()
@@ -149,6 +135,10 @@ class MathInput(QWidget):
         self.message.setWordWrap(True)
         self.message.hide()
         layout.addWidget(self.message)
+        self.text_button = QPushButton("Usar entrada de texto")
+        self.text_button.hide()
+        self.text_button.clicked.connect(self._activate_text)
+        layout.addWidget(self.text_button, alignment=Qt.AlignmentFlag.AlignLeft)
 
         self.bridge = EditorBridge(self)
         self.channel = QWebChannel(self.web.page())
@@ -157,13 +147,18 @@ class MathInput(QWidget):
         self.bridge.expression_changed.connect(self._changed_visual)
         self.bridge.field_resized.connect(self._resize_field)
         self.bridge.initialized.connect(self._initialized)
-        self._buttons.idClicked.connect(self._choose_mode)
+        self._startup_timer = QTimer(self, singleShot=True)
+        self._startup_timer.timeout.connect(self._offer_text_fallback)
+        self.web.page().renderProcessTerminated.connect(self._offer_text_fallback)
         html = Path(__file__).parent / "assets" / "editor.html"
         self.web.loadFinished.connect(self._check_load)
+        self._startup_timer.start(10_000)
         self.web.load(QUrl.fromLocalFile(str(html.resolve())))
 
     def value(self) -> str:
-        return self.text.text() if self.stack.currentIndex() == 1 else self._value
+        if self.stack.isHidden():
+            raise ValueError("Activa la entrada de texto para continuar.")
+        return self.text.text() if self.stack.currentWidget() is self.text else self._value
 
     def hide_keyboard(self) -> None:
         self.keyboard_button.setChecked(False)
@@ -171,7 +166,7 @@ class MathInput(QWidget):
     def set_value(self, text: str) -> None:
         self.text.setText(text)
         self._value = text
-        if self.stack.currentIndex() == 0:
+        if self._ready:
             self._js(f"setFormula({json.dumps(formula_latex(text))})")
         self.changed.emit()
 
@@ -201,52 +196,54 @@ class MathInput(QWidget):
         self._js("focusFormula()")
 
     def _initialized(self) -> None:
+        self._startup_timer.stop()
+        if self.stack.currentWidget() is self.text:
+            return
         self._ready = True
-        self.keyboard_button.setEnabled(self.stack.currentIndex() == 0)
+        self.text_button.hide()
+        self.message.hide()
+        self.stack.show()
+        self.keyboard_button.setEnabled(True)
+        self.keyboard_button.show()
         self.set_dark(self._dark)
-        if self.stack.currentIndex() == 0:
-            self._js(f"setFormula({json.dumps(formula_latex(self._value))})")
+        self._js(f"setFormula({json.dumps(formula_latex(self._value))})")
 
     def _check_load(self, ok: bool) -> None:
         if not ok:
-            self._choose_mode(1)
-            self.message.setText("El editor matemático no se pudo cargar. Puedes escribir la función en Texto.")
-            self.message.show()
+            self._offer_text_fallback()
+
+    def _offer_text_fallback(self) -> None:
+        self._startup_timer.stop()
+        if self.stack.currentWidget() is self.text:
+            return
+        self._ready = False
+        self.hide_keyboard()
+        self.keyboard_button.setEnabled(False)
+        self.keyboard_button.hide()
+        self.stack.hide()
+        self.message.setText("El editor matemático no está disponible.")
+        self.message.show()
+        self.text_button.show()
+
+    def _activate_text(self) -> None:
+        if self.text_button.isHidden():
+            return
+        self.text.setText(self._value)
+        self.stack.setCurrentWidget(self.text)
+        self.stack.setFixedHeight(40)
+        self.stack.show()
+        self.text_button.hide()
+        self.message.setText("Entrada de texto de respaldo activada.")
+        self.text.setFocus()
 
     def _changed_visual(self, value: str) -> None:
         value = value.replace("a b s (", "abs(").replace("l o g10 (", "log10(")
-        if value != self._value:
+        if self._ready and value != self._value:
             self._value = value
-            if self.stack.currentIndex() == 0:
-                self.changed.emit()
+            self.changed.emit()
 
     def _resize_field(self, height: int) -> None:
         if self.web.height() != height:
             self.web.setFixedHeight(height)
-        if self.stack.currentIndex() == 0 and self.stack.height() != height:
+        if self.stack.currentWidget() is self.web and self.stack.height() != height:
             self.stack.setFixedHeight(height)
-
-    def _choose_mode(self, index: int) -> None:
-        if index == self.stack.currentIndex():
-            return
-        if index == 0:
-            try:
-                latex = formula_latex(self.text.text())
-            except ValueError as problem:
-                self.text_button.setChecked(True)
-                self.message.setText(str(problem))
-                self.message.show()
-                return
-            self._value = self.text.text()
-            self._js(f"setFormula({json.dumps(latex)})")
-            self.stack.setFixedHeight(self.web.height())
-        else:
-            self.hide_keyboard()
-            self.text.setText(self._value)
-            self.stack.setFixedHeight(40)
-        self.stack.setCurrentIndex(index)
-        self._buttons.button(index).setChecked(True)
-        self.keyboard_button.setEnabled(index == 0 and self._ready)
-        self.message.hide()
-        if index == 0:
-            self._focus_formula()

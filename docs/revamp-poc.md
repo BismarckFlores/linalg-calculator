@@ -35,7 +35,8 @@ misma fórmula. `^` abre el exponente, `/` crea una fracción y la flecha derech
 sale del exponente o del denominador. También puedes pegar expresiones
 lineales como `5x^3` o `sqrt(x+1)/2` para verlas en notación matemática.
 Al escribir `(`, aparece el cierre y el cursor queda entre los paréntesis.
-**Texto** permite escribir con la sintaxis lineal de la calculadora.
+Si el editor matemático falla, **Usar entrada de texto** activa el campo de
+respaldo con la sintaxis lineal de la calculadora.
 Pulsa **Graficar función** antes de ajustar el intervalo y la tolerancia.
 Puedes hacer zoom con la rueda o los botones y desplazar la gráfica arrastrando.
 Con el intervalo del ejemplo, **Calcular raíz** devuelve `x ≈ 3` y muestra la
