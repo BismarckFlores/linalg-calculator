@@ -53,7 +53,7 @@ class EditorBridge(QObject):
 class MathInput(QWidget):
     changed = Signal()
 
-    def __init__(self, text: str, name: str, kind: str = "function") -> None:
+    def __init__(self, text: str, name: str, kind: str = "function", *, inline: bool = False) -> None:
         super().__init__()
         self._value = text
         self.kind = kind
@@ -75,7 +75,7 @@ class MathInput(QWidget):
             shortcut.activated.connect(self.keyboard_button.click)
             header.addWidget(self.keyboard_button)
             layout.addLayout(header)
-        elif name:
+        elif name and not inline:
             layout.addWidget(label(name, "caption"))
 
         self.stack = QStackedWidget()
@@ -91,7 +91,15 @@ class MathInput(QWidget):
         self.stack.addWidget(self.web)
         self.stack.addWidget(self.text)
         self.stack.setFixedHeight(50)
-        layout.addWidget(self.stack)
+        if inline:
+            row = QHBoxLayout()
+            caption = label(name, "caption")
+            caption.setFixedWidth(68)
+            row.addWidget(caption)
+            row.addWidget(self.stack, 1)
+            layout.addLayout(row)
+        else:
+            layout.addWidget(self.stack)
         if self.keyboard_button is not None:
             self.keyboard = MathKeyboard()
             self.keyboard.hide()

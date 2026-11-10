@@ -35,6 +35,31 @@ customElements.whenDefined("math-field").then(() => {
   field.mathVirtualKeyboardPolicy = "manual";
   document.querySelector("#editor").appendChild(field);
   field.keybindings = field.keybindings.filter(({command}) => command !== "toggleVirtualKeyboard");
+  const matrixStyle = document.createElement("style");
+  // MathLive 0.111.4 representa la matriz como columnas de celdas en el shadow DOM.
+  // El fondo es decorativo y deja que MathLive reciba el clic y la selección.
+  matrixStyle.textContent = `
+    :host([data-matrix]) .ML__mtable .ML__arraycolsep { width: 6px !important; }
+    :host([data-matrix]) .ML__mtable > .col-align-c > .ML__vlist-t >
+    .ML__vlist-r:first-child > .ML__vlist > span > span[style*="inline-block"] {
+      position: relative;
+      min-width: 54px;
+      text-align: center;
+      isolation: isolate;
+    }
+    :host([data-matrix]) .ML__mtable > .col-align-c > .ML__vlist-t >
+    .ML__vlist-r:first-child > .ML__vlist > span > span[style*="inline-block"]::before {
+      content: "";
+      position: absolute;
+      inset: -7px 0 13px;
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius);
+      background: var(--app-field);
+      pointer-events: none;
+      z-index: -1;
+    }
+  `;
+  field.shadowRoot.append(matrixStyle);
   new QWebChannel(qt.webChannelTransport, ({objects: {editorBridge}}) => {
     let kind = "function";
     let lastLatex = field.value;
@@ -63,7 +88,11 @@ customElements.whenDefined("math-field").then(() => {
       document.documentElement.dataset.kind = format;
       field.readOnly = format === "output";
       field.setAttribute("aria-label", name || "Resultado");
-      if (format === "matrix") field.maxMatrixCols = 1000;
+      if (format === "matrix") {
+        field.setAttribute("data-matrix", "");
+        field.registers.arraystretch = 2.25;
+        field.maxMatrixCols = 1000;
+      }
     };
     window.setFormula = (latex) => {
       field.setValue(latex, {silenceNotifications: true});
@@ -102,7 +131,7 @@ customElements.whenDefined("math-field").then(() => {
       const selection = JSON.stringify(field.selection);
       editorBridge.latexForPaste(text, (latex) => {
         if (field.value !== value || JSON.stringify(field.selection) !== selection) return;
-        const whole = latex.startsWith("\\begin{pmatrix}") || latex.startsWith("\\displaylines{");
+        const whole = latex.startsWith("\\begin{bmatrix}") || latex.startsWith("\\displaylines{");
         field.insert(latex || text, {
           format: latex ? "latex" : "auto",
           insertionMode: latex && whole ? "replaceAll" : "replaceSelection",
