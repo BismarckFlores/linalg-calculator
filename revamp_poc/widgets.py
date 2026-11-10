@@ -136,11 +136,19 @@ def stylesheet(dark: bool) -> str:
         background: %(blue)s; color: %(onAccent)s; padding: 10px 20px;
     }
     QPushButton#action:hover { background: %(blueHover)s; }
-    QPushButton#keyboardToggle:checked { background: %(soft)s; }
+    QPushButton#keyboardToggle:checked,
+    QFrame#mathKeyboard QPushButton[mathRole="template"] {
+        background: %(blue)s; color: %(onAccent)s;
+    }
+    QPushButton#keyboardToggle:checked:hover,
+    QFrame#mathKeyboard QPushButton[mathRole="template"]:hover { background: %(blueHover)s; }
     QFrame#mathKeyboard {
         background: %(card)s; border: 1px solid %(line)s; border-radius: %(fieldRadius)dpx;
     }
     QFrame#mathKeyboard QPushButton { padding: 8px 4px; }
+    QFrame#mathKeyboard QPushButton[mathRole="symbol"] { background: %(soft)s; }
+    QFrame#mathKeyboard QPushButton[mathRole="symbol"]:hover { background: %(hover)s; }
+    QFrame#mathKeyboard QPushButton:pressed { border: 1px solid %(blue)s; }
     QPushButton:disabled { color: %(muted)s; }
     QPushButton#link { background: transparent; color: %(blue)s; }
     QPushButton#link:hover { background: %(field)s; }

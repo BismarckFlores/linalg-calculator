@@ -29,8 +29,11 @@ La calculadora de CustomTkinter se sigue abriendo con `python main.py`.
 | Métodos numéricos | Bisección por ancho del intervalo | `x ≈ 1.414215` |
 
 En **Bisección**, selecciona **Fracción con raíz** para ver la fórmula con una
-raíz y una fracción apilada. Abre **Teclado** para insertar símbolos y estructuras,
-o cambia a **Texto** para escribir con la sintaxis de la calculadora.
+raíz y una fracción apilada. En **Editor matemático** puedes escribir
+directamente con el teclado físico y usar los botones de **Teclado** en la
+misma fórmula. `^` abre el exponente, `/` crea una fracción y la flecha derecha
+sale del exponente o del denominador. **Texto** permite escribir con la
+sintaxis lineal de la calculadora.
 Pulsa **Graficar función** antes de ajustar el intervalo y la tolerancia.
 Puedes hacer zoom con la rueda o los botones y desplazar la gráfica arrastrando.
 Con el intervalo del ejemplo, **Calcular raíz** devuelve `x ≈ 3` y muestra la

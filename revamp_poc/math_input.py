@@ -134,6 +134,7 @@ class MathInput(QWidget):
         self.keyboard.hide()
         self.keyboard.command.connect(self._edit_formula)
         self.keyboard_button.toggled.connect(self.keyboard.setVisible)
+        self.keyboard_button.clicked.connect(self._focus_formula)
         layout.addWidget(self.keyboard)
         self.message = QLabel()
         self.message.setObjectName("inputError")
@@ -183,7 +184,12 @@ class MathInput(QWidget):
             self.web.page().runJavaScript(command)
 
     def _edit_formula(self, command: tuple) -> None:
+        self._focus_formula()
         self._js(f"editFormula({json.dumps(command)})")
+
+    def _focus_formula(self) -> None:
+        self.web.setFocus()
+        self._js("focusFormula()")
 
     def _initialized(self) -> None:
         self._ready = True
@@ -233,3 +239,5 @@ class MathInput(QWidget):
         self._buttons.button(index).setChecked(True)
         self.keyboard_button.setEnabled(index == 0 and self._ready)
         self.message.hide()
+        if index == 0:
+            self._focus_formula()

@@ -35,14 +35,18 @@ customElements.whenDefined("math-field").then(() => {
   document.querySelector("#editor").appendChild(field);
   field.keybindings = field.keybindings.filter(({command}) => command !== "toggleVirtualKeyboard");
   new QWebChannel(qt.webChannelTransport, ({objects: {editorBridge}}) => {
+    let lastLatex = field.value;
     function sendValue() {
-      const latex = field.getValue("latex");
-      const incomplete = latex.includes("\\placeholder") || field.errors.length > 0;
+      const latex = field.value;
+      if (latex === lastLatex) return;
+      lastLatex = latex;
+      const incomplete = latex.includes("\\placeholder") || latex.includes("^{}") || field.errors.length > 0;
       editorBridge.changed(incomplete ? "" : MathLive.convertLatexToAsciiMath(groupFractions(latex)));
     }
 
     window.setFormula = (latex) => {
       field.setValue(latex, {silenceNotifications: true});
+      lastLatex = field.value;
     };
     window.setEditorTheme = (mode, colors) => {
       const root = document.documentElement;
@@ -51,11 +55,14 @@ customElements.whenDefined("math-field").then(() => {
         root.style.setProperty(`--app-${name}`, value);
       }
     };
+    window.focusFormula = () => field.focus({preventScroll: true});
     window.editFormula = (command) => field.executeCommand(command);
     new ResizeObserver(() => {
       editorBridge.viewHeight(Math.ceil(field.getBoundingClientRect().height) + 2);
     }).observe(field);
     field.addEventListener("input", sendValue);
+    // MathLive puede abrir un exponente al mover el cursor sin emitir input.
+    field.addEventListener("selection-change", sendValue);
     editorBridge.ready();
   });
 });
