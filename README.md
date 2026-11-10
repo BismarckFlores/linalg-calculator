@@ -3,32 +3,21 @@
 Calculadora de Álgebra Lineal y Métodos Numéricos del curso MTM0120 de la
 Universidad Americana (UAM). La entrega del curso es este repositorio.
 
-La interfaz oficial en desarrollo usa PySide6 y MathLive. Abre en **Inicio**
-y reúne seis herramientas, entre ellas Bisección y Regula Falsi. Durante
-la migración, la interfaz heredada conserva el catálogo de once herramientas.
+La aplicación de escritorio usa PySide6 y MathLive. Desde **Inicio** se
+puede acceder a las once herramientas. Los recursos matemáticos se cargan
+localmente.
 
 ## Ejecutar la calculadora
 
-Usa Python 3.12 o posterior. Primero [crea y activa `.venv`](docs/usage.md#preparar-el-entorno-virtual).
-Después ejecuta estos comandos desde la raíz del repositorio.
+Usa Python 3.12 o posterior y [activa un entorno virtual](docs/usage.md#preparar-el-entorno-virtual).
+Desde la raíz del repositorio, ejecuta estos comandos.
 
 ```bash
-pip install -r requirements-poc.txt
-python revamp.py
-```
-
-Para usar la interfaz heredada, instala sus dependencias y ejecuta:
-
-```bash
-pip install -r requirements-gui.txt
+pip install -r requirements.txt
 python main.py
 ```
 
-Si tu instalación de Python no incluye Tkinter, instala también el paquete de
-Tk de tu distribución. La [guía de uso](docs/usage.md) explica la entrada de
-datos y cómo ejecutar las pruebas.
-
-## Catálogo de la interfaz heredada
+## Herramientas
 
 | Área | Herramientas |
 | --- | --- |
@@ -66,13 +55,16 @@ core/
 ui/
   presentation.py    Formato de ecuaciones, sustituciones y resultados
   theme_tokens.py    Paleta, radios y familias tipográficas compartidos
-gui/
-  app.py             Inicio, navegación y selección de herramienta
-  theme.py           Carga de fuentes y cambio de tema en CustomTkinter
-  widgets.py         Componentes compartidos
-  entry.py           Entrada por coeficientes o ecuaciones
-  root_plot.py       Gráfica de funciones, zoom y arrastre
-  pages/            Pantallas de cada herramienta
+desktop/
+  window.py          Inicio, navegación y tema
+  forms.py           Entradas, formularios y procedimiento compartido
+  widgets.py         Estilos, tarjetas y tablas
+  matrix_tools.py    Sistemas lineales y herramientas de matrices
+  number_tools.py    Vectores, conversiones y aritmética romana
+  roots.py           Bisección y Regula Falsi
+  plot.py            Gráfica de funciones y controles de vista
+  math_*.py          Entrada, teclado y notación matemática
+  assets/            Editor MathLive local, fuentes y licencias
 tests/              Pruebas del motor y de la interfaz
 docs/               Guías de uso, diseño y referencia
 main.py             Punto de entrada de la calculadora
@@ -104,8 +96,7 @@ cambio de signo y el registro. En ambos casos la gráfica aparece antes de
 introducir el intervalo de resolución. La tabla y el paso a paso se construyen
 con las iteraciones calculadas.
 
-El motor usa la biblioteca estándar de Python. CustomTkinter se usa para la
-interfaz. Los identificadores del código siguen la convención en inglés y
+El motor usa la biblioteca estándar de Python. La interfaz usa PySide6 y MathLive en Qt WebEngine. Los identificadores del código siguen la convención en inglés y
 los comentarios, mensajes y guías se escriben en español.
 
 ## Verificar cambios
@@ -116,7 +107,7 @@ python -m unittest discover -s tests -v
 ```
 
 `check.py` comprueba el motor. Las pruebas de la ventana requieren
-CustomTkinter y una pantalla Tk.
+PySide6 y una sesión gráfica.
 
 ## Documentación
 
@@ -127,4 +118,4 @@ CustomTkinter y una pantalla Tk.
 - [Matriz inversa y ejercicios](docs/inverse.md)
 - [Decisiones de diseño](docs/design.md)
 - [Referencia del código](docs/reference.md)
-- [Interfaz PySide6 y estado de la migración](docs/revamp-poc.md)
+- [Historial de la migración a PySide6](docs/migration.md)

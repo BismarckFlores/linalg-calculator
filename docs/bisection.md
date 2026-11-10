@@ -1,26 +1,17 @@
 # Bisección y Regula Falsi
 
-Abre `python revamp.py` y elige **Método de Bisección** o **Regula Falsi** en
+Abre `python main.py` y elige **Método de Bisección** o **Regula Falsi** en
 **Métodos Numéricos**. Ambos métodos comparten una página de Qt con MathLive,
-gráfica, selector de iteración y tabla. Tras resolver, la gráfica se ajusta
-al intervalo inicial si queda fuera de la vista. Consulta la [guía de PySide6](revamp-poc.md)
-para instalar y probar esta interfaz.
-
-Las secciones de uso que siguen describen los controles de la interfaz
-heredada, disponible con `python main.py`. Los criterios y algoritmos se
-comparten entre las dos interfaces.
+gráfica, selector de iteración y tabla.
 
 ## Entrada y gráfica
 
 Escribe la función y pulsa **Graficar función**. La vista inicial abarca
-`x ∈ [−10, 10]`. Los controles de resolución aparecen debajo. Editar la
-función cierra la vista ampliada y oculta la gráfica y los controles hasta
-volver a graficar. Editar parámetros de resolución conserva la vista e invalida
-la respuesta y sus marcas.
-
-**Cargar ejemplo** está disponible desde el inicio. Llena la función y los
-parámetros y muestra la gráfica. Pulsa **Calcular raíz** cuando quieras
-ejecutar el método.
+`x ∈ [−4, 4]`. Los controles de resolución aparecen debajo. Editar la
+función oculta la gráfica y los controles hasta volver a graficar.
+Editar los parámetros conserva la vista e invalida la respuesta y sus marcas.
+**Cargar ejemplo** llena la función y los parámetros. Pulsa **Graficar
+función** y luego **Calcular raíz** para ejecutarlo.
 
 - Introduce el lado izquierdo de `f(x) = 0`.
 - Se admiten productos implícitos como `5x^3`, `(1/2)x`, `2(x+1)`,
@@ -37,10 +28,10 @@ ejecutar el método.
 
 La gráfica permite **Acercar**, **Alejar**, **Restablecer**, zoom con la
 rueda y desplazamiento mediante arrastre. **Maximizar** abre una ventana
-sobre la app con la vista actual. Puedes cerrarla con **Cerrar** o Escape.
+con la vista actual. Puedes cerrarla con **Cerrar** o Escape.
 El zoom y el arrastre ajustan la vista. Las etiquetas de los ejes muestran
 la escala y las líneas verticales identifican a, b y la aproximación c al
-resolver. Las muestras fuera del dominio dejan huecos. No hay lectura de
+resolver. Si el intervalo inicial queda fuera de la vista, la gráfica se ajusta a él. Las muestras fuera del dominio dejan huecos. No hay lectura de
 valores al pasar el cursor.
 
 ## Intervalo y criterios de parada
@@ -75,20 +66,16 @@ es `max(c − a, b − c)`. En Bisección equivale aproximadamente a la mitad
 del ancho. El residuo mide f(c) y el cambio relativo compara iteraciones.
 Un cero calculado indica que f(c) dio cero en la aritmética de punto flotante.
 
-**Paso a paso** comienza con el planteamiento e incluye una pantalla por
-iteración. El contador de navegación incluye el planteamiento. Usa los puntos,
-**Anterior**, **Siguiente** o **Ver todos los pasos** para consultar el
-registro guardado.
+En **Procedimiento**, el selector **Iteración** permite recorrer los cálculos.
+Usa **Anterior**, **Siguiente** o **Ver todos los pasos** para consultar el
+registro guardado. Seleccionar una iteración enfoca su fila en la tabla.
 
-**Tabla de iteraciones** muestra 15 filas por página. **Decimal** permite
-seleccionar de 0 a 17 decimales, con 5 por defecto. **Automático** usa diez
-cifras significativas y cambia a notación científica cuando corresponde.
-Por ejemplo, `0.6` conserva esa forma y un residuo pequeño puede aparecer
-como `6.538248167e-05`. Un valor puede redondearse a cero en la tabla. Aumenta
-los decimales o cambia a Automático para inspeccionarlo. El formato se
-conserva entre cálculos y solo afecta lo que se muestra. Si las columnas
-desbordan, la barra horizontal desplaza los datos y deja fijos el título,
-el formato y los controles de página.
+**Tabla de iteraciones** muestra hasta 15 filas por página. **Automático**
+usa diez cifras significativas y cambia a notación científica cuando
+corresponde. **Decimal** permite elegir de 0 a 17 decimales. El formato se
+conserva entre cálculos y solo afecta la presentación. Al situar el cursor
+sobre una celda, su ayuda emergente muestra el valor que guardó el motor.
+Cuando una tabla excede el ancho, se puede desplazar horizontalmente.
 
 ## Bisección
 
@@ -164,22 +151,16 @@ La derivada que se revisa en Newton corresponde a otro método.
 | `core/real_function.py` | Lee la función con un AST restringido y la evalúa sin `eval`. También toma muestras para la gráfica. |
 | `core/root_bracket.py` | Valida parámetros, conserva el intervalo y registra `BracketStep` y `BracketResult`. |
 | `core/bisection.py` y `core/regula_falsi.py` | Definen la estimación y la tolerancia inicial de cada método. |
-| `gui/root_plot.py` | Dibuja con Tkinter Canvas y administra zoom, arrastre y vista ampliada. |
-| `gui/pages/root_bracket.py` | Organiza la entrada, gráfica previa, controles, resultado, recorrido y tabla. |
-| `gui/pages/bisection.py` y `gui/pages/regula_falsi.py` | Seleccionan el cálculo, ejemplos, criterios y textos. |
-| `gui/app.py` | Registra las dos herramientas en Inicio y el menú. |
+| `desktop/plot.py` | Dibuja con Qt y administra zoom, arrastre y vista ampliada. |
+| `desktop/roots.py` | Organiza la entrada, gráfica, controles, resultado y tabla. Configura ambos métodos. |
+| `desktop/forms.py` y `desktop/widgets.py` | Comparten el recorrido de pasos y la tabla. |
+| `desktop/window.py` | Registra las herramientas en Inicio y el menú. |
 
 El lector limita el tamaño de la expresión y los exponentes. Los problemas
 de dominio, resultados no finitos y pérdidas por subdesbordamiento se
 reportan. `math` se usa para evaluar funciones elementales. Los métodos
 usan un ciclo y condiciones para obtener la aproximación. El gráfico usa
 401 muestras por vista horizontal y las reutiliza al repintar.
-
-La pantalla reutiliza `ResultsPage`, `Card`, `PageHeader`, `SectionTitle`,
-`StepWalker`, `LinkButton`, `SegmentedControl`, `Stepper`, `MathBlock`,
-`MathLine`, `PrimaryButton`, `ErrorBanner` y `Wide`. La tabla tiene su propia
-distribución de columnas. Canvas permite zoom y arrastre con el toolkit
-existente. [Referencia de Tkinter](https://docs.python.org/3/library/tkinter.html).
 
 ## Verificación
 

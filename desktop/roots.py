@@ -2,18 +2,18 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QAbstractItemView, QComboBox, QGridLayout, QHeaderView, QHBoxLayout, QPushButton,
-    QSpinBox, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
+    QComboBox, QGridLayout, QHBoxLayout, QPushButton, QSpinBox, QVBoxLayout, QWidget,
 )
 
 from core.bisection import bisect
 from core.real_function import RealFunction
 from core.regula_falsi import regula_falsi
-from core.root_bracket import RootCriterion, RootStop
+from core.root_bracket import BracketStep, RootCriterion, RootStop
 
+from .forms import StepView
 from .math_input import MathInput
 from .plot import FunctionPlot
-from .widgets import action, card, label, link, page_header, pill_group
+from .widgets import ResultTable, action, card, label, page_header, pill_group
 
 
 CRITERIA = {
@@ -21,6 +21,8 @@ CRITERIA = {
     RootCriterion.RELATIVE: "Error relativo (%)",
     RootCriterion.RESIDUAL: "Residuo |f(c)|",
 }
+TABLE_HEADERS = ("i", "a", "b", "c", "f(a)", "f(b)", "f(c)", "Ancho", "Error %")
+TABLE_PAGE_SIZE = 15
 
 
 class RootBracketPage(QWidget):
@@ -33,6 +35,8 @@ class RootBracketPage(QWidget):
     presets = (
         ("Raíz de 2", "x^2 - 2", "1", "2", "0.0001", RootCriterion.WIDTH),
         ("Fracción con raíz", "sqrt(x+1)/2 - 1", "2", "4", "0.0001", RootCriterion.WIDTH),
+        ("Polinomio del Excel", "x^4 - 5x^3 + 0.5x^2 - 11x + 10", "0.6", "1", "0.0001", RootCriterion.RESIDUAL),
+        ("Potencia décima", "x^10 - 1", "0", "1.3", "0.0001", RootCriterion.WIDTH),
     )
 
     def __init__(self) -> None:
@@ -69,17 +73,7 @@ class RootBracketPage(QWidget):
         self.graph_card, graph_layout = card()
         graph_layout.addWidget(label("Gráfica de la función", "heading"))
         self.plot = FunctionPlot()
-        buttons = QHBoxLayout()
-        for text, callback in (
-            ("+  Acercar", lambda: self.plot.zoom(0.8)),
-            ("−  Alejar", lambda: self.plot.zoom(1.25)),
-            ("Restablecer", self.plot.reset),
-        ):
-            button = link(text)
-            button.clicked.connect(callback)
-            buttons.addWidget(button)
-        buttons.addStretch()
-        graph_layout.addLayout(buttons)
+        graph_layout.addLayout(self.plot.controls("Maximizar", self.plot.expand))
         graph_layout.addWidget(self.plot)
         graph_layout.addWidget(label("Usa la rueda para acercar o alejar. Arrastra para mover la vista.", "muted"))
         layout.addWidget(self.graph_card)
@@ -128,27 +122,32 @@ class RootBracketPage(QWidget):
         result_layout.addWidget(self.answer)
         self.summary = label("", "muted")
         result_layout.addWidget(self.summary)
-        result_layout.addWidget(label("Procedimiento", "heading"))
-        step_controls = QHBoxLayout()
-        step_label = label("Iteración", "caption")
-        self.step_index = QSpinBox()
-        step_label.setBuddy(self.step_index)
-        self.step_index.valueChanged.connect(self._show_step)
-        step_controls.addWidget(step_label)
-        step_controls.addWidget(self.step_index)
-        step_controls.addStretch()
-        result_layout.addLayout(step_controls)
-        self.step_detail = label("", "muted")
-        result_layout.addWidget(self.step_detail)
-        self.table = QTableWidget(0, 9)
-        self.table.setHorizontalHeaderLabels(["i", "a", "b", "c", "f(a)", "f(b)", "f(c)", "Ancho", "Error %"])
-        header = self.table.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        header.setStretchLastSection(True)
-        self.table.verticalHeader().hide()
-        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.table.setAlternatingRowColors(True)
-        self.table.setMinimumHeight(230)
+        self.bounds = label("", "muted")
+        result_layout.addWidget(self.bounds)
+        self.walk = StepView("Iteración")
+        self.walk.index.valueChanged.connect(self._select_iteration)
+        result_layout.addWidget(self.walk)
+        result_layout.addWidget(label("Tabla de iteraciones", "heading"))
+        table_controls = QHBoxLayout()
+        self.format = QComboBox()
+        self.format.setAccessibleName("Formato numérico")
+        self.format.addItems(("Automático", "Decimal"))
+        self.decimals = QSpinBox()
+        self.decimals.setAccessibleName("Decimales")
+        self.decimals.setRange(0, 17)
+        self.decimals.setValue(5)
+        self.table_page = QSpinBox()
+        self.table_page.setAccessibleName("Página de la tabla")
+        self.table_page.setMinimum(1)
+        for widget in (self.format, self.decimals, label("Página", "caption"), self.table_page):
+            table_controls.addWidget(widget)
+        table_controls.addStretch()
+        self.decimals.hide()
+        self.format.currentIndexChanged.connect(self._fill_table)
+        self.decimals.valueChanged.connect(self._fill_table)
+        self.table_page.valueChanged.connect(self._fill_table)
+        result_layout.addLayout(table_controls)
+        self.table = ResultTable()
         result_layout.addWidget(self.table)
         layout.addWidget(self.result_card)
         self.result_card.hide()
@@ -217,42 +216,56 @@ class RootBracketPage(QWidget):
             f"Iteraciones: {len(result.steps)} · {CRITERIA[result.criterion]} < {result.tolerance:g}\n"
             f"|f(c)| = {abs(result.value):.8g}\n{reason}"
         )
-        self.table.setRowCount(len(result.steps))
-        for row, step in enumerate(result.steps):
-            values = (step.index, step.a, step.b, step.c, step.fa, step.fb, step.fc, step.width,
-                      step.relative_error)
-            for column, value in enumerate(values):
-                item = QTableWidgetItem("—" if value is None else f"{value:.9g}")
-                if value is not None:
-                    item.setToolTip(str(value))
-                self.table.setItem(row, column, item)
+        relative = result.steps[-1].relative_error if result.steps else None
+        relative_text = "—" if relative is None else f"{relative:.10g} %"
+        self.bounds.setText(
+            f"Intervalo final: [{result.a:.12g}, {result.b:.12g}] · "
+            f"Cota en x si hay continuidad: {result.bound:.10g}\n"
+            f"Cambio relativo: {relative_text}"
+        )
         self.plot.show_result(result)
-        self.step_index.setRange(1, max(1, len(result.steps)))
-        self.step_index.setValue(1)
-        self.step_index.setEnabled(bool(result.steps))
-        self._show_step()
+        self.table_page.setMaximum(max(1, (len(result.steps) + TABLE_PAGE_SIZE - 1) // TABLE_PAGE_SIZE))
+        self.table_page.setValue(1)
+        self._fill_table()
+        steps = tuple(self._step_text(step, len(result.steps)) for step in result.steps)
+        if not steps:
+            steps = (f"Un extremo inicial satisface f({result.root:.9g}) = 0.",)
+        self.walk.set_steps(steps)
+        self._select_iteration(1)
         self.result_card.show()
 
-    def _show_step(self) -> None:
+    def _step_text(self, step: BracketStep, count: int) -> str:
+        detail = (
+            f"Extremos: a = {step.a:.9g}, b = {step.b:.9g}\n"
+            f"Evaluación: f(a) = {step.fa:.9g}, f(b) = {step.fb:.9g}\n"
+            f"c = {self.formula} ≈ {step.c:.9g}\n"
+            f"Sustitución: f({step.c:.9g}) ≈ {step.fc:.9g}"
+        )
+        if step.index < count:
+            a, b = (step.a, step.c) if step.keep_left else (step.c, step.b)
+            detail += f"\nEl cambio de signo se conserva en [{a:.9g}, {b:.9g}]."
+        else:
+            detail += "\nEl método se detiene en esta iteración."
+        return detail
+
+    def _select_iteration(self, index: int) -> None:
+        result = self.plot.result
+        if result is not None and result.steps:
+            self.table_page.setValue((index - 1) // TABLE_PAGE_SIZE + 1)
+            self.table.selectRow((index - 1) % TABLE_PAGE_SIZE)
+
+    def _fill_table(self) -> None:
+        decimal = self.format.currentIndex() == 1
+        self.decimals.setVisible(decimal)
         result = self.plot.result
         if result is None:
             return
-        if not result.steps:
-            self.step_detail.setText(f"Un extremo inicial satisface f({result.root:.9g}) = 0.")
-            return
-        step = result.steps[self.step_index.value() - 1]
-        detail = (
-            f"Con a = {step.a:.9g}, b = {step.b:.9g}, f(a) = {step.fa:.9g} y f(b) = {step.fb:.9g}:\n"
-            f"c = {self.formula} ≈ {step.c:.9g}\n"
-            f"Al sustituir, f({step.c:.9g}) ≈ {step.fc:.9g}."
-        )
-        if step.index < len(result.steps):
-            a, b = (step.a, step.c) if step.keep_left else (step.c, step.b)
-            detail += f" El cambio de signo se conserva en [{a:.9g}, {b:.9g}]."
-        else:
-            detail += " El método se detiene en esta iteración."
-        self.step_detail.setText(detail)
-        self.table.selectRow(step.index - 1)
+        offset = (self.table_page.value() - 1) * TABLE_PAGE_SIZE
+        rows = [
+            (step.index, step.a, step.b, step.c, step.fa, step.fb, step.fc, step.width, step.relative_error)
+            for step in result.steps[offset:offset + TABLE_PAGE_SIZE]
+        ]
+        self.table.fill(TABLE_HEADERS, rows, decimals=self.decimals.value() if decimal else None)
 
 
 class RegulaFalsiPage(RootBracketPage):

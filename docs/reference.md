@@ -6,19 +6,19 @@ cadenas de documentación de cada función explican los detalles de su contrato.
 ## Capas y flujo de datos
 
 `core/` contiene los algoritmos. `ui/presentation.py` convierte resultados
-en texto y `gui/` conecta el motor con las entradas, gráficas y tarjetas.
+en texto y `desktop/` conecta el motor con las entradas, gráficas y tarjetas.
 
 ```text
-SystemInput.read() ──> Typed: [A | b], incógnitas y nombres
+MatrixInput / read_equations ──> [A | b], incógnitas y nombres
                          │
                          └──> systems.solve() ──> Solution
-                                                  ├── log → StepWalker
+                                                  ├── log → StepView
                                                   ├── result → sistema equivalente
                                                   ├── kind → clasificación
                                                   ├── substitutions → despeje
                                                   └── values → verify(A, b, x)
 
-RealFunction ──> RootPlot
+RealFunction ──> FunctionPlot
        └──> bisect() o regula_falsi() ──> BracketResult ──> tabla y recorrido
 ```
 
@@ -348,50 +348,33 @@ la entrada de ecuaciones o se completan con x, y, z, w, x5 y siguientes.
 Los productos se presentan como `2y`, `1(29)` y `(1/3)x`. Los
 paréntesis separan el valor sustituido de su coeficiente.
 
-## `gui/`
+## `desktop/`
 
 Abre la ventana con `python main.py`. La [guía de la interfaz](gui.md)
 describe qué muestra cada herramienta.
 
 | Módulo | Responsabilidad |
 | --- | --- |
-| `gui/app.py` | `Application`, `HomePage`, `NavRow`, `Group` y `Module`. `GROUPS` define las herramientas que usa Inicio y el menú. |
-| `ui/theme_tokens.py` | Paleta claro/oscuro, radios y familias tipográficas. |
-| `gui/theme.py` | Carga de fuentes en CustomTkinter, `set_dark` y `on_change`. |
-| `gui/widgets.py` | `ResultsPage`, `StepWalker`, `Wide`, `Card`, `PageHeader`, `SectionTitle`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `LinkButton`, `ErrorBanner`, `Chip`, `Bracket`, `FractionCell`, `MathLine`, `MathBlock`, `MathChip`, `Expression`, `ColumnDisplay` y `FactorizationDisplay`. |
-| `gui/entry.py` | `SystemInput` y `Typed`, entrada por cuadrícula o ecuaciones. |
-| `gui/root_plot.py` | `RootPlot` con Canvas, zoom, arrastre, restablecimiento y vista ampliada. |
-| `gui/pages/root_bracket.py` | `RootBracketPage` comparte gráfica previa, criterios, resultado, pasos y tabla. |
-| `gui/pages/bisection.py`, `gui/pages/regula_falsi.py` | Configuración de cada método, ejemplos y llamada al solucionador. |
-| `gui/pages/gauss.py` | `GaussPage`, eliminación, clasificación y verificación. |
-| `gui/pages/echelon.py` | `EchelonPage`, propiedades de la forma escalonada y pivotes. |
-| `gui/pages/operations.py` | `OperationsPage`, operaciones matriciales. |
-| `gui/pages/inverse.py` | `InversePage`, inversa y resolución por inversa. |
-| `gui/pages/lu.py` | `LUPage`, factorización y sustituciones. |
-| `gui/pages/determinant.py` | `DeterminantPage`, cofactores y LU. |
-| `gui/pages/vectors.py` | `VectorsPage`, operaciones y combinación lineal. |
-| `gui/pages/bases.py` | `BasesPage`, conversiones de numerales. |
-| `gui/pages/roman.py` | `RomanPage`, aritmética romana. |
+| `desktop/window.py` | Catálogo, menú, páginas bajo demanda y tema. |
+| `desktop/forms.py` | Entrada de matrices, lectura de ecuaciones, formularios, resultados y recorrido de pasos. |
+| `desktop/widgets.py` | Estilos Qt, tarjetas, botones y tablas. |
+| `desktop/math_input.py` | MathLive en Qt WebEngine, canal de edición y respaldo de texto. |
+| `desktop/math_notation.py` | Adaptadores entre texto, MathLive y los lectores del motor. |
+| `desktop/matrix_tools.py` | Gauss, formas escalonadas, operaciones, inversa, LU y determinante. |
+| `desktop/number_tools.py` | Vectores, conversiones y aritmética romana. |
+| `desktop/roots.py` | Flujo compartido y configuración de Bisección y Regula Falsi. |
+| `desktop/plot.py` | Dibujo Qt, zoom, arrastre y gráfica ampliada. |
+| `ui/theme_tokens.py` | Paleta claro y oscuro, radios y tipografía. |
 
-`SystemInput.read()` devuelve `Typed` con matriz, nombres y número de
-incógnitas. `Typed.coefficients` y `Typed.constants` separan A y b.
-`augmentable=True` agrega el selector de matriz aumentada.
-`SystemInput.size()` devuelve las dimensiones de la cuadrícula o `None`
-cuando se muestran ecuaciones sin leer. `max_size=None` quita el límite
-de tamaño de la entrada de inversa y `Stepper(maximum=None)` permite
-seguir aumentando ese tamaño.
-
-`ResultsPage` agrega tarjetas con `_add_card` e invalida resultados con
-`_clear_output`. `_draw_walk` y `_walker_in` construyen `StepWalker`.
-`_product_check` muestra `A · x = b`. `Wide` permite desplazar contenido
-que excede el ancho de la tarjeta. `Expression` reúne matrices, columnas
-y símbolos en una línea. `FactorizationDisplay` presenta `PA = LU`.
+`ToolPage` invalida la respuesta al editar. `Result` reúne el texto,
+el procedimiento y los datos tabulares. `StepView` muestra la traza
+calculada y `ResultTable` presenta los valores con formato de pantalla.
 
 ## Pruebas y convenciones
 
 - `check.py` ejecuta comprobaciones del motor.
 - `python -m unittest discover -s tests -v` ejecuta las pruebas unitarias.
-  Las de interfaz requieren una pantalla Tk y CustomTkinter.
+  Las de interfaz requieren PySide6 y una sesión gráfica.
 - Los índices de las operaciones matriciales empiezan en 1. Las listas
   de Python como `Matrix.data` empiezan en 0.
 - Las matrices producen valores nuevos al operar. Los registros de

@@ -1,8 +1,11 @@
-"""Estilos y piezas Qt compartidas por las pantallas de prueba."""
+"""Estilos y componentes Qt compartidos."""
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QAbstractItemView, QFrame, QHBoxLayout, QHeaderView, QLabel, QPushButton,
+    QSizePolicy, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
+)
 
 from ui import theme_tokens as theme
 
@@ -17,8 +20,34 @@ def card() -> tuple[QFrame, QVBoxLayout]:
     return panel, layout
 
 
+class ResultTable(QTableWidget):
+    def __init__(self) -> None:
+        super().__init__()
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.verticalHeader().hide()
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setAlternatingRowColors(True)
+        self.setMinimumHeight(230)
+
+    def fill(self, headers, rows, *, decimals: int | None = None) -> None:
+        self.setColumnCount(len(headers))
+        self.setHorizontalHeaderLabels(headers)
+        self.setRowCount(len(rows))
+        for i, row in enumerate(rows):
+            for j, value in enumerate(row):
+                display = "—" if value is None else str(value)
+                if isinstance(value, float):
+                    display = f"{value:.10g}" if decimals is None else f"{value:.{decimals}f}"
+                item = QTableWidgetItem(display)
+                if value is not None:
+                    item.setToolTip(str(value))
+                self.setItem(i, j, item)
+
+
 def label(text: str, style: str = "") -> QLabel:
     widget = QLabel(text)
+    widget.setTextFormat(Qt.TextFormat.PlainText)
     widget.setObjectName(style)
     widget.setWordWrap(True)
     return widget
@@ -118,12 +147,17 @@ def stylesheet(dark: bool) -> str:
     QLabel#activeNavName { color: %(onAccent)s; }
     QLabel#brandGlyph { background: %(blue)s; color: %(onAccent)s; border-radius: 9px; }
     QLabel#inputError { color: %(danger)s; }
-    QLineEdit, QPlainTextEdit, QTableWidget, QSpinBox {
+    QLineEdit, QPlainTextEdit, QTableWidget, QSpinBox, QComboBox, QComboBox QAbstractItemView {
         background: %(field)s; border: 1px solid %(line)s;
         border-radius: %(fieldRadius)dpx; padding: 9px;
         font-family: "%(mono)s"; selection-background-color: %(blue)s;
     }
     QLineEdit:focus, QPlainTextEdit:focus { border-color: %(blue)s; }
+    QCheckBox::indicator {
+        width: 14px; height: 14px; border-radius: 3px;
+        background: %(field)s; border: 1px solid %(line)s;
+    }
+    QCheckBox::indicator:checked { background: %(blue)s; border-color: %(blue)s; }
     QTableWidget { background: %(card)s; alternate-background-color: %(field)s; gridline-color: %(line)s; }
     QHeaderView::section {
         background: %(field)s; color: %(text)s; border: 1px solid %(line)s; padding: 5px;

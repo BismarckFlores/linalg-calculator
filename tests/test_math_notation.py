@@ -5,7 +5,7 @@ from core.equations import parse_equation
 from core.matrix import Matrix
 from core.root_bracket import read_root_number
 from core.vectors import parse_vector
-from revamp_poc.math_notation import from_ascii, matrix_rows, to_latex
+from desktop.math_notation import from_ascii, matrix_rows, to_latex
 
 
 class MathNotationTests(unittest.TestCase):
@@ -27,8 +27,9 @@ class MathNotationTests(unittest.TestCase):
             r"\begin{pmatrix}\frac{1}{2}&2\\3&4\end{pmatrix}",
         )
         self.assertEqual(to_latex("1/2", "matrix", paste=True), r"\frac{1}{2}")
+        self.assertEqual(matrix_rows("1;2;3\n4;5;6"), [["1", "2", "3"], ["4", "5", "6"]])
         with self.assertRaises(ValueError):
-            matrix_rows("1;2;3\n4;5;6")
+            matrix_rows("1;2;3\n4;5")
 
     def test_vector_and_bisection_parameter_keep_their_values(self):
         vector = from_ascii("1, -2, -(1)/(2)", "vector")

@@ -63,7 +63,7 @@ customElements.whenDefined("math-field").then(() => {
       document.documentElement.dataset.kind = format;
       field.readOnly = format === "output";
       field.setAttribute("aria-label", name || "Resultado");
-      if (format === "matrix") field.maxMatrixCols = 2;
+      if (format === "matrix") field.maxMatrixCols = 1000;
     };
     window.setFormula = (latex) => {
       field.setValue(latex, {silenceNotifications: true});

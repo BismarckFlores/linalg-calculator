@@ -27,7 +27,7 @@ source .venv/bin/activate
 Con el entorno activo, instala las dependencias y abre la calculadora.
 
 ```bash
-pip install -r requirements-gui.txt
+pip install -r requirements.txt
 python main.py
 ```
 
@@ -104,7 +104,7 @@ python -m unittest discover -s tests -v
 
 `check.py` muestra las comprobaciones del motor y se detiene ante un resultado
 distinto del esperado. Las pruebas unitarias incluyen los casos numéricos y,
-con CustomTkinter y una pantalla Tk, la navegación de la app.
+con PySide6 y una sesión gráfica, la navegación de la app.
 
 Entrega el repositorio. Para reproducir una actividad, indica en qué
 herramienta del menú se encuentra y con qué datos se puede probar.

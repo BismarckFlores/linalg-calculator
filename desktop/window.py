@@ -1,25 +1,27 @@
-"""Ventana Qt con el catálogo y una herramienta de muestra por sección."""
+"""Ventana Qt y catálogo de herramientas."""
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from itertools import groupby
 import os
 import sys
 
 from PySide6.QtCore import Qt
 from PySide6.QtQuick import QQuickWindow
 from PySide6.QtWidgets import (
-    QApplication, QButtonGroup, QFrame, QHBoxLayout, QMainWindow,
+    QApplication, QButtonGroup, QFrame, QGridLayout, QHBoxLayout, QMainWindow,
     QPushButton, QScrollArea, QStackedWidget, QVBoxLayout, QWidget,
 )
 
-from .bisection import RegulaFalsiPage, RootBracketPage
-from .examples import bases_page, determinant_page, gauss_page, vectors_page
+from .roots import RegulaFalsiPage, RootBracketPage
+from .number_tools import bases_page, roman_page, vectors_page
 from .math_input import MathInput
+from .matrix_tools import determinant_page, echelon_page, factor_page, gauss_page, operations_page
 from .widgets import badge, card, label, link, page_header, stylesheet
 
 
 @dataclass(frozen=True)
-class Demo:
+class Tool:
     key: str
     section: str
     glyph: str
@@ -28,30 +30,92 @@ class Demo:
     create: Callable[[], QWidget]
 
 
-DEMOS = (
-    Demo("gauss", "Sistemas Lineales", "▦", "Eliminación Gaussiana",
-         "Resuelve un sistema escrito por ecuaciones y verifica la solución.", gauss_page),
-    Demo("determinant", "Matrices", "|A|", "Determinante",
-         "Edita una matriz y consulta el cálculo por cofactores.", determinant_page),
-    Demo("vectors", "Vectores", "↗", "Operaciones Vectoriales",
-         "Suma dos vectores y revisa el resultado por componente.", vectors_page),
-    Demo("bases", "Sistemas Numéricos", "⇄", "Conversiones",
-         "Convierte un entero y revisa las divisiones sucesivas.", bases_page),
-    Demo("bisection", "Métodos Numéricos", "½", "Método de Bisección",
+TOOLS = (
+    Tool("gauss", "Sistemas Lineales", "▦", "Eliminación Gaussiana",
+         "Resuelve sistemas por Gauss o Gauss–Jordan y verifica la solución.", gauss_page),
+    Tool("echelon", "Sistemas Lineales", "▧", "Formas Escalonadas",
+         "Comprueba las propiedades de una matriz y localiza sus pivotes.", echelon_page),
+    Tool("operations", "Matrices", "⊞", "Operaciones Matriciales",
+         "Suma, resta, multiplica, escala y transpone matrices.", operations_page),
+    Tool("inverse", "Matrices", "⁻¹", "Matriz Inversa",
+         "Calcula la inversa y resuelve sistemas con ella.", lambda: factor_page(inverse=True)),
+    Tool("lu", "Matrices", "LU", "Factorización LU",
+         "Descompón la matriz y resuelve sistemas por sustitución.", lambda: factor_page(inverse=False)),
+    Tool("determinant", "Matrices", "|A|", "Determinante",
+         "Calcula por cofactores o factorización LU y compara ambos métodos.", determinant_page),
+    Tool("vectors", "Vectores", "↗", "Operaciones Vectoriales",
+         "Opera por componente y estudia combinaciones lineales.", vectors_page),
+    Tool("bases", "Sistemas Numéricos", "⇄", "Conversiones",
+         "Convierte enteros entre decimal, otras bases y romano.", bases_page),
+    Tool("roman", "Sistemas Numéricos", "Ⅻ", "Aritmética Romana",
+         "Suma, resta y multiplica numerales romanos con su procedimiento.", roman_page),
+    Tool("bisection", "Métodos Numéricos", "½", "Método de Bisección",
          "Escribe con el editor matemático, grafica y aproxima una raíz.", RootBracketPage),
-    Demo("regula_falsi", "Métodos Numéricos", "RF", "Regula Falsi",
+    Tool("regula_falsi", "Métodos Numéricos", "RF", "Regula Falsi",
          "Aproxima una raíz por el cruce de la secante con el eje x.", RegulaFalsiPage),
 )
 
 
-class PreviewWindow(QMainWindow):
+class Catalog(QWidget):
+    def __init__(self, select: Callable[[str], None]) -> None:
+        super().__init__()
+        self._grids = []
+        self._columns = 0
+        layout = QVBoxLayout(self)
+        layout.setSpacing(10)
+        layout.addWidget(page_header("⌂", "Inicio", "Elige una herramienta para comenzar."))
+        for name, group in groupby(TOOLS, key=lambda tool: tool.section):
+            tools = tuple(group)
+            layout.addSpacing(10)
+            section = QHBoxLayout()
+            section.addWidget(label(name, "heading"), 1)
+            count = len(tools)
+            section.addWidget(label("1 herramienta" if count == 1 else f"{count} herramientas", "count"))
+            layout.addLayout(section)
+            grid = QGridLayout()
+            grid.setSpacing(10)
+            tiles = []
+            for tool in tools:
+                tile, content = card()
+                heading = QHBoxLayout()
+                heading.setSpacing(10)
+                heading.addWidget(badge(tool.glyph))
+                heading.addWidget(label(tool.title, "heading"), 1)
+                content.addLayout(heading)
+                content.addWidget(label(tool.detail, "muted"))
+                open_page = link("Abrir  →")
+                open_page.setAccessibleName(f"Abrir {tool.title}")
+                open_page.clicked.connect(lambda checked=False, key=tool.key: select(key))
+                content.addWidget(open_page, alignment=Qt.AlignmentFlag.AlignRight)
+                tiles.append(tile)
+                grid.addWidget(tile, len(tiles) - 1, 0)
+            self._grids.append((grid, tiles))
+            layout.addLayout(grid)
+        layout.addStretch()
+
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        columns = 2 if self.width() - self.layout().contentsMargins().left() - self.layout().contentsMargins().right() >= 720 else 1
+        if columns == self._columns:
+            return
+        self._columns = columns
+        for grid, tiles in self._grids:
+            grid.setColumnStretch(0, 1)
+            grid.setColumnStretch(1, int(columns == 2 and len(tiles) > 1))
+            for index, tile in enumerate(tiles):
+                grid.removeWidget(tile)
+                row, column = divmod(index, columns)
+                grid.addWidget(tile, row, column, 1, columns if len(tiles) == 1 else 1)
+
+
+class CalculatorWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Calculadora de Álgebra Lineal")
         self.resize(1180, 800)
         self.setMinimumSize(960, 640)
         self._dark = False
-        self._demos = {demo.key: demo for demo in DEMOS}
+        self._tools = {tool.key: tool for tool in TOOLS}
         self.pages: dict[str, QWidget] = {}
         self._scroll: dict[str, QScrollArea] = {}
         self._nav: dict[str, QPushButton] = {}
@@ -66,7 +130,7 @@ class PreviewWindow(QMainWindow):
         self.stack = QStackedWidget()
         layout.addWidget(self.stack, 1)
         self.setCentralWidget(surface)
-        self._add_page("home", self._home())
+        self._add_page("home", Catalog(self.select))
         self.select("home")
         self._apply_theme()
 
@@ -107,15 +171,16 @@ class PreviewWindow(QMainWindow):
         links.setSpacing(4)
         links.addWidget(self._navigation("home", "⌂", "Inicio"))
         previous_section = None
-        for demo in DEMOS:
-            if demo.section != previous_section:
-                heading = label(demo.section.upper(), "group")
+        for tool in TOOLS:
+            if tool.section != previous_section:
+                heading = label(tool.section.upper(), "group")
                 heading.setContentsMargins(8, 16, 0, 8)
                 links.addWidget(heading)
-                previous_section = demo.section
-            links.addWidget(self._navigation(demo.key, demo.glyph, demo.title))
+                previous_section = tool.section
+            links.addWidget(self._navigation(tool.key, tool.glyph, tool.title))
         links.addStretch()
         scroll.setWidget(rows)
+        self._nav_scroll = scroll
         layout.addWidget(scroll)
         return sidebar
 
@@ -148,35 +213,6 @@ class PreviewWindow(QMainWindow):
         self._nav[key] = button
         return button
 
-    def _home(self) -> QWidget:
-        home = QWidget()
-        layout = QVBoxLayout(home)
-        layout.setSpacing(10)
-        layout.addWidget(page_header("⌂", "Inicio", "Elige una herramienta para comenzar."))
-        previous_section = None
-        for demo in DEMOS:
-            if demo.section != previous_section:
-                layout.addSpacing(10)
-                section = QHBoxLayout()
-                section.addWidget(label(demo.section, "heading"), 1)
-                count = sum(tool.section == demo.section for tool in DEMOS)
-                section.addWidget(label("1 herramienta" if count == 1 else f"{count} herramientas", "count"))
-                layout.addLayout(section)
-                previous_section = demo.section
-            tile, content = card()
-            heading = QHBoxLayout()
-            heading.setSpacing(10)
-            heading.addWidget(badge(demo.glyph))
-            heading.addWidget(label(demo.title, "heading"), 1)
-            content.addLayout(heading)
-            content.addWidget(label(demo.detail, "muted"))
-            open_page = link("Abrir  →")
-            open_page.clicked.connect(lambda checked=False, key=demo.key: self.select(key))
-            content.addWidget(open_page, alignment=Qt.AlignmentFlag.AlignRight)
-            layout.addWidget(tile)
-        layout.addStretch()
-        return home
-
     def _add_page(self, key: str, page: QWidget) -> None:
         scroll = QScrollArea()
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
@@ -194,10 +230,11 @@ class PreviewWindow(QMainWindow):
 
     def select(self, key: str) -> None:
         if key not in self.pages:
-            page = self._demos[key].create()
+            page = self._tools[key].create()
             self._apply_page_theme(page)
             self._add_page(key, page)
         self._nav[key].setChecked(True)
+        self._nav_scroll.ensureWidgetVisible(self._nav[key], 0, 8)
         self.stack.setCurrentWidget(self._scroll[key])
 
     def _toggle_theme(self) -> None:
@@ -226,6 +263,6 @@ def run() -> None:
     if sys.platform == "linux":
         # WebEngine cambia la superficie de la ventana si se activa OpenGL al abrir Bisección.
         QQuickWindow.setSceneGraphBackend("software")
-    window = PreviewWindow()
+    window = CalculatorWindow()
     window.show()
     sys.exit(app.exec())
