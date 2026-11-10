@@ -189,14 +189,27 @@ CONSOLE_BLOCKS: list[Block] = [
 
 WINDOW_BLOCKS: list[Block] = [
     Block(
-        "core/bisection.py",
-        "BISECCION Y REGLA FALSA",
-        "Evalua una funcion real y reduce un intervalo con cambio de signo.\n"
-        "Biseccion usa el punto medio; regla falsa usa el cruce de la secante.\n"
-        "Guarda cada iteracion y distingue ancho, residuo y error relativo.\n"
-        "El algoritmo es propio, con Python estandar; math solo evalua las\n"
-        "funciones elementales que se escriben en f(x). No se usa eval.\n"
+        "core/real_function.py",
+        "LA FUNCION REAL",
+        "Interpreta f(x) con operaciones y funciones permitidas. math evalua las\n"
+        "funciones elementales. El muestreo guarda puntos para dibujar la curva.",
+    ),
+    Block(
+        "core/root_bracket.py",
+        "EL INTERVALO Y LA TRAZA",
+        "Valida el cambio de signo, conserva el subintervalo y guarda cada\n"
+        "estimacion. Distingue ancho, residuo y error relativo.\n"
         "La garantia de existencia de raiz supone continuidad en todo [a,b].",
+    ),
+    Block(
+        "core/bisection.py",
+        "EL METODO DE BISECCION",
+        "Elige el punto medio del intervalo en cada iteracion.",
+    ),
+    Block(
+        "core/regula_falsi.py",
+        "EL METODO DE REGLA FALSA",
+        "Elige el cruce de la secante con el eje x en cada iteracion.",
     ),
     Block(
         "core/echelon.py",
@@ -429,13 +442,26 @@ WINDOW_BLOCKS: list[Block] = [
         "respuesta, porque los romanos no escribían esos números.",
     ),
     Block(
-        "gui/pages/bisection.py",
-        "LAS PESTANAS DE BISECCION Y REGLA FALSA",
-        "Grafica f(x) antes de mostrar a, b, tolerancia y limite de iteraciones.\n"
-        "Las dos pestanas reutilizan la misma pantalla. Muestran la raiz,\n"
-        "la sustitucion en la funcion original, la tabla y el paso a paso.\n"
+        "gui/root_plot.py",
+        "LA GRAFICA DE FUNCIONES",
         "La grafica usa el Canvas de Tkinter: permite acercar, alejar y arrastrar,\n"
         "sin consultas de valores al cursor ni dependencias adicionales.",
+    ),
+    Block(
+        "gui/pages/root_bracket.py",
+        "LA PANTALLA PARA METODOS CON INTERVALO",
+        "Grafica f(x) antes de mostrar a, b, tolerancia y limite de iteraciones.\n"
+        "Presenta la raiz, la sustitucion, la tabla y el paso a paso.",
+    ),
+    Block(
+        "gui/pages/bisection.py",
+        "LA PESTANA DE BISECCION",
+        "Define los ejemplos, los criterios y la estimacion por punto medio.",
+    ),
+    Block(
+        "gui/pages/regula_falsi.py",
+        "LA PESTANA DE REGLA FALSA",
+        "Define los ejemplos, los criterios y la estimacion por secante.",
     ),
     Block(
         "gui/app.py",

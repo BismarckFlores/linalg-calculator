@@ -72,21 +72,24 @@ computed twice.
 
 ---
 
-## `core/bisection.py`
+## Numerical root modules
 
 Numerical real roots, separate from exact matrix arithmetic. See
 [bisection.md](bisection.md) for the algorithm, assumptions and course cases.
 
-| Name | Contract |
-| --- | --- |
-| `RealFunction(text)` | Validates and interprets arithmetic in x with an AST whitelist. Callable; raises `BisectionError` for invalid/domain/non-finite evaluations. |
-| `bisection_number(value)` | Reuses `to_scalar` for scalar inputs and converts to a finite float. |
-| `BisectionCriterion` | `WIDTH`, `RESIDUAL`, `RELATIVE` (percent). |
-| `BisectionStop` | `ZERO`, `TOLERANCE`, `LIMIT`, `STAGNATION`. |
-| `bisect(function, a, b, tolerance="0.0001", *, criterion=WIDTH, max_iterations=100)` | Returns a `BisectionResult`, including unsuccessful limit/stagnation stops. Needs opposite endpoint signs or an endpoint zero; root guarantees require continuity. |
-| `BisectionStep` | Frozen iteration with index, a, b, c, fa, fb, fc, relative_error; exposes width, geometric bound, residual and sign decision. |
-| `BisectionResult` | Frozen result with function, initial/final endpoints, tolerance, criterion, steps, stop, root, value, converged and bound. |
-| `sample_bisection(function, a, b, count=401)` | Plot samples; undefined evaluations produce `(x, None)` gaps. Does not solve or prove continuity. |
+| Module | Name | Contract |
+| --- | --- | --- |
+| `core/real_function.py` | `RealFunction(text)` | Validates and interprets arithmetic in x with an AST whitelist. Raises `RootInputError` for invalid expressions or evaluations. |
+| `core/real_function.py` | `sample_function(function, a, b, count=401)` | Plot samples. Undefined evaluations produce `(x, None)` gaps. |
+| `core/root_bracket.py` | `read_root_number(value)` | Reuses `to_scalar` and converts to a finite float. |
+| `core/root_bracket.py` | `RootCriterion`, `RootStop` | Criteria are `WIDTH`, `RESIDUAL`, `RELATIVE` (percent). Stop reasons are `ZERO`, `TOLERANCE`, `LIMIT`, `STAGNATION`. |
+| `core/root_bracket.py` | `solve_bracket(...)` | Takes an estimate function. Checks endpoint signs or a zero, preserves the bracket and records the iteration history. |
+| `core/root_bracket.py` | `BracketStep`, `BracketResult` | Frozen iteration and result with endpoints, estimates, evaluations, error measures and stop reason. |
+| `core/bisection.py` | `bisect(function, a, b, tolerance="0.0001", *, criterion=WIDTH, max_iterations=100)` | Returns a `BracketResult` using midpoint estimates. |
+| `core/regula_falsi.py` | `regula_falsi(function, a, b, tolerance="0.01", *, criterion=RELATIVE, max_iterations=100)` | Returns a `BracketResult` using secant intersections. |
+
+The original `Bisection*`, `bisection_number` and `sample_bisection` imports
+continue to resolve from `core/bisection.py`.
 
 ## `core/scalar.py`
 
@@ -570,7 +573,9 @@ The window. `python -m gui`, from the repository root. Full notes in
 | `gui/pages/inverse.py` | `InversePage`: inverse and `Ax = b`, both entered through the shared coefficient grids or equation parser, with matrix displays, product checks and `StepWalker`. |
 | `gui/pages/echelon.py` | `EchelonPage`: the five properties, the leading entries and the pivots. Owns their Spanish, since no other front end says it. |
 | `gui/pages/bases.py` | `BasesPage`: decimal to base 2, 8, 16 or any other from 2 to 36 and back, with the divisions, the combination and a table of positions. |
-| `gui/pages/bisection.py` | `BisectionPage`: input, result, check, shared `StepWalker`, `SegmentedControl` choices and paginated table. Table notation is decimal/automatic. Decimal uses a shared `Stepper` for 0–17 places, default 5; automatic retains the original `.10g` formatting. `BisectionPlot`: Canvas with zoom, drag and reset, no cursor-value queries. Shares `LinkButton`, `MathBlock`, `MathLine`, theme and cards. |
+| `gui/root_plot.py` | `RootPlot`: Canvas with wheel and button zoom, drag, reset and expansion. |
+| `gui/pages/root_bracket.py` | `RootBracketPage`: graph-first input, result, verification, shared `StepWalker` and paginated table with decimal or automatic formatting. |
+| `gui/pages/bisection.py` and `gui/pages/regula_falsi.py` | `BisectionPage` and `RegulaFalsiPage`: method-specific examples, criteria, formula and solver. |
 | `gui/pages/gauss.py` | `GaussPage`: `A x = b` by either method, from coefficients or from written equations, shown first as the matrix equation, with the step by step, and a unique solution checked with the product `A x` as well as equation by equation. |
 
 `GROUPS` holds only what works. A row is added when its page is; a program with

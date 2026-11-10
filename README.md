@@ -30,7 +30,10 @@ linalg-calculator/
 │   ├── roman.py          # Roman numerals, read, written and operated on
 │   ├── lu.py             # PA = LU, and Ax = b by two substitutions
 │   ├── determinant.py    # det A by cofactors and by LU, and what each costs
-│   ├── bisection.py      # numerical roots, stopping rules and the saved intervals
+│   ├── real_function.py  # real expression reader and plot samples
+│   ├── root_bracket.py   # shared interval validation, stopping and trace
+│   ├── bisection.py      # root estimate by midpoint
+│   ├── regula_falsi.py   # root estimate by secant intersection
 │   └── vectors.py        # vectors of Rⁿ, and whether b combines the others
 ├── ui/                   # everything a person reads, in Spanish
 │   ├── presentation.py   # engine objects → the words that go on screen
@@ -39,6 +42,7 @@ linalg-calculator/
 │   ├── theme.py          # colours, fonts, the light/dark switch
 │   ├── widgets.py        # the shapes CustomTkinter does not have
 │   ├── entry.py          # the two ways a matrix is handed over, in one card
+│   ├── root_plot.py      # shared function plot, zoom and pan
 │   ├── app.py            # the window, the sidebar, which page is open
 │   └── pages/            # grouped in the sidebar: matrices (operations, inverse,
 │                         # elimination, echelon forms), vectors, numeral systems
@@ -206,8 +210,10 @@ which stopping rule was reached. The page **Método de Bisección**, under
 step reader and iteration table. `python build.py` also generates
 `deliverables/out/Programa Biseccion_Grupo5.py` for this assignment.
 
-**Regula Falsi** shares this workflow and uses the secant intersection as the
-estimate. It has its own entry under **Métodos Numéricos** and its own generated
+`core/regula_falsi.py` uses the secant intersection as the estimate. Both
+methods call the interval solver in `core/root_bracket.py` and use the shared
+page in `gui/pages/root_bracket.py`. **Regula Falsi** has its own entry under
+**Métodos Numéricos** and its own generated
 `deliverables/out/Programa Regula Falsi_Grupo5.py`. See [the method notes](docs/bisection.md#regula-falsi).
 
 ## The wording

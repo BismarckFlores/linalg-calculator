@@ -131,10 +131,14 @@ such as checking a derivative in Newton's method, are not bisection features.
 
 | File | Responsibility |
 | --- | --- |
-| `core/bisection.py` | `RealFunction`, parameter validation, `bisect`, immutable `BisectionStep` and `BisectionResult`, plot sampling. Standard library only. |
-| `gui/pages/bisection.py` | `BisectionPage` arranges the existing widgets; `BisectionPlot` draws with Tkinter Canvas and implements view navigation. |
+| `core/real_function.py` | Reads and evaluates `RealFunction` and samples it for the plot. |
+| `core/root_bracket.py` | Validates inputs and intervals, checks stopping rules and records `BracketStep` and `BracketResult`. |
+| `core/bisection.py` and `core/regula_falsi.py` | Define each method's estimate and default tolerance. |
+| `gui/root_plot.py` | Draws `RootPlot` with Tkinter Canvas and implements view navigation. |
+| `gui/pages/root_bracket.py` | `RootBracketPage` arranges the graph, controls, result, step reader and table. |
+| `gui/pages/bisection.py` and `gui/pages/regula_falsi.py` | Configure the shared page with each method's solver, examples and labels. |
 | `gui/app.py` | Registers the page and keeps the expanded sidebar usable in small windows. |
-| `build.py` | Includes both modules in window builds and creates the bisection assignment file. |
+| `build.py` | Combines the modules in dependency order to generate the independent assignment files. |
 | `tests/test_bisection.py` | Course results, bracket invariants and numerical/parser boundary cases. |
 
 The core algorithm is a loop:
@@ -186,7 +190,7 @@ c = b − f(b)(a − b)/(f(a) − f(b))
 
 The implementation computes the equivalent distance from the endpoint nearer
 the intersection, with a ratio of absolute values to avoid overflow when
-subtracting large ordinates with opposite signs. `_solve_bracket` shares the
+subtracting large ordinates with opposite signs. `solve_bracket` shares the
 validation, sign comparisons, endpoint updates and trace with `bisect`.
 Only one new function evaluation is needed per iteration after the endpoints.
 

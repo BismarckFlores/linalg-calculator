@@ -21,13 +21,14 @@ import customtkinter as ctk
 
 from . import theme
 from .pages.bases import BasesPage
-from .pages.bisection import BisectionPage, RegulaFalsiPage
+from .pages.bisection import BisectionPage
 from .pages.determinant import DeterminantPage
 from .pages.echelon import EchelonPage
 from .pages.gauss import GaussPage
 from .pages.inverse import InversePage
 from .pages.lu import LUPage
 from .pages.operations import OperationsPage
+from .pages.regula_falsi import RegulaFalsiPage
 from .pages.roman import RomanPage
 from .pages.vectors import VectorsPage
 from .widgets import WHEEL_STEP, Card, GlyphBadge, Wide, PageHeader, SectionTitle, LinkButton

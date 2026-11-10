@@ -55,11 +55,13 @@ The cost is that a decimal typed in becomes a fraction on the way out — `0.18`
 comes back as `9/50` — which is the right trade for a course where the answers
 are fractions.
 
-Numerical root finding has a different contract. `core/bisection.py` uses
-`float` and supports elementary transcendental functions; it does not change
-the matrix scalars. Width, residual and relative change are separate measures,
-and a stagnation or iteration-limit stop is not successful convergence. See
-[bisection.md](bisection.md) for the assumptions and numerical limitations.
+Numerical root finding uses `float` and supports elementary transcendental
+functions. `core/real_function.py` evaluates the expression, and
+`core/root_bracket.py` owns the interval, iteration trace and stop rules.
+Bisection and Regula Falsi each supply their own estimate. Width, residual and
+relative change measure different quantities. The result records convergence,
+stagnation or the iteration limit separately. See [bisection.md](bisection.md)
+for the assumptions and numerical limitations.
 
 ## Bisection reuses the page and step reader
 

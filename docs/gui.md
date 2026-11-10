@@ -528,7 +528,8 @@ pages read matrices out of their cells, call `solve`, `to_rref`, `verify` or a
 `Matrix` operator, and arrange what comes back. If a calculation ever appears in
 this package it is in the wrong place.
 Graph coordinate transformations and viewport navigation live with the drawing;
-function evaluation and plot sampling remain in `core/bisection.py`.
+function evaluation and plot sampling live in `core/real_function.py`. The
+shared plot and page live in `gui/root_plot.py` and `gui/pages/root_bracket.py`.
 
 **No wording in `gui/` that another front end also needs.** The five properties
 of the echelon forms are the exception that proves it: only this window says
