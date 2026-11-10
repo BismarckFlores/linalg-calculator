@@ -182,6 +182,7 @@ class MathInput(QWidget):
             "card": theme.CARD[mode], "field": theme.FIELD[mode],
             "border": theme.BORDER[mode], "ink": theme.INK[mode],
             "accent": theme.ACCENT, "on-accent": theme.ON_ACCENT,
+            "accent-soft": theme.ACCENT_SOFT[mode],
             "radius": f"{theme.FIELD_RADIUS}px",
         }
         self.web.page().setBackgroundColor(QColor(colors["card"]))

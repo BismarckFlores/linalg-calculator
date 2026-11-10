@@ -31,6 +31,7 @@ customElements.whenDefined("math-field").then(() => {
   const field = document.createElement("math-field");
   field.id = "expression";
   field.setAttribute("aria-label", "Función");
+  field.smartFence = true;
   field.mathVirtualKeyboardPolicy = "manual";
   document.querySelector("#editor").appendChild(field);
   field.keybindings = field.keybindings.filter(({command}) => command !== "toggleVirtualKeyboard");
