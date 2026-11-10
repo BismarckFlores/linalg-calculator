@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QWidget
 
 from core.real_function import RealFunction, sample_function
 from core.root_bracket import BracketResult
+from ui import theme_tokens as theme
 
 
 class FunctionPlot(QWidget):
@@ -87,8 +88,9 @@ class FunctionPlot(QWidget):
                 rect.bottom() - (y - bottom) / (top - bottom) * rect.height(),
             )
 
-        grid = QColor("#354155" if self.dark else "#dce3ed")
-        ink = QColor("#c3cee1" if self.dark else "#52627a")
+        mode = int(self.dark)
+        grid = QColor(theme.BORDER[mode])
+        ink = QColor(theme.MUTED[mode])
         for index in range(5):
             x = low + (high - low) * (index / 4)
             y = bottom + (top - bottom) * index / 4
@@ -105,7 +107,7 @@ class FunctionPlot(QWidget):
         if low <= 0 <= high:
             painter.drawLine(position(0, bottom), position(0, top))
         painter.setClipRect(rect)
-        painter.setPen(QPen(QColor("#0071e3"), 2))
+        painter.setPen(QPen(QColor(theme.ACCENT), 2))
         previous = None
         for x, value in self._samples:
             point = position(x, value / scale) if value is not None else None
@@ -115,6 +117,6 @@ class FunctionPlot(QWidget):
         if self.result is not None:
             for x, name in ((self.result.initial_a, "a"), (self.result.initial_b, "b"), (self.result.root, "c")):
                 if low <= x <= high:
-                    painter.setPen(QPen(QColor("#d97706"), 1, Qt.PenStyle.DashLine))
+                    painter.setPen(QPen(QColor(theme.ORANGE), 1, Qt.PenStyle.DashLine))
                     painter.drawLine(position(x, bottom), position(x, top))
                     painter.drawText(position(x, top) + QPointF(4, 14), name)

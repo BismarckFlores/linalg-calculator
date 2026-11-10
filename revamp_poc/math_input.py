@@ -14,6 +14,9 @@ from PySide6.QtWidgets import (
 )
 
 from core.real_function import RealFunction
+from ui import theme_tokens as theme
+
+from .widgets import pill_group
 
 
 def formula_latex(text: str) -> str:
@@ -96,13 +99,15 @@ class MathInput(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         choices = QHBoxLayout()
+        modes, mode_buttons = pill_group()
         self._buttons = QButtonGroup(self)
         self.visual_button = QPushButton("Editor matemático", checkable=True, checked=True)
         self.text_button = QPushButton("Texto", checkable=True)
         self._buttons.addButton(self.visual_button, 0)
         self._buttons.addButton(self.text_button, 1)
-        choices.addWidget(self.visual_button)
-        choices.addWidget(self.text_button)
+        mode_buttons.addWidget(self.visual_button)
+        mode_buttons.addWidget(self.text_button)
+        choices.addWidget(modes)
         choices.addStretch()
         self.keyboard_button = QPushButton("⌨  Teclado")
         self.keyboard_button.setEnabled(False)
@@ -112,14 +117,14 @@ class MathInput(QWidget):
 
         self.stack = QStackedWidget()
         self.web = QWebEngineView()
-        self.web.setFixedHeight(74)
+        self.web.setFixedHeight(60)
         self.text = QLineEdit(self._value)
         self.text.setAccessibleName("Función f(x)")
         self.text.textEdited.connect(lambda: self.changed.emit())
         self.stack.addWidget(self.web)
         self.stack.addWidget(self.text)
         # El tamaño de la página sigue solo el modo visible.
-        self.stack.setFixedHeight(74)
+        self.stack.setFixedHeight(60)
         layout.addWidget(self.stack)
         self.message = QLabel()
         self.message.setObjectName("inputError")
@@ -154,8 +159,16 @@ class MathInput(QWidget):
 
     def set_dark(self, dark: bool) -> None:
         self._dark = dark
-        self.web.page().setBackgroundColor(QColor("#1c2432" if dark else "#ffffff"))
-        self._js(f"setEditorDark({json.dumps(dark)})")
+        mode = int(dark)
+        colors = {
+            "card": theme.CARD[mode], "field": theme.FIELD[mode],
+            "hover": theme.FIELD_HOVER[mode], "border": theme.BORDER[mode],
+            "ink": theme.INK[mode], "muted": theme.MUTED[mode],
+            "accent": theme.ACCENT, "accent-soft": theme.ACCENT_SOFT[mode],
+            "on-accent": theme.ON_ACCENT, "radius": f"{theme.FIELD_RADIUS}px",
+        }
+        self.web.page().setBackgroundColor(QColor(colors["card"]))
+        self._js(f"setEditorTheme({json.dumps('dark' if dark else 'light')}, {json.dumps(colors)})")
 
     def _js(self, command: str) -> None:
         if self._ready:
@@ -204,7 +217,7 @@ class MathInput(QWidget):
         else:
             self.hide_keyboard()
             self.text.setText(self._value)
-            self.stack.setFixedHeight(46)
+            self.stack.setFixedHeight(40)
         self.stack.setCurrentIndex(index)
         self._buttons.button(index).setChecked(True)
         self.keyboard_button.setEnabled(index == 0 and self._ready)

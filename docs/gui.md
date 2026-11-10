@@ -228,7 +228,8 @@ desplazamiento horizontal. Los controles permanecen en su lugar.
 | Componente | Responsabilidad |
 | --- | --- |
 | `gui/app.py` | Ventana, Inicio, menú, tema y selección de páginas. |
-| `gui/theme.py` | Colores como pares claro/oscuro y tipografías. Las fuentes se cargan después de abrir la ventana. |
+| `ui/theme_tokens.py` | Pares de colores claro/oscuro, radios y familias tipográficas compartidos. |
+| `gui/theme.py` | Cambia el tema y carga las fuentes después de abrir la ventana de CustomTkinter. |
 | `gui/widgets.py` | Tarjetas, matrices, expresiones, fracciones, selectores y navegación compartida. |
 | `gui/entry.py` | Cuadrículas de entrada y lectura de ecuaciones. |
 | `gui/root_plot.py` | Dibujo y transformación de coordenadas de la gráfica. |

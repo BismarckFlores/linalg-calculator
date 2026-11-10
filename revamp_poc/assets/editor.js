@@ -54,8 +54,12 @@ customElements.whenDefined("math-field").then(() => {
     window.setFormula = (latex) => {
       field.setValue(latex, {silenceNotifications: true});
     };
-    window.setEditorDark = (dark) => {
-      document.documentElement.dataset.dark = dark;
+    window.setEditorTheme = (mode, colors) => {
+      const root = document.documentElement;
+      root.setAttribute("theme", mode);
+      for (const [name, value] of Object.entries(colors)) {
+        root.style.setProperty(`--app-${name}`, value);
+      }
     };
     window.toggleKeyboard = () => {
       field.focus();
@@ -66,8 +70,9 @@ customElements.whenDefined("math-field").then(() => {
     function resizeEditor() {
       cancelAnimationFrame(resizeFrame);
       resizeFrame = requestAnimationFrame(() => {
-        const fieldHeight = Math.max(66, field.getBoundingClientRect().height);
-        editorBridge.viewHeight(Math.ceil(fieldHeight + keyboard.boundingRect.height + 8));
+        const fieldHeight = field.getBoundingClientRect().height;
+        const keyboardHeight = keyboard.boundingRect.height;
+        editorBridge.viewHeight(Math.ceil(fieldHeight + keyboardHeight + (keyboardHeight ? 16 : 2)));
       });
     }
     keyboard.addEventListener("geometrychange", resizeEditor);

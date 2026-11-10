@@ -58,9 +58,10 @@ core/
   regula_falsi.py    Estimación de la raíz por el cruce de la secante
 ui/
   presentation.py    Formato de ecuaciones, sustituciones y resultados
+  theme_tokens.py    Paleta, radios y familias tipográficas compartidos
 gui/
   app.py             Inicio, navegación y selección de herramienta
-  theme.py           Colores, tipografías y tema claro u oscuro
+  theme.py           Carga de fuentes y cambio de tema en CustomTkinter
   widgets.py         Componentes compartidos
   entry.py           Entrada por coeficientes o ecuaciones
   root_plot.py       Gráfica de funciones, zoom y arrastre

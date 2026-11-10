@@ -1,7 +1,8 @@
 """Prueba del flujo de Bisección con editor matemático."""
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QAbstractItemView, QFormLayout, QHeaderView, QHBoxLayout, QLineEdit, QPushButton,
+    QAbstractItemView, QGridLayout, QHeaderView, QHBoxLayout, QLineEdit, QPushButton,
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
@@ -11,7 +12,7 @@ from core.root_bracket import RootStop
 
 from .math_input import MathInput
 from .plot import FunctionPlot
-from .widgets import action, card, label
+from .widgets import action, card, label, link, page_header, pill_group
 
 
 class BisectionPage(QWidget):
@@ -21,15 +22,18 @@ class BisectionPage(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(14)
-        layout.addWidget(label("Método de Bisección", "title"))
-        layout.addWidget(label("Grafica la función y luego acota una raíz.", "muted"))
+        layout.addWidget(page_header(
+            "½", "Método de Bisección", "Encuentra una raíz de f(x) = 0 reduciendo un intervalo a la mitad.",
+        ))
 
         input_card, fields = card()
-        fields.addWidget(label("Función f(x)", "heading"))
+        fields.addWidget(label("Función f(x)", "caption"))
         self.editor = MathInput()
         self.editor.changed.connect(self._invalidate)
         fields.addWidget(self.editor)
-        examples = QHBoxLayout()
+        fields.addSpacing(6)
+        fields.addWidget(label("Cargar ejemplo", "caption"))
+        presets, examples = pill_group()
         for name, function, a, b in (
             ("Raíz de 2", "x^2 - 2", "1", "2"),
             ("Fracción con raíz", "sqrt(x+1)/2 - 1", "2", "4"),
@@ -37,11 +41,10 @@ class BisectionPage(QWidget):
             button = QPushButton(name)
             button.clicked.connect(lambda checked=False, f=function, lo=a, hi=b: self._example(f, lo, hi))
             examples.addWidget(button)
-        examples.addStretch()
-        fields.addLayout(examples)
+        fields.addWidget(presets, alignment=Qt.AlignmentFlag.AlignLeft)
         graph = action("Graficar función")
         graph.clicked.connect(self._graph)
-        fields.addWidget(graph)
+        fields.addWidget(graph, alignment=Qt.AlignmentFlag.AlignRight)
         self.graph_error = label("", "inputError")
         self.graph_error.hide()
         fields.addWidget(self.graph_error)
@@ -50,18 +53,18 @@ class BisectionPage(QWidget):
         self.graph_card, graph_layout = card()
         graph_layout.addWidget(label("Gráfica de la función", "heading"))
         self.plot = FunctionPlot()
-        graph_layout.addWidget(self.plot)
         buttons = QHBoxLayout()
         for text, callback in (
             ("+  Acercar", lambda: self.plot.zoom(0.8)),
             ("−  Alejar", lambda: self.plot.zoom(1.25)),
             ("Restablecer", self.plot.reset),
         ):
-            button = QPushButton(text)
+            button = link(text)
             button.clicked.connect(callback)
             buttons.addWidget(button)
         buttons.addStretch()
         graph_layout.addLayout(buttons)
+        graph_layout.addWidget(self.plot)
         graph_layout.addWidget(label("Usa la rueda para acercar o alejar. Arrastra para mover la vista.", "muted"))
         layout.addWidget(self.graph_card)
         self.graph_card.hide()
@@ -71,10 +74,15 @@ class BisectionPage(QWidget):
         self.a = QLineEdit("1")
         self.b = QLineEdit("2")
         self.tolerance = QLineEdit("0.0001")
-        form = QFormLayout()
-        for name, field in (("Extremo a", self.a), ("Extremo b", self.b), ("Tolerancia E", self.tolerance)):
+        form = QGridLayout()
+        form.setHorizontalSpacing(16)
+        for index, (name, field) in enumerate((
+            ("Extremo inferior a", self.a), ("Extremo superior b", self.b), ("Tolerancia E", self.tolerance),
+        )):
+            row, column = divmod(index, 2)
             field.setAccessibleName(name)
-            form.addRow(name, field)
+            form.addWidget(label(name, "caption"), 2 * row, column)
+            form.addWidget(field, 2 * row + 1, column)
             field.textChanged.connect(self._clear_result)
         control_layout.addLayout(form)
         control_layout.addWidget(label(
@@ -83,7 +91,7 @@ class BisectionPage(QWidget):
         ))
         calculate = action("Calcular raíz")
         calculate.clicked.connect(self._calculate)
-        control_layout.addWidget(calculate)
+        control_layout.addWidget(calculate, alignment=Qt.AlignmentFlag.AlignRight)
         self.solve_error = label("", "inputError")
         self.solve_error.hide()
         control_layout.addWidget(self.solve_error)
@@ -92,13 +100,14 @@ class BisectionPage(QWidget):
 
         self.result_card, result_layout = card()
         result_layout.addWidget(label("Resultado", "heading"))
-        self.answer = label("")
+        self.answer = label("", "answer")
         result_layout.addWidget(self.answer)
         self.table = QTableWidget(0, 6)
         self.table.setHorizontalHeaderLabels(["i", "a", "b", "c", "f(c)", "Ancho"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.verticalHeader().hide()
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setAlternatingRowColors(True)
         self.table.setMinimumHeight(230)
         result_layout.addWidget(self.table)
         layout.addWidget(self.result_card)

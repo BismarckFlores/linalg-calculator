@@ -356,7 +356,8 @@ describe qué muestra cada herramienta.
 | Módulo | Responsabilidad |
 | --- | --- |
 | `gui/app.py` | `Application`, `HomePage`, `NavRow`, `Group` y `Module`. `GROUPS` define las herramientas que usa Inicio y el menú. |
-| `gui/theme.py` | Pares de colores claro/oscuro, tipografías, `set_dark` y `on_change`. |
+| `ui/theme_tokens.py` | Paleta claro/oscuro, radios y familias tipográficas. |
+| `gui/theme.py` | Carga de fuentes en CustomTkinter, `set_dark` y `on_change`. |
 | `gui/widgets.py` | `ResultsPage`, `StepWalker`, `Wide`, `Card`, `PageHeader`, `SectionTitle`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `LinkButton`, `ErrorBanner`, `Chip`, `Bracket`, `FractionCell`, `MathLine`, `MathBlock`, `MathChip`, `Expression`, `ColumnDisplay` y `FactorizationDisplay`. |
 | `gui/entry.py` | `SystemInput` y `Typed`, entrada por cuadrícula o ecuaciones. |
 | `gui/root_plot.py` | `RootPlot` con Canvas, zoom, arrastre, restablecimiento y vista ampliada. |

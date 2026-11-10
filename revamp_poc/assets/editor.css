@@ -1,35 +1,89 @@
 :root {
   color-scheme: light;
-  color: #172033;
-  background: #fff;
+  color: var(--app-ink);
+  background: var(--app-card);
 }
 
-:root[data-dark="true"] {
+:root[theme="dark"] {
   color-scheme: dark;
-  color: #eef2fb;
-  background: #1c2432;
-}
-
-body {
-  margin: 0;
-  overflow: hidden;
 }
 
 math-field {
   display: block;
   box-sizing: border-box;
   width: 100%;
-  padding: 12px;
-  min-height: 65px;
-  border: 1px solid #a8b5c7;
-  border-radius: 10px;
-  background: transparent;
+  padding: 9px 12px;
+  min-height: 48px;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  background: var(--app-field);
   color: inherit;
-  font-size: 24px;
-  --caret-color: #0071e3;
+  font-size: 20px;
+  --primary-color: var(--app-accent);
+  --caret-color: var(--app-accent);
+  --selection-background-color: var(--app-accent-soft);
+}
+
+math-field:focus-within {
+  outline: none;
+  border-color: var(--app-accent);
 }
 
 math-field::part(virtual-keyboard-toggle),
 math-field::part(menu-toggle) {
   display: none;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  --keyboard-background: var(--app-field);
+  --keyboard-accent-color: var(--app-accent);
+  --keyboard-toolbar-text: var(--app-muted);
+  --keyboard-horizontal-rule: 1px solid var(--app-border);
+  --keyboard-padding-top: 4px;
+  --keyboard-padding-bottom: 5px;
+  --keyboard-padding-horizontal: 8px;
+  --keyboard-toolbar-font-size: 16px;
+  --keycap-background: var(--app-card);
+  --keycap-background-hover: var(--app-hover);
+  --keycap-border: var(--app-border);
+  --keycap-border-bottom: var(--app-border);
+  --keycap-text: var(--app-ink);
+  --keycap-text-active: var(--app-on-accent);
+  --keycap-text-pressed: var(--app-on-accent);
+  --keycap-secondary-background: var(--app-accent-soft);
+  --keycap-secondary-background-hover: var(--app-hover);
+  --keycap-secondary-text: var(--app-ink);
+  --keycap-secondary-border: var(--app-border);
+  --keycap-secondary-border-bottom: var(--app-border);
+  --variant-panel-background: var(--app-card);
+  --keycap-height: 36px;
+  --keycap-font-size: 17px;
+  --keycap-gap: 6px;
+}
+
+:root[theme] body > .ML__keyboard {
+  --keyboard-toolbar-background-hover: var(--app-hover);
+}
+
+:root[theme] body > .ML__keyboard.is-visible > .MLK__backdrop {
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  box-shadow: none;
+}
+
+:root[theme] .MLK__row :is(.MLK__keycap, .action) {
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  box-shadow: none;
+}
+
+.MLK__rows > .MLK__row .action {
+  padding: 0;
+  justify-content: center;
+}
+
+.MLK__row .action svg {
+  margin: 0;
 }

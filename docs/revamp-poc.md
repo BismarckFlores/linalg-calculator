@@ -1,8 +1,9 @@
 # Prueba de interfaz de escritorio
 
 La rama `Bismarck/ui-revamp` incluye una prueba de concepto con PySide6.
-Conserva la distribución con **Inicio**, menú lateral agrupado y temas claro y
-oscuro. Cada sección tiene una herramienta que usa el motor de la calculadora.
+Conserva la distribución con **Inicio**, menú lateral agrupado, insignias y
+tarjetas. Cada sección tiene una herramienta que usa el motor de la calculadora.
+El editor y el teclado siguen el tema claro u oscuro de la ventana.
 
 ## Ejecutar la prueba
 
@@ -40,8 +41,9 @@ Los otros módulos de la prueba usan los controles de texto o tabla de Qt.
 
 ## Cómo se integra
 
-La ventana, los formularios y la gráfica usan Qt. MathLive se ejecuta dentro
-del campo visual, en una vista Qt WebEngine. El campo convierte la entrada a
+La ventana, los formularios y la gráfica usan Qt. Las dos interfaces comparten
+los colores, radios y familias tipográficas en `ui/theme_tokens.py`.
+MathLive se ejecuta en una vista Qt WebEngine dentro del campo visual y convierte la entrada a
 texto para el mismo lector de funciones y el mismo algoritmo de Bisección.
 MathLive 0.111.4 y sus fuentes se cargan desde `revamp_poc/assets/vendor/`, que
 incluye los avisos de licencia. La prueba se puede abrir sin conexión una vez

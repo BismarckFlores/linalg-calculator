@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFormLayout, QHeaderView, QLineEdit, QPlainTextEdit,
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
@@ -17,20 +18,19 @@ from core.vectors import add, parse_vector
 from core.verification import verify
 from ui.presentation import describe, render_equations, render_values, render_verification
 
-from .widgets import action, card, label
+from .widgets import action, card, label, page_header
 
 
 class SamplePage(QWidget):
     def __init__(
-        self, title: str, subtitle: str, fields: list[tuple[str, QWidget]],
+        self, glyph: str, title: str, subtitle: str, fields: list[tuple[str, QWidget]],
         button: str, calculate: Callable[[], str],
     ) -> None:
         super().__init__()
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(14)
-        layout.addWidget(label(title, "title"))
-        layout.addWidget(label(subtitle, "muted"))
+        layout.addWidget(page_header(glyph, title, subtitle))
         panel, panel_layout = card()
         form = QFormLayout()
         for name, field in fields:
@@ -39,7 +39,7 @@ class SamplePage(QWidget):
         panel_layout.addLayout(form)
         submit = action(button)
         submit.clicked.connect(self._calculate)
-        panel_layout.addWidget(submit)
+        panel_layout.addWidget(submit, alignment=Qt.AlignmentFlag.AlignRight)
         self.error = label("", "inputError")
         self.error.hide()
         panel_layout.addWidget(self.error)
@@ -95,7 +95,7 @@ def gauss_page() -> SamplePage:
         return "\n\n".join(parts)
 
     return SamplePage(
-        "Eliminación Gaussiana", "Escribe el sistema con una ecuación por línea.",
+        "▦", "Eliminación Gaussiana", "Escribe el sistema con una ecuación por línea.",
         [("Ecuaciones", equations)], "Resolver sistema", calculate,
     )
 
@@ -116,7 +116,7 @@ def determinant_page() -> SamplePage:
         return f"det(A) = ad − bc\n       = ({a})({d}) − ({b})({c})\n       = {by_cofactors(matrix).value}"
 
     return SamplePage(
-        "Determinante 2 × 2", "Edita los coeficientes de la matriz. Se admiten fracciones.",
+        "|A|", "Determinante", "Edita los coeficientes de la matriz 2 × 2. Se admiten fracciones.",
         [("Matriz A", grid)], "Calcular determinante", calculate,
     )
 
@@ -134,7 +134,7 @@ def vectors_page() -> SamplePage:
         return f"u + v = ({entries})\n\n" + "\n".join(lines)
 
     return SamplePage(
-        "Suma de vectores", "Escribe las componentes separadas por comas.",
+        "↗", "Operaciones Vectoriales", "Suma dos vectores. Escribe las componentes separadas por comas.",
         [("Vector u", first), ("Vector v", second)], "Sumar vectores", calculate,
     )
 
@@ -152,6 +152,6 @@ def bases_page() -> SamplePage:
         return f"{result.value}₁₀ = {result.numeral}₂\n\n" + "\n".join(divisions)
 
     return SamplePage(
-        "Decimal a binario", "Convierte un entero con divisiones sucesivas entre 2.",
+        "⇄", "Conversiones", "Convierte un entero a binario con divisiones sucesivas entre 2.",
         [("Número decimal", decimal)], "Convertir a binario", calculate,
     )
