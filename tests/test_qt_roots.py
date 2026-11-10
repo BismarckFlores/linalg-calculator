@@ -154,9 +154,13 @@ class QtRootTests(unittest.TestCase):
         page.walk.all_steps.setChecked(True)
         self.assertIn("Paso 16", page.walk.output.value())
 
+        visible_editors = [editor for editor in page.findChildren(MathInput) if editor.web.isVisible()]
+        self.assertIn(page.editor, visible_editors)
+        values = [editor.value() for editor in visible_editors]
         self.click(page, "Maximizar")
         overlay = self.window.findChild(PlotOverlay)
         self.assertTrue(overlay.isVisible())
+        self.assertTrue(all(not editor.web.isVisible() for editor in visible_editors))
         self.assertIs(overlay.window(), self.window)
         self.assertEqual(overlay.geometry(), self.window.rect())
         expanded = overlay.findChild(FunctionPlot)
@@ -165,7 +169,14 @@ class QtRootTests(unittest.TestCase):
         QTest.keyClick(overlay, Qt.Key.Key_Escape)
         QTest.qWait(50)
         self.assertIsNone(self.window.findChild(PlotOverlay))
+        self.assertTrue(all(editor.web.isVisible() for editor in visible_editors))
+        self.assertEqual([editor.value() for editor in visible_editors], values)
         self.assertEqual(page.plot._range, expanded_range)
+        self.click(page, "Maximizar")
+        overlay = self.window.findChild(PlotOverlay)
+        self.click(overlay, "Cerrar")
+        self.assertIsNone(self.window.findChild(PlotOverlay))
+        self.assertTrue(all(editor.web.isVisible() for editor in visible_editors))
         page.tolerance.set_value("0.0001")
         self.assertFalse(page.result_card.isVisible())
         self.assertIsNone(page.plot.result)

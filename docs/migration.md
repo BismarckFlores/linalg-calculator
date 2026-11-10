@@ -98,3 +98,21 @@ opción seleccionada.
 
 En `main` se verificaron `check.py`, las 49 pruebas de la suite y el
 menú de tema con ratón y teclado en Linux.
+
+### Incidencias en Windows
+
+Se reportaron campos de MathLive encima de la gráfica ampliada, un icono
+genérico en la barra de tareas y una recreación aparente de la ventana al
+abrir una herramienta desde Inicio.
+
+En Linux con X11, la primera apertura de Bisección cambió el identificador
+nativo de la ventana con el renderizado predeterminado. Con el renderizado
+por software se abrió cada una de las once herramientas sin ese cambio.
+La corrección aplica el renderizado por software también en Windows y
+registra la identidad de la aplicación antes de crear la ventana. La gráfica
+ampliada oculta las vistas visibles de MathLive y las restaura con sus
+valores al cerrar con el botón o con Escape.
+
+Se comprobó el arranque y la navegación por las once herramientas en Linux
+con X11. Queda pendiente verificar los tres casos en Windows, incluida la
+identidad de la aplicación en la barra de tareas.

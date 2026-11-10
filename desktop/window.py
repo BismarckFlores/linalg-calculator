@@ -221,14 +221,22 @@ class CalculatorWindow(QMainWindow):
 def run() -> None:
     # Todas las vistas matemáticas cargan el mismo editor local.
     os.environ.setdefault("QTWEBENGINE_CHROMIUM_FLAGS", "--process-per-site")
+    if sys.platform == "win32":
+        from ctypes import c_long, c_wchar_p, windll
+
+        set_app_id = windll.shell32.SetCurrentProcessExplicitAppUserModelID
+        set_app_id.argtypes = (c_wchar_p,)
+        set_app_id.restype = c_long
+        set_app_id("BismarckFlores.LinqCalculator")
+    if sys.platform in ("linux", "win32"):
+        # Evita cambiar la superficie de la ventana al cargar MathLive.
+        QQuickWindow.setSceneGraphBackend("software")
+
     app = QApplication(sys.argv)
     app.setApplicationName("Calculadora de Álgebra Lineal")
     app.setDesktopFileName("linalg-calculator")
     app.setWindowIcon(QIcon(str(APP_ICON)))
     app.setStyle("Fusion")
-    if sys.platform == "linux":
-        # WebEngine cambia la superficie de la ventana si se activa OpenGL al abrir Bisección.
-        QQuickWindow.setSceneGraphBackend("software")
     window = CalculatorWindow()
     window.show()
     sys.exit(app.exec())

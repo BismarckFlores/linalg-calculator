@@ -2,8 +2,9 @@
 
 import math
 
-from PySide6.QtCore import QEvent, QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QKeySequence, QPainter, QPen, QShortcut
+from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, Signal
+from PySide6.QtGui import QColor, QPainter, QPen
+from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QApplication, QFrame, QHBoxLayout, QSizePolicy, QVBoxLayout, QWidget
 
 from core.numerical_methods.handlers.real_function import RealFunction, sample_function
@@ -99,15 +100,13 @@ class FunctionPlot(QWidget):
         expanded._view = self._view
         expanded._samples = self._samples
 
-        def close() -> None:
+        def restore_view() -> None:
             left, right, bottom, top = expanded._view
             self._fit_view(left, right, bottom + (top - bottom) / 2)
-            overlay.close()
 
-        overlay.panel_layout.addLayout(expanded.controls("Cerrar", close))
+        overlay.closing.connect(restore_view)
+        overlay.panel_layout.addLayout(expanded.controls("Cerrar", overlay.close))
         overlay.panel_layout.addWidget(expanded, 1)
-        escape = QShortcut(QKeySequence(Qt.Key.Key_Escape), overlay)
-        escape.activated.connect(close)
         overlay.show()
         overlay.raise_()
         overlay.setFocus()
@@ -250,6 +249,8 @@ class FunctionPlot(QWidget):
 class PlotOverlay(QFrame):
     """Panel ampliado sobre el área cliente de la ventana."""
 
+    closing = Signal()
+
     def __init__(self, host: QWidget) -> None:
         super().__init__(host)
         self._previous_focus = QApplication.focusWidget()
@@ -265,14 +266,29 @@ class PlotOverlay(QFrame):
         panel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.panel_layout.addWidget(label("Gráfica de la función", "heading"))
         layout.addWidget(panel)
+        self._visible_web_views = [
+            view for view in host.findChildren(QWebEngineView) if view.isVisible()
+        ]
+        for view in self._visible_web_views:
+            view.hide()
 
     def eventFilter(self, watched, event) -> bool:
         if watched is self.parentWidget() and event.type() == QEvent.Type.Resize:
             self.setGeometry(watched.rect())
         return super().eventFilter(watched, event)
 
+    def keyPressEvent(self, event) -> None:
+        if event.key() == Qt.Key.Key_Escape:
+            self.close()
+            event.accept()
+            return
+        super().keyPressEvent(event)
+
     def closeEvent(self, event) -> None:
         self.parentWidget().removeEventFilter(self)
+        self.closing.emit()
         super().closeEvent(event)
+        for view in self._visible_web_views:
+            view.show()
         if self._previous_focus is not None:
             self._previous_focus.setFocus()
