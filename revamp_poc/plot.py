@@ -4,11 +4,13 @@ import math
 
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QColor, QPainter, QPen
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QDialog, QHBoxLayout, QVBoxLayout, QWidget
 
 from core.real_function import RealFunction, sample_function
 from core.root_bracket import BracketResult
 from ui import theme_tokens as theme
+
+from .widgets import link
 
 
 class FunctionPlot(QWidget):
@@ -37,6 +39,37 @@ class FunctionPlot(QWidget):
         if result.initial_a < low or result.initial_b > high:
             self._set_range(result.initial_a, result.initial_b)
         self.update()
+
+    def controls(self, text: str, callback) -> QHBoxLayout:
+        controls = QHBoxLayout()
+        for name, action in (
+            ("+  Acercar", lambda: self.zoom(0.8)),
+            ("−  Alejar", lambda: self.zoom(1.25)),
+            ("Restablecer", self.reset),
+            (text, callback),
+        ):
+            button = link(name)
+            button.clicked.connect(action)
+            controls.addWidget(button)
+        controls.addStretch()
+        return controls
+
+    def expand(self) -> None:
+        if self.function is None:
+            return
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Gráfica de la función")
+        dialog.resize(900, 600)
+        layout = QVBoxLayout(dialog)
+        expanded = FunctionPlot()
+        expanded.dark = self.dark
+        expanded.function = self.function
+        expanded.result = self.result
+        expanded._set_range(*self._range)
+        layout.addLayout(expanded.controls("Cerrar", dialog.accept))
+        layout.addWidget(expanded, 1)
+        dialog.exec()
+        self._set_range(*expanded._range)
 
     def zoom(self, factor: float) -> None:
         low, high = self._range

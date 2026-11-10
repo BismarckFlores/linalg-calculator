@@ -8,10 +8,10 @@ if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY") or sys.pl
     raise unittest.SkipTest("Las pruebas de Qt WebEngine requieren una sesión gráfica.")
 
 try:
-    from PySide6.QtCore import QPoint, Qt
+    from PySide6.QtCore import QPoint, QTimer, Qt
     from PySide6.QtQuick import QQuickWindow
     from PySide6.QtTest import QTest
-    from PySide6.QtWidgets import QApplication, QPushButton
+    from PySide6.QtWidgets import QApplication, QDialog, QPushButton
 except ImportError as problem:
     raise unittest.SkipTest("Instala requirements-poc.txt para probar Qt.") from problem
 
@@ -34,15 +34,14 @@ class RevampRootTests(unittest.TestCase):
     def tearDownClass(cls):
         cls.window.close()
 
-    def open_page(self, key, *, visual=True):
+    def open_page(self, key):
         self.window._nav[key].click()
         page = self.window.pages[key]
         for _ in range(100):
             if all(field._ready for field in page.findChildren(MathInput)):
                 break
             QTest.qWait(50)
-        if visual:
-            self.assertTrue(page.editor._ready, "MathLive no cargó")
+        self.assertTrue(page.editor._ready, "MathLive no cargó")
         self.assertTrue(page.isVisible())
         return page
 
@@ -63,8 +62,8 @@ class RevampRootTests(unittest.TestCase):
         self.assertEqual(page.table.rowCount(), len(result.steps))
         self.assertEqual(page.table.item(3, 3).toolTip(), str(result.root))
         self.assertEqual(page.table.item(3, 6).toolTip(), str(result.value))
-        page.step_index.setValue(4)
-        self.assertIn("se detiene", page.step_detail.text())
+        page.walk.index.setValue(4)
+        self.assertIn("se detiene", page.walk.output.value())
         self.assertFalse(page.plot.grab().isNull())
         original = page.plot._range
         self.click(page, "+  Acercar")
@@ -97,7 +96,7 @@ class RevampRootTests(unittest.TestCase):
         self.click(page, "Calcular raíz")
         self.assertIs(page.plot.result.stop, RootStop.ZERO)
         self.assertEqual(page.table.rowCount(), 0)
-        self.assertFalse(page.step_index.isEnabled())
+        self.assertFalse(page.walk.index.isEnabled())
         self.click(page, "Potencia décima")
         self.click(page, "Graficar función")
         page.limit.setValue(2)
@@ -116,3 +115,36 @@ class RevampRootTests(unittest.TestCase):
         self.click(page, "Calcular raíz")
         self.assertIs(page.plot.result.criterion, RootCriterion.WIDTH)
         self.assertAlmostEqual(page.plot.result.root, 2 ** 0.5, places=4)
+
+    def test_4_bisection_table_walk_and_expanded_plot(self):
+        page = self.open_page("bisection")
+        self.click(page, "Graficar función")
+        page.tolerance.set_value("0.00000001")
+        self.click(page, "Calcular raíz")
+        original = page.plot.result
+        self.assertEqual(page.table.rowCount(), 15)
+        page.walk.index.setValue(16)
+        self.assertEqual(page.table_page.value(), 2)
+        self.assertEqual(page.table.item(0, 0).text(), "16")
+        original_value = page.table.item(0, 3).toolTip()
+        page.format.setCurrentIndex(1)
+        page.decimals.setValue(3)
+        self.assertEqual(page.table.item(0, 3).toolTip(), original_value)
+        self.assertEqual(page.table.item(0, 3).text(), f"{original.steps[15].c:.3f}")
+        page.walk.all_steps.setChecked(True)
+        self.assertIn("Paso 16", page.walk.output.value())
+
+        def inspect_popup():
+            popup = self.app.activeModalWidget()
+            if isinstance(popup, QDialog):
+                opened.append(popup.isVisible())
+                popup.reject()
+
+        opened = []
+        QTimer.singleShot(100, inspect_popup)
+        self.click(page, "Maximizar")
+        self.assertEqual(opened, [True])
+        page.tolerance.set_value("0.0001")
+        self.assertFalse(page.result_card.isVisible())
+        self.assertIsNone(page.plot.result)
+        self.assertTrue(page.graph_card.isVisible())

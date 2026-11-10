@@ -3,6 +3,8 @@
 import ast
 import re
 
+from itertools import groupby
+
 from core.equations import parse_equation
 from core.real_function import RealFunction
 from core.scalar import format_scalar, to_scalar
@@ -27,8 +29,8 @@ def matrix_rows(text: str) -> list[list[str]]:
         [cell.strip() for cell in line.split(";")] if ";" in line else line.split()
         for line in text.splitlines() if line.strip()
     ]
-    if len(rows) != 2 or any(len(row) != 2 for row in rows):
-        raise ValueError("Escribe una matriz de 2 × 2, con dos valores en cada fila.")
+    if not rows or any(len(row) != len(rows[0]) for row in rows):
+        raise ValueError("Escribe una matriz con el mismo número de valores en cada fila.")
     return rows
 
 
@@ -50,7 +52,10 @@ def to_latex(text: str, kind: str, *, paste: bool = False) -> str:
         return r"\displaylines{" + r"\\".join(lines) + "}"
     if kind == "matrix":
         if paste and len(text.strip().splitlines()) == 1 and ";" not in text:
-            return _number_latex(text)
+            try:
+                return _number_latex(text)
+            except ValueError:
+                pass
         rows = matrix_rows(text)
         cells = ["&".join(_number_latex(cell) for cell in row) for row in rows]
         return r"\begin{pmatrix}" + r"\\".join(cells) + r"\end{pmatrix}"
@@ -99,21 +104,27 @@ def _result_latex(text: str) -> str:
         escaped = re.sub(r"([%&$#_{}])", r"\\\1", line)
         return rf"\text{{{escaped}}}"
 
-    lines = []
-    for raw in text.splitlines():
-        line = raw.strip()
+    def render_line(line: str) -> str:
         if not line:
-            lines.append(r"\vphantom{X}")
-        elif ("=" in line or "≈" in line) and not line.startswith("La fila "):
+            return r"\vphantom{X}"
+        if ("=" in line or "≈" in line) and not line.startswith("La fila "):
             caption, separator, expression = line.partition(":")
             prefix = words(caption + ": ") if separator else ""
             expression = expression if separator else caption
             expression, _, note = expression.strip().partition("   ")
-            lines.append(prefix + _notation(expression) + (r"\quad" + words(note.strip()) if note else ""))
-        else:
-            lines.append(words(line))
-    return r"\begin{array}{l}" + r"\\".join(lines) + r"\end{array}"
+            return prefix + _notation(expression) + (r"\quad" + words(note.strip()) if note else "")
+        return words(line)
 
+    lines = []
+    for is_matrix, group in groupby(
+        map(str.strip, text.splitlines()), lambda line: line.startswith("[ ") and line.endswith(" ]")
+    ):
+        if is_matrix:
+            cells = ["&".join(_notation(value.strip()) for value in line[2:-2].split(";")) for line in group]
+            lines.append(r"\begin{bmatrix}" + r"\\".join(cells) + r"\end{bmatrix}")
+            continue
+        lines.extend(render_line(line) for line in group)
+    return r"\begin{array}{l}" + r"\\".join(lines) + r"\end{array}"
 
 def formula_latex(text: str) -> str:
     """Convierte una expresión ya validada en LaTeX para el modo visual."""

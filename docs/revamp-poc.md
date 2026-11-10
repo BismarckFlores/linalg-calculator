@@ -75,7 +75,38 @@ instaladas las dependencias.
 
 - Fase 1. Regula Falsi reutiliza la página de Bisección y el motor de
   intervalos. Las pruebas de Qt están en `tests/test_revamp_roots.py`.
-  El informe editable y el PDF están en `deliverables/out/`.
-- El primer merge integra la entrega de Regula Falsi. La auditoría de las
-  once herramientas y la retirada de CustomTkinter se realizan en fases
-  posteriores, desde `Bismarck/ui-revamp`.
+  El informe editable y el PDF se conservan localmente en `deliverables/out/`.
+- El primer merge de Regula Falsi se publicó en `main`. La rama de desarrollo
+  incorpora ese estado y el commit que retiró los informes de la versión publicada.
+  Ambos archivos siguen excluidos por `.gitignore`.
+
+### Auditoría funcional
+
+| Herramienta | Estado en Qt al primer merge | Criterio de equivalencia |
+| --- | --- | --- |
+| Eliminación Gaussiana | Entrada por ecuaciones y solución básica | Coeficientes y ecuaciones, Gauss y Gauss–Jordan, traza, familia paramétrica, despejes y comprobación. |
+| Formas Escalonadas | Pendiente | Analizar cinco propiedades, ubicar fallos y pivotes, reducir con traza y reconocer sistemas aumentados. |
+| Operaciones Matriciales | Pendiente | Operar matrices rectangulares con tamaños compatibles, cinco operaciones y resultado exacto. |
+| Matriz Inversa | Pendiente | Reducir la aumentada con la identidad, comprobar ambos productos y resolver con A⁻¹b. |
+| Factorización LU | Pendiente | Factores P, L y U, opciones de pivoteo y singularidad, traza, sustituciones y verificación. |
+| Determinante | Cofactores para 2 × 2 | Admitir matrices cuadradas de distinto orden, estimar costo, mostrar menores y diagonal de U, y contrastar métodos. |
+| Operaciones Vectoriales | Suma con detalle por componente | Añadir resta, escala y combinación, con clasificación, pasos y comprobación. |
+| Conversiones | Decimal a binario | Convertir en ambos sentidos, bases 2 a 36 y romano, con tablas y comprobación. |
+| Aritmética Romana | Pendiente | Sumar, restar y multiplicar, mostrar piezas y suma repetida, y distinguir resultados fuera de rango. |
+| Bisección | Cálculo, criterios, gráfica, tabla y pasos | Recuperar los ejemplos de clase, la ampliación, la precisión de la tabla y el detalle del intervalo. |
+| Regula Falsi | Entrega publicada | Conservar el flujo validado y aplicar las mejoras compartidas de gráfica y tabla. |
+
+El catálogo de referencia y las interacciones heredadas están descritos en
+[la guía de CustomTkinter](gui.md). La auditoría conserva las APIs de
+`core/`: sus módulos separan cálculos con datos y trazas propios, y el
+mayor solapamiento estaba en los formularios y en la presentación de la
+interfaz. La consolidación se concentra en los componentes Qt compartidos.
+
+### Validación de la migración
+
+Las once herramientas ya están registradas en el catálogo Qt. La interfaz
+usa un formulario compartido para las operaciones de álgebra, un recorrido
+común para matrices y raíces y la misma tabla para conversiones e
+iteraciones. El motor Python conserva sus APIs. Las pruebas gráficas
+validaron los modos principales, la navegación, la invalidación de
+resultados, la ampliación de la gráfica y la precisión de la tabla.

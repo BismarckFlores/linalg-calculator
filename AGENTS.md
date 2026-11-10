@@ -15,7 +15,7 @@ Calculadora de escritorio para MTM0120, Álgebra Lineal y Métodos Numéricos, U
 
 - Ejecuta `python check.py` y `python -m unittest discover -s tests -v`. Comprueba también el flujo visible de cada página modificada, incluyendo ejemplos, errores, edición, navegación y representación de resultados.
 - Trabaja en `Bismarck/ui-revamp` y conserva `main` demostrable. Antes de integrar, revisa los cambios, sincroniza el remoto y prueba el resultado del merge. Respeta las restricciones de GitHub y el trabajo ajeno. Evita reescrituras destructivas y líneas de coautoría o de sesión en commits y PR.
-- Para entregas académicas, genera el Word editable y su PDF equivalente en `deliverables/out/`. Usa resultados y capturas obtenidos del programa, verifica ambos formatos y confirma el enlace al código publicado. Conserva los informes históricos.
+- Para entregas académicas, genera el Word editable y su PDF equivalente en `deliverables/out/`. Mantén los informes locales y excluidos de Git. Usa resultados y capturas obtenidos del programa, verifica ambos formatos y confirma el enlace al código publicado. Conserva los informes históricos.
 - Retira CustomTkinter solo tras verificar equivalencia de las once herramientas y auditar dependencias, pruebas, documentación y puntos de entrada.
 
 ## Continuidad
