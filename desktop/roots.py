@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
 from core.bisection import bisect
 from core.real_function import RealFunction
 from core.regula_falsi import regula_falsi
-from core.root_bracket import RootCriterion, RootStop
+from core.root_bracket import BracketStep, RootCriterion, RootStop
 
 from .forms import StepView
 from .math_input import MathInput
@@ -234,17 +234,18 @@ class RootBracketPage(QWidget):
         self._select_iteration(1)
         self.result_card.show()
 
-    def _step_text(self, step, count: int) -> str:
+    def _step_text(self, step: BracketStep, count: int) -> str:
         detail = (
-            f"Con a = {step.a:.9g}, b = {step.b:.9g}, f(a) = {step.fa:.9g} y f(b) = {step.fb:.9g}:\n"
+            f"Extremos: a = {step.a:.9g}, b = {step.b:.9g}\n"
+            f"Evaluación: f(a) = {step.fa:.9g}, f(b) = {step.fb:.9g}\n"
             f"c = {self.formula} ≈ {step.c:.9g}\n"
-            f"Al sustituir, f({step.c:.9g}) ≈ {step.fc:.9g}."
+            f"Sustitución: f({step.c:.9g}) ≈ {step.fc:.9g}"
         )
         if step.index < count:
             a, b = (step.a, step.c) if step.keep_left else (step.c, step.b)
-            detail += f" El cambio de signo se conserva en [{a:.9g}, {b:.9g}]."
+            detail += f"\nEl cambio de signo se conserva en [{a:.9g}, {b:.9g}]."
         else:
-            detail += " El método se detiene en esta iteración."
+            detail += "\nEl método se detiene en esta iteración."
         return detail
 
     def _select_iteration(self, index: int) -> None:

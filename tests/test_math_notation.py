@@ -5,7 +5,7 @@ from core.equations import parse_equation
 from core.matrix import Matrix
 from core.root_bracket import read_root_number
 from core.vectors import parse_vector
-from revamp_poc.math_notation import from_ascii, matrix_rows, to_latex
+from desktop.math_notation import from_ascii, matrix_rows, to_latex
 
 
 class MathNotationTests(unittest.TestCase):

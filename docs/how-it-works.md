@@ -147,7 +147,7 @@ y `rango(A|b) = 2`. La app indica la fila que causa la contradicción.
 | Conversión entre bases | `core/bases.py` |
 | Vectores y combinaciones lineales | `core/vectors.py` |
 | Formato de los resultados | `ui/presentation.py` |
-| Controles y tarjetas | `gui/` |
+| Controles y tarjetas | `desktop/` |
 
 El motor devuelve datos y la interfaz se encarga de mostrarlos. Consulta la
 [guía de la ventana](gui.md) y las [decisiones de diseño](design.md).

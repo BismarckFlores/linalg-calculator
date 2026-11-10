@@ -1,7 +1,7 @@
 """Punto de entrada de la calculadora de escritorio."""
 
-from gui.app import Application
+from desktop.window import run
 
 
 if __name__ == "__main__":
-    Application().mainloop()
+    run()

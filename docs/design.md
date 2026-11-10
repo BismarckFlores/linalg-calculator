@@ -2,7 +2,7 @@
 
 El proyecto separa el cálculo, la presentación de resultados y la interfaz.
 `core/` contiene los algoritmos, `ui/presentation.py` prepara los textos
-matemáticos y `gui/` administra los controles. La entrega se ejecuta desde
+matemáticos y `desktop/` administra los controles. La entrega se ejecuta desde
 el repositorio con `python main.py`.
 
 ## Matriz, registro y hoja de trabajo
@@ -102,24 +102,21 @@ solucionador de sistemas.
 
 ## Componentes de la interfaz
 
-`ResultsPage` administra las tarjetas y descarta una respuesta al cambiar
-la entrada. Las páginas añaden estado específico, como el recorrido actual.
-`StepWalker` acepta `StepLog.snapshot` para matrices, o títulos y una
-función de dibujo para estados numéricos. Comparte el contador, los puntos
-de navegación y la opción de mostrar todos los pasos.
+`ToolPage` comparte formulario, errores y resultado. Las páginas componen
+sus controles y conectan los cálculos existentes del motor.
+`MatrixInput` comparte la entrada de coeficientes y `read_equations`
+conserva los nombres de incógnitas. `StepView` navega las trazas de
+álgebra y raíces. `ResultTable` comparte la presentación tabular de
+conversiones e iteraciones.
 
-`RootBracketPage` organiza la gráfica antes de mostrar los controles.
-Cada método configura sus ejemplos, criterios y fórmula. `RootPlot` maneja
-la geometría y el movimiento de la vista. El motor toma las muestras y la
-interfaz las dibuja. La gráfica permite zoom, arrastre, restablecimiento y
-vista ampliada. El diseño del curso omite la inspección de valores con el
-cursor. El menú lateral se desplaza cuando sus herramientas no caben.
+`RootBracketPage` organiza la gráfica antes de los controles y configura
+cada método mediante su fórmula, criterios y ejemplos. El motor toma las
+muestras que `FunctionPlot` dibuja con Qt. La gráfica conserva zoom,
+arrastre, restablecimiento y vista ampliada.
 
-`LinkButton` comparte el estilo de las acciones secundarias.
-`SegmentedControl` selecciona métodos, ejemplos y criterios.
-`MathBlock` y `MathLine` muestran las expresiones. Los campos de escalares
-y las columnas de iteraciones se ajustan a los datos de las raíces.
-`Wide` se usa donde el resultado puede necesitar desplazamiento horizontal.
+`MathInput` carga el editor local y conecta Qt con MathLive mediante
+QWebChannel. Los adaptadores traducen el formato visual a texto para el
+motor. Los campos de respaldo conservan la última entrada del usuario.
 
 ## Texto y lectura de datos
 
@@ -130,7 +127,7 @@ La interfaz indica qué campo o ecuación requiere corrección.
 
 `core/equations.py` distingue `MissingEquals` de `UnreadableTerm`, ambos
 derivados de `EquationError`. `UnreadableTerm` conserva el fragmento que
-falló. `gui/entry.py` agrega el número de línea al aviso. La lista de
+falló. `desktop/forms.py` agrega el número de línea al aviso. La lista de
 incógnitas detectadas ayuda a reconocer, por ejemplo, un `2x + 3x = 5`
 cuando se quería escribir `2x + 3y = 5`.
 

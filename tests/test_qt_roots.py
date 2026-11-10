@@ -13,21 +13,21 @@ try:
     from PySide6.QtTest import QTest
     from PySide6.QtWidgets import QApplication, QDialog, QPushButton
 except ImportError as problem:
-    raise unittest.SkipTest("Instala requirements-poc.txt para probar Qt.") from problem
+    raise unittest.SkipTest("Instala requirements.txt para probar Qt.") from problem
 
 from core.root_bracket import RootCriterion, RootStop
-from revamp_poc.math_input import MathInput
-from revamp_poc.window import PreviewWindow
+from desktop.math_input import MathInput
+from desktop.window import CalculatorWindow
 
 
-class RevampRootTests(unittest.TestCase):
+class QtRootTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         os.environ.setdefault("QTWEBENGINE_CHROMIUM_FLAGS", "--process-per-site")
         cls.app = QApplication.instance() or QApplication([])
         if sys.platform == "linux":
             QQuickWindow.setSceneGraphBackend("software")
-        cls.window = PreviewWindow()
+        cls.window = CalculatorWindow()
         cls.window.show()
 
     @classmethod

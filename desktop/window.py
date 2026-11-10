@@ -13,15 +13,15 @@ from PySide6.QtWidgets import (
     QPushButton, QScrollArea, QStackedWidget, QVBoxLayout, QWidget,
 )
 
-from .bisection import RegulaFalsiPage, RootBracketPage
-from .examples import bases_page, roman_page, vectors_page
+from .roots import RegulaFalsiPage, RootBracketPage
+from .number_tools import bases_page, roman_page, vectors_page
 from .math_input import MathInput
 from .matrix_tools import determinant_page, echelon_page, factor_page, gauss_page, operations_page
 from .widgets import badge, card, label, link, page_header, stylesheet
 
 
 @dataclass(frozen=True)
-class Demo:
+class Tool:
     key: str
     section: str
     glyph: str
@@ -30,28 +30,28 @@ class Demo:
     create: Callable[[], QWidget]
 
 
-DEMOS = (
-    Demo("gauss", "Sistemas Lineales", "▦", "Eliminación Gaussiana",
+TOOLS = (
+    Tool("gauss", "Sistemas Lineales", "▦", "Eliminación Gaussiana",
          "Resuelve sistemas por Gauss o Gauss–Jordan y verifica la solución.", gauss_page),
-    Demo("echelon", "Sistemas Lineales", "▧", "Formas Escalonadas",
+    Tool("echelon", "Sistemas Lineales", "▧", "Formas Escalonadas",
          "Comprueba las propiedades de una matriz y localiza sus pivotes.", echelon_page),
-    Demo("operations", "Matrices", "⊞", "Operaciones Matriciales",
+    Tool("operations", "Matrices", "⊞", "Operaciones Matriciales",
          "Suma, resta, multiplica, escala y transpone matrices.", operations_page),
-    Demo("inverse", "Matrices", "⁻¹", "Matriz Inversa",
+    Tool("inverse", "Matrices", "⁻¹", "Matriz Inversa",
          "Calcula la inversa y resuelve sistemas con ella.", lambda: factor_page(inverse=True)),
-    Demo("lu", "Matrices", "LU", "Factorización LU",
+    Tool("lu", "Matrices", "LU", "Factorización LU",
          "Descompón la matriz y resuelve sistemas por sustitución.", lambda: factor_page(inverse=False)),
-    Demo("determinant", "Matrices", "|A|", "Determinante",
+    Tool("determinant", "Matrices", "|A|", "Determinante",
          "Calcula por cofactores o factorización LU y compara ambos métodos.", determinant_page),
-    Demo("vectors", "Vectores", "↗", "Operaciones Vectoriales",
+    Tool("vectors", "Vectores", "↗", "Operaciones Vectoriales",
          "Opera por componente y estudia combinaciones lineales.", vectors_page),
-    Demo("bases", "Sistemas Numéricos", "⇄", "Conversiones",
+    Tool("bases", "Sistemas Numéricos", "⇄", "Conversiones",
          "Convierte enteros entre decimal, otras bases y romano.", bases_page),
-    Demo("roman", "Sistemas Numéricos", "Ⅻ", "Aritmética Romana",
+    Tool("roman", "Sistemas Numéricos", "Ⅻ", "Aritmética Romana",
          "Suma, resta y multiplica numerales romanos con su procedimiento.", roman_page),
-    Demo("bisection", "Métodos Numéricos", "½", "Método de Bisección",
+    Tool("bisection", "Métodos Numéricos", "½", "Método de Bisección",
          "Escribe con el editor matemático, grafica y aproxima una raíz.", RootBracketPage),
-    Demo("regula_falsi", "Métodos Numéricos", "RF", "Regula Falsi",
+    Tool("regula_falsi", "Métodos Numéricos", "RF", "Regula Falsi",
          "Aproxima una raíz por el cruce de la secante con el eje x.", RegulaFalsiPage),
 )
 
@@ -64,7 +64,7 @@ class Catalog(QWidget):
         layout = QVBoxLayout(self)
         layout.setSpacing(10)
         layout.addWidget(page_header("⌂", "Inicio", "Elige una herramienta para comenzar."))
-        for name, group in groupby(DEMOS, key=lambda tool: tool.section):
+        for name, group in groupby(TOOLS, key=lambda tool: tool.section):
             tools = tuple(group)
             layout.addSpacing(10)
             section = QHBoxLayout()
@@ -108,14 +108,14 @@ class Catalog(QWidget):
                 grid.addWidget(tile, row, column, 1, columns if len(tiles) == 1 else 1)
 
 
-class PreviewWindow(QMainWindow):
+class CalculatorWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Calculadora de Álgebra Lineal")
         self.resize(1180, 800)
         self.setMinimumSize(960, 640)
         self._dark = False
-        self._demos = {demo.key: demo for demo in DEMOS}
+        self._tools = {tool.key: tool for tool in TOOLS}
         self.pages: dict[str, QWidget] = {}
         self._scroll: dict[str, QScrollArea] = {}
         self._nav: dict[str, QPushButton] = {}
@@ -171,13 +171,13 @@ class PreviewWindow(QMainWindow):
         links.setSpacing(4)
         links.addWidget(self._navigation("home", "⌂", "Inicio"))
         previous_section = None
-        for demo in DEMOS:
-            if demo.section != previous_section:
-                heading = label(demo.section.upper(), "group")
+        for tool in TOOLS:
+            if tool.section != previous_section:
+                heading = label(tool.section.upper(), "group")
                 heading.setContentsMargins(8, 16, 0, 8)
                 links.addWidget(heading)
-                previous_section = demo.section
-            links.addWidget(self._navigation(demo.key, demo.glyph, demo.title))
+                previous_section = tool.section
+            links.addWidget(self._navigation(tool.key, tool.glyph, tool.title))
         links.addStretch()
         scroll.setWidget(rows)
         self._nav_scroll = scroll
@@ -230,7 +230,7 @@ class PreviewWindow(QMainWindow):
 
     def select(self, key: str) -> None:
         if key not in self.pages:
-            page = self._demos[key].create()
+            page = self._tools[key].create()
             self._apply_page_theme(page)
             self._add_page(key, page)
         self._nav[key].setChecked(True)
@@ -263,6 +263,6 @@ def run() -> None:
     if sys.platform == "linux":
         # WebEngine cambia la superficie de la ventana si se activa OpenGL al abrir Bisección.
         QQuickWindow.setSceneGraphBackend("software")
-    window = PreviewWindow()
+    window = CalculatorWindow()
     window.show()
     sys.exit(app.exec())

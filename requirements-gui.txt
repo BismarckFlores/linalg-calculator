@@ -1,2 +1,0 @@
-# Desktop interface dependency. The engine uses the standard library.
-customtkinter>=6.0

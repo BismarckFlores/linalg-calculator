@@ -14,19 +14,19 @@ try:
 except ImportError as problem:
     raise unittest.SkipTest("Instala las dependencias de la interfaz Qt.") from problem
 
-from revamp_poc.forms import MatrixInput
-from revamp_poc.math_input import MathInput
-from revamp_poc.window import DEMOS, PreviewWindow
+from desktop.forms import MatrixInput
+from desktop.math_input import MathInput
+from desktop.window import TOOLS, CalculatorWindow
 
 
-class RevampToolTests(unittest.TestCase):
+class QtToolTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         os.environ.setdefault("QTWEBENGINE_CHROMIUM_FLAGS", "--process-per-site")
         cls.app = QApplication.instance() or QApplication([])
         if sys.platform == "linux":
             QQuickWindow.setSceneGraphBackend("software")
-        cls.window = PreviewWindow()
+        cls.window = CalculatorWindow()
         cls.window.show()
 
     @classmethod
@@ -52,7 +52,7 @@ class RevampToolTests(unittest.TestCase):
         self.assertIn(expected, page.output.value())
 
     def test_catalog_and_matrix_operations(self):
-        self.assertEqual(len(DEMOS), 11)
+        self.assertEqual(len(TOOLS), 11)
         page = self.open_page("operations")
         select = page.findChild(QComboBox)
         for index, expected in enumerate(("[ 6; 8 ]", "[ -4; -4 ]", "[ 19; 22 ]", "[ 1/2; 1 ]", "[ 1; 3 ]")):
