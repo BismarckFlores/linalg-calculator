@@ -12,7 +12,7 @@ y continuar con los datos que escribiste en cada herramienta.
 Desde la raíz del repositorio, con Python 3.12 o posterior:
 
 ```bash
-python -m pip install -r requirements-gui.txt
+pip install -r requirements-gui.txt
 python main.py
 ```
 
