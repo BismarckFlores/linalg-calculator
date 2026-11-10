@@ -26,7 +26,7 @@
 ---
 
 <p align="center">
-  <a href="docs/images/inicio.png"><img src="docs/images/inicio.png" width="900" alt="Inicio en tema claro, con accesos ilustrados a las herramientas y nuevos iconos en el menú lateral"></a>
+  <a href="docs/images/inicio-oscuro.png"><img src="docs/images/inicio-oscuro.png" width="900" alt="Inicio en tema oscuro, con accesos ilustrados a las herramientas y sus iconos en el menú lateral"></a>
 </p>
 
 <table>
