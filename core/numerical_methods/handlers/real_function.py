@@ -3,6 +3,8 @@
 import ast
 import math
 import operator
+import re
+from collections.abc import Callable
 from decimal import Decimal
 
 from ...notation import explicit_products
@@ -16,12 +18,87 @@ _ROOT_OPERATORS = {
     ast.Add: operator.add, ast.Sub: operator.sub,
     ast.Mult: operator.mul, ast.Div: operator.truediv, ast.Pow: operator.pow,
 }
+
+
+def _trig_away_from_pole(angle: float, function: Callable[[float], float], pole: float) -> float:
+    if abs(math.remainder(angle, math.pi)) == pole:
+        raise ValueError("La función trigonométrica no está definida en ese ángulo.")
+    return function(angle)
+
+
+TRIG_FUNCTIONS = {
+    "sin": math.sin,
+    "cos": math.cos,
+    "tan": lambda angle: _trig_away_from_pole(angle, math.tan, math.pi / 2),
+    "sec": lambda angle: 1 / _trig_away_from_pole(angle, math.cos, math.pi / 2),
+    "csc": lambda angle: 1 / _trig_away_from_pole(angle, math.sin, 0),
+    "cot": lambda angle: math.cos(angle) / _trig_away_from_pole(angle, math.sin, 0),
+}
+INVERSE_TRIG_NAMES = {name: f"arc{name}" for name in TRIG_FUNCTIONS}
+_INVERSE_TRIG_FUNCTIONS = {
+    "arcsin": math.asin, "arccos": math.acos, "arctan": math.atan,
+    "arcsec": lambda value: math.acos(1 / value),
+    "arccsc": lambda value: math.asin(1 / value),
+    "arccot": lambda value: math.atan2(1, value),
+}
 _ROOT_FUNCTIONS = {
-    "sin": math.sin, "cos": math.cos, "tan": math.tan,
+    **TRIG_FUNCTIONS, **_INVERSE_TRIG_FUNCTIONS,
     "exp": math.exp, "ln": math.log, "log": math.log,
     "log10": math.log10, "sqrt": math.sqrt, "abs": abs,
 }
 _ROOT_CONSTANTS = {"pi": math.pi, "e": math.e}
+_TRIG_POWER = re.compile(
+    rf"(?<![A-Za-z_])({'|'.join(TRIG_FUNCTIONS)})\s*\*\*\s*(\(|[+-]?\s*(?:\d+(?:\.\d*)?|\.\d+))"
+)
+_SUPERSCRIPT = re.compile(r"[⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]+")
+_SUPERSCRIPT_DIGITS = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻", "0123456789+-")
+
+
+def _closing_parenthesis(text: str, opening: int) -> int | None:
+    depth = 1
+    for index in range(opening + 1, len(text)):
+        if text[index] == "(":
+            depth += 1
+        elif text[index] == ")":
+            depth -= 1
+            if depth == 0:
+                return index
+    return None
+
+
+def _expand_trig_powers(text: str) -> str:
+    """Traduce cos^2(x) y sin^(-1)(x) a llamadas válidas para el lector."""
+    pieces = []
+    offset = 0
+    for match in _TRIG_POWER.finditer(text):
+        if match.start() < offset:
+            continue
+        name, power = match.groups()
+        after_power = match.end()
+        if power == "(":
+            close = _closing_parenthesis(text, match.start(2))
+            if close is None:
+                continue
+            power = text[after_power:close]
+            after_power = close + 1
+        argument_start = after_power
+        while argument_start < len(text) and text[argument_start].isspace():
+            argument_start += 1
+        if text[argument_start:argument_start + 1] != "(":
+            continue
+        argument_end = _closing_parenthesis(text, argument_start)
+        if argument_end is None:
+            continue
+        argument = _expand_trig_powers(text[argument_start + 1:argument_end])
+        pieces.append(text[offset:match.start()])
+        if re.fullmatch(r"-\s*1", power.strip()):
+            pieces.append(f"{INVERSE_TRIG_NAMES[name]}({argument})")
+        else:
+            exponent = _expand_trig_powers(power)
+            pieces.append(f"({name}({argument})**({exponent}))")
+        offset = argument_end + 1
+    pieces.append(text[offset:])
+    return "".join(pieces)
 
 
 class RealFunction:
@@ -32,6 +109,8 @@ class RealFunction:
         if not self.text or len(self.text) > 1024:
             raise RootInputError("Escribe f(x) con entre 1 y 1024 caracteres.")
         normalized = self.text.replace("^", "**").replace("−", "-").replace("×", "*")
+        normalized = _SUPERSCRIPT.sub(lambda match: "**" + match[0].translate(_SUPERSCRIPT_DIGITS), normalized)
+        normalized = _expand_trig_powers(normalized)
         normalized = explicit_products(normalized, _ROOT_FUNCTIONS)
         self._source = normalized
         try:
@@ -66,13 +145,17 @@ class RealFunction:
         elif (
             isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
             and node.func.id in _ROOT_FUNCTIONS
-            and len(node.args) == 1 and not node.keywords
+            and (len(node.args) == 1 or node.func.id == "log" and len(node.args) == 2)
+            and not node.keywords
         ):
-            self._validate(node.args[0])
+            for argument in node.args:
+                self._validate(argument)
             return
         raise RootInputError(
             "Expresión no admitida. Usa x, números, + - * / ^, pi, e y "
-            "sin, cos, tan, exp, ln, log, log10, sqrt o abs con un argumento."
+            "sin, cos, tan, sec, csc, cot, sus inversas (arcsin, etc.), "
+            "exp, ln, log, log10, sqrt o abs con un argumento, "
+            "o log(base, argumento) para indicar la base."
         )
 
     def __call__(self, x: float) -> float:
@@ -106,8 +189,14 @@ class RealFunction:
             )
         else:
             assert isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
-            value = _ROOT_FUNCTIONS[node.func.id](self._evaluate(node.args[0], x))
-            underflow = node.func.id == "exp" and value == 0
+            name = node.func.id
+            arguments = [self._evaluate(argument, x) for argument in node.args]
+            if name == "log" and len(arguments) == 2:
+                base, argument = arguments
+                value = math.log(argument, base)
+            else:
+                value = _ROOT_FUNCTIONS[name](arguments[0])
+            underflow = name == "exp" and value == 0
         if isinstance(value, complex) or not math.isfinite(value):
             raise ValueError("El resultado no es un número real finito (dominio u overflow).")
         if underflow:

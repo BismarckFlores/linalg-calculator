@@ -124,6 +124,29 @@ arrastre, restablecimiento y vista ampliada.
 QWebChannel. Los adaptadores traducen el formato visual a texto para el
 motor. Los campos de respaldo conservan la última entrada del usuario.
 
+## Integrar una herramienta nueva
+
+- **Navegación.** Registra una clave única, categoría, nombre en español,
+  descripción breve y fábrica de la página en `desktop/tools/registry.py`.
+  El registro alimenta Inicio y la barra lateral.
+- **Identidad visual.** Agrega `desktop/assets/navigation/<clave>.svg` para
+  el menú lateral y un SVG propio en `desktop/assets/banners/`. Asocia el
+  banner al glifo de la herramienta en `PAGE_ILLUSTRATIONS`. Usa
+  `page_header` para el título y la descripción. Inicio reutiliza ese banner
+  en su tarjeta.
+- **Entrada y limpieza.** Usa `ToolPage` o reutiliza `input_actions` si la
+  página tiene un flujo propio. Incluye **Limpiar** y **Ctrl+Mayús+Supr**,
+  conserva las dimensiones de las matrices al ponerlas en cero e invalida
+  el resultado al editar. Usa MathLive con su respaldo de texto si la
+  herramienta necesita fórmulas.
+- **Salida.** Muestra el resultado y los errores en español. Si el motor
+  entrega una traza, una tabla o una gráfica, reutiliza los componentes
+  compartidos que correspondan.
+- **Documentación y pruebas.** Agrega la herramienta a la [guía de interfaz](gui.md).
+  Comprueba la apertura desde Inicio y la barra lateral, el ancho mínimo,
+  ambos temas, un ejemplo válido, una entrada inválida, la edición y la
+  limpieza. Ejecuta `python check.py` y `python -m unittest discover -s tests -v`.
+
 ## Texto y lectura de datos
 
 Los identificadores siguen la convención en inglés, como `to_rref`,

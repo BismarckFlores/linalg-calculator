@@ -38,10 +38,14 @@ class FunctionPlot(QWidget):
         self._drag: tuple[QPointF, tuple[float, float, float, float]] | None = None
         self._samples: tuple[tuple[float, float | None], ...] = ()
 
-    def set_function(self, function: RealFunction) -> None:
+    def set_function(self, function: RealFunction | None) -> None:
         self.function = function
         self.result = None
-        self.reset()
+        if function is None:
+            self._samples = ()
+            self.update()
+        else:
+            self.reset()
 
     @property
     def _range(self) -> tuple[float, float]:

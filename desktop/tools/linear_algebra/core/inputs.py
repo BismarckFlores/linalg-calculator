@@ -58,6 +58,11 @@ class MatrixInput(MathInput):
             control.setValue(count)
             control.blockSignals(old)
 
+    def clear(self) -> None:
+        self._cells.clear()
+        row = ";".join(["0"] * self.cols.value())
+        self.set_value("\n".join([row] * self.rows.value()))
+
     def _resize(self) -> None:
         try:
             current = matrix_rows(self.value())

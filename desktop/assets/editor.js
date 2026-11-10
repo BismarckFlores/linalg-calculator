@@ -1,3 +1,35 @@
+function groupEnd(latex, start) {
+  if (latex[start] !== "{") return -1;
+  let depth = 1;
+  for (let index = start + 1; index < latex.length; index++) {
+    if (latex[index] === "{") depth++;
+    if (latex[index] === "}" && --depth === 0) return index + 1;
+  }
+  return -1;
+}
+
+function exportFunction(latex) {
+  // Convierte la base en subíndice al primer argumento de log(base, argumento).
+  const logs = /\\log\s*_\s*(?=(\{|\\[a-zA-Z]+|[a-zA-Z0-9]))/g;
+  let result = "";
+  let offset = 0;
+  for (const match of latex.matchAll(logs)) {
+    if (match.index < offset) continue;
+    const start = match.index + match[0].length;
+    const grouped = match[1] === "{";
+    const end = grouped ? groupEnd(latex, start) : start + match[1].length;
+    if (end === -1) return latex;
+    const opening = /^\s*(?:\\(?:mleft|left)\s*)?\(/.exec(latex.slice(end));
+    if (!opening) continue;
+    const base = grouped ? exportFunction(latex.slice(start + 1, end - 1)) : match[1];
+    result += latex.slice(offset, match.index) + "\\log" + opening[0] + base + ",";
+    offset = end + opening[0].length;
+  }
+  return (result + latex.slice(offset))
+    .replace(/\\(?:mleft|left)\s*(?:\||\\lvert\b)/g, "\\operatorname{abs}\\left(")
+    .replace(/\\(?:mright|right)\s*(?:\||\\rvert\b)/g, "\\right)");
+}
+
 function groupFractions(latex) {
   // AsciiMath exports a fraction as (a)/(b). Group it before a power or product.
   const fractions = /\\(?:frac|dfrac|tfrac)\s*(?=\{)/g;
@@ -9,14 +41,8 @@ function groupFractions(latex) {
     let end = start;
     for (let argument = 0; argument < 2; argument++) {
       while (/\s/.test(latex[end] || "")) end++;
-      if (latex[end] !== "{") return latex;
-      let depth = 1;
-      while (depth && ++end < latex.length) {
-        if (latex[end] === "{") depth++;
-        if (latex[end] === "}") depth--;
-      }
-      if (depth) return latex;
-      end++;
+      end = groupEnd(latex, end);
+      if (end === -1) return latex;
     }
     result += latex.slice(offset, match.index) +
       "\\left(" + match[0] + groupFractions(latex.slice(start, end)) + "\\right)";
@@ -167,7 +193,7 @@ customElements.whenDefined("math-field").then(() => {
         if (!matrix) return "";
         return matrix[2].split("\\\\").map(row => row.split("&").map(cell => ascii(cell)).join(";")).join("\n");
       }
-      return ascii(kind === "function" ? groupFractions(latex) : latex);
+      return ascii(kind === "function" ? groupFractions(exportFunction(latex)) : latex);
     }
 
     function sendValue() {

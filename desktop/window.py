@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
 from .core.assets import ASSETS
 from .core.handlers.theme import ThemeSelector
 from .core.math_input import MathInput
-from .core.widgets import GlassFrame, Workspace, badge, card, label, link, page_header, stylesheet
+from .core.widgets import GlassFrame, NavigationIcon, Workspace, label, link, page_header, stylesheet
 from .tools.numerical_methods.core.bracket_page import RootBracketPage
 from .tools.registry import TOOLS
 
@@ -30,7 +30,7 @@ class Catalog(QWidget):
         self._columns = 0
         layout = QVBoxLayout(self)
         layout.setSpacing(10)
-        layout.addWidget(page_header("⌂", "Inicio", "Elige una herramienta para comenzar."))
+        layout.addWidget(page_header("⌂", "Inicio", "Explora álgebra lineal y métodos numéricos paso a paso."))
         for name, group in groupby(TOOLS, key=lambda tool: tool.section):
             tools = tuple(group)
             layout.addSpacing(10)
@@ -43,17 +43,10 @@ class Catalog(QWidget):
             grid.setSpacing(10)
             tiles = []
             for tool in tools:
-                tile, content = card()
-                heading = QHBoxLayout()
-                heading.setSpacing(10)
-                heading.addWidget(badge(tool.glyph))
-                heading.addWidget(label(tool.title, "heading"), 1)
-                content.addLayout(heading)
-                content.addWidget(label(tool.detail, "muted"))
                 open_page = link("Abrir  →")
                 open_page.setAccessibleName(f"Abrir {tool.title}")
                 open_page.clicked.connect(lambda checked=False, key=tool.key: select(key))
-                content.addWidget(open_page, alignment=Qt.AlignmentFlag.AlignRight)
+                tile = page_header(tool.glyph, tool.title, tool.detail, shortcut=open_page)
                 tiles.append(tile)
                 grid.addWidget(tile, len(tiles) - 1, 0)
             self._grids.append((grid, tiles))
@@ -136,7 +129,7 @@ class CalculatorWindow(QMainWindow):
         links = QVBoxLayout(rows)
         links.setContentsMargins(0, 0, 0, 0)
         links.setSpacing(2)
-        links.addWidget(self._navigation("home", "⌂", "Inicio"))
+        links.addWidget(self._navigation("home", "Inicio"))
         previous_section = None
         for tool in TOOLS:
             if tool.section != previous_section:
@@ -144,22 +137,22 @@ class CalculatorWindow(QMainWindow):
                 heading.setContentsMargins(12, 20, 0, 10)
                 links.addWidget(heading)
                 previous_section = tool.section
-            links.addWidget(self._navigation(tool.key, tool.glyph, tool.title))
+            links.addWidget(self._navigation(tool.key, tool.title))
         links.addStretch()
         scroll.setWidget(rows)
         self._nav_scroll = scroll
         layout.addWidget(scroll)
         return sidebar
 
-    def _navigation(self, key: str, glyph: str, title: str) -> QPushButton:
+    def _navigation(self, key: str, title: str) -> QPushButton:
         button = QPushButton(checkable=True)
         button.setObjectName("navigation")
         button.setAccessibleName(title)
         button.setFixedHeight(40)
         row = QHBoxLayout(button)
-        row.setContentsMargins(8, 4, 12, 4)
+        row.setContentsMargins(8, 3, 12, 3)
         row.setSpacing(10)
-        icon = badge(glyph)
+        icon = NavigationIcon(key)
         name = label(title, "navName")
         for widget in (icon, name):
             widget.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
@@ -167,7 +160,7 @@ class CalculatorWindow(QMainWindow):
         row.addWidget(name, 1)
 
         def mark_active(active: bool) -> None:
-            icon.setObjectName("activeGlyph" if active else "glyph")
+            icon.setObjectName("activeNavigationIcon" if active else "navigationIcon")
             name.setObjectName("activeNavName" if active else "navName")
             for widget in (icon, name):
                 widget.style().unpolish(widget)

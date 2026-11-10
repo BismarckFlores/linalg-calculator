@@ -2,10 +2,12 @@
 
 from functools import cache
 
-from PySide6.QtCore import QPoint, QRect, QRectF, Qt, Signal
+from PySide6.QtCore import QPoint, QPointF, QRect, QRectF, QSize, Qt, Signal
 from PySide6.QtGui import (
-    QColor, QFontDatabase, QIntValidator, QPainter, QPainterPath, QPen, QPixmap, QRadialGradient,
+    QColor, QFontDatabase, QIcon, QIntValidator, QLinearGradient, QPainter, QPainterPath, QPalette, QPen, QPixmap,
+    QRadialGradient,
 )
+from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import (
     QAbstractItemView, QButtonGroup, QCheckBox, QFrame, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
     QPushButton, QSizePolicy, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
@@ -16,6 +18,11 @@ from ui import theme_tokens as theme
 from .assets import ASSETS
 
 WORKSPACE_TEXTURE = ASSETS / "workspace-texture.svg"
+PAGE_ILLUSTRATIONS = {
+    "⌂": "home", "▦": "gauss", "▧": "echelon", "⊞": "operations", "⁻¹": "inverse",
+    "LU": "lu", "|A|": "determinant", "↗": "vectors", "⇄": "bases", "Ⅻ": "roman",
+    "½": "bisection", "RF": "regula-falsi",
+}
 
 
 @cache
@@ -143,17 +150,115 @@ def badge(glyph: str, size: int = 32, style: str = "glyph") -> QLabel:
     return icon
 
 
-def page_header(glyph: str, title: str, subtitle: str) -> QWidget:
-    header = QWidget()
-    layout = QVBoxLayout(header)
-    layout.setContentsMargins(0, 0, 0, 10)
-    layout.setSpacing(10)
-    row = QHBoxLayout()
-    row.setSpacing(12)
-    row.addWidget(badge(glyph, 36))
-    row.addWidget(label(title, "title"), 1)
-    layout.addLayout(row)
-    layout.addWidget(label(subtitle, "muted"))
+@cache
+def _navigation_pixmap(key: str, scale: float, color: str) -> QPixmap:
+    icon = QIcon(str(ASSETS / "navigation" / f"{key}.svg"))
+    pixmap = icon.pixmap(QSize(24, 24), scale)
+    if not pixmap.isNull():
+        with QPainter(pixmap) as painter:
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+            painter.fillRect(QRectF(QPointF(), pixmap.deviceIndependentSize()), QColor(color))
+    return pixmap
+
+
+class NavigationIcon(QLabel):
+    def __init__(self, key: str) -> None:
+        super().__init__()
+        self.setObjectName("navigationIcon")
+        self.setFixedSize(34, 34)
+        self._key = key
+
+    def paintEvent(self, event) -> None:
+        super().paintEvent(event)
+        color = self.palette().color(QPalette.ColorRole.WindowText)
+        pixmap = _navigation_pixmap(self._key, self.devicePixelRatioF(), color.name())
+        with QPainter(self) as painter:
+            painter.drawPixmap(QPoint(5, 5), pixmap)
+
+
+class PageBanner(QWidget):
+    def __init__(self, glyph: str, shortcut: QPushButton | None = None) -> None:
+        super().__init__()
+        self._shortcut = shortcut
+        self.setObjectName("shortcutBanner" if shortcut is not None else "pageBanner")
+        height = 140 if glyph == "⌂" else 112
+        self.setMinimumHeight(134 if shortcut is not None else height)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
+        illustration = PAGE_ILLUSTRATIONS.get(glyph, "home")
+        self._svg = QSvgRenderer(str(ASSETS / "banners" / f"{illustration}.svg"), self)
+        self.art_area = QWidget(self)
+        self.art_area.setMaximumWidth(180 if shortcut is not None else 300)
+        if shortcut is not None:
+            self.setCursor(Qt.CursorShape.PointingHandCursor)
+
+    def mouseReleaseEvent(self, event) -> None:
+        if (
+            self._shortcut is not None and event.button() == Qt.MouseButton.LeftButton
+            and self.rect().contains(event.position().toPoint())
+        ):
+            self._shortcut.click()
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
+
+    def paintEvent(self, event) -> None:
+        workspace = self.window().findChild(Workspace)
+        dark = workspace is not None and workspace.dark
+        bounds = QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5)
+        outline = QPainterPath()
+        outline.addRoundedRect(bounds, 22, 22)
+        art = QRectF(self.art_area.geometry())
+        transition = art.left() / self.width()
+        gradient = QLinearGradient(bounds.topLeft(), bounds.topRight())
+        gradient.setColorAt(0, QColor("#15233d" if dark else "#f9fcff"))
+        gradient.setColorAt(transition, QColor("#202f5c" if dark else "#e9f1ff"))
+        if self._shortcut is not None and not dark:
+            gradient.setColorAt(transition + (1 - transition) * 0.4, QColor("#7898da"))
+        gradient.setColorAt(1, QColor("#294c9f" if dark else "#3663c7"))
+
+        with QPainter(self) as painter:
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            painter.fillPath(outline, gradient)
+            painter.setClipPath(outline)
+            painter.setPen(QColor(220, 234, 255, 42))
+            for radius in (65, 95, 125):
+                painter.drawEllipse(bounds.topRight(), radius, radius)
+            art.adjust(4, 0, -4, 0)
+            size = self._svg.viewBoxF().size()
+            size.scale(art.size(), Qt.AspectRatioMode.KeepAspectRatio)
+            target = QRectF(art.topLeft(), size)
+            target.moveCenter(art.center())
+            self._svg.render(painter, target)
+            painter.setClipping(False)
+            painter.setPen(QColor("#36558b" if dark else "#b2c7ef"))
+            painter.drawPath(outline)
+
+
+def page_header(glyph: str, title: str, subtitle: str, *, shortcut: QPushButton | None = None) -> QWidget:
+    header = PageBanner(glyph, shortcut)
+    layout = QHBoxLayout(header)
+    layout.setContentsMargins(22, 12, 16, 12)
+    layout.setSpacing(12)
+    copy = QVBoxLayout()
+    copy.setSpacing(7)
+    copy.addStretch()
+    if glyph == "⌂":
+        copy.addWidget(label("MTM0120 · UNIVERSIDAD AMERICANA", "bannerKicker"))
+    heading = label(title, "title")
+    if shortcut is None:
+        row = QHBoxLayout()
+        row.setSpacing(12)
+        row.addWidget(badge(glyph, 36))
+        row.addWidget(heading, 1)
+        copy.addLayout(row)
+    else:
+        copy.addWidget(heading)
+    copy.addWidget(label(subtitle, "muted"))
+    if shortcut is not None:
+        copy.addWidget(shortcut, alignment=Qt.AlignmentFlag.AlignLeft)
+    copy.addStretch()
+    layout.addLayout(copy, 3)
+    layout.addWidget(header.art_area, 2)
     return header
 
 
@@ -189,6 +294,13 @@ class SegmentedControl(QFrame):
         return button.text() if button is not None else ""
 
     def setCurrentIndex(self, index: int) -> None:
+        if index == -1:
+            checked = self._group.checkedButton()
+            if checked is not None:
+                self._group.setExclusive(False)
+                checked.setChecked(False)
+                self._group.setExclusive(True)
+            return
         button = self._group.button(index)
         if button is not None:
             button.setChecked(True)
@@ -289,9 +401,12 @@ def stylesheet(dark: bool) -> str:
     colors = {
         "surface": theme.BACKGROUND[mode], "card": theme.CARD[mode], "line": theme.BORDER[mode],
         "text": theme.INK[mode], "muted": theme.MUTED[mode], "faint": theme.FAINT[mode],
+        "bannerMuted": "#c3d4f4" if dark else "#384e77",
+        "navIcon": "#9bbdff" if dark else "#235db9",
+        "navIconSurface": "#223556" if dark else "#e7f0ff",
         "field": theme.FIELD[mode], "hover": theme.FIELD_HOVER[mode],
         "blue": theme.ACCENT, "blueHover": theme.ACCENT_HOVER, "danger": theme.RED,
-        "soft": theme.ACCENT_SOFT[mode], "onSoft": theme.ON_ACCENT_SOFT[mode],
+        "soft": theme.ACCENT_SOFT[mode],
         "onAccent": theme.ON_ACCENT, "rule": theme.RULE[mode],
         "pillRadius": min(theme.PILL_RADIUS, 16),
         "fieldRadius": theme.FIELD_RADIUS, "navRadius": theme.NAV_RADIUS,
@@ -318,6 +433,11 @@ def stylesheet(dark: bool) -> str:
     QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: transparent; }
     QFrame#separator { background: %(line)s; }
     QLabel#title { font-size: 21px; font-weight: 600; }
+    QWidget#pageBanner QLabel#title { font-size: 24px; font-weight: 700; }
+    QWidget#shortcutBanner QLabel#title { font-size: 17px; font-weight: 700; }
+    QWidget#pageBanner QLabel#muted, QWidget#shortcutBanner QLabel#muted { color: %(bannerMuted)s; }
+    QWidget#shortcutBanner QPushButton#link { color: %(navIcon)s; padding: 4px 8px; }
+    QLabel#bannerKicker { color: %(bannerMuted)s; font-size: 10px; font-weight: 700; }
     QLabel#answer { color: %(blue)s; font-size: 15px; font-weight: 700; }
     QLabel#heading { font-size: 15px; font-weight: 600; }
     QLabel#brand { font-size: 14px; font-weight: 600; }
@@ -327,11 +447,13 @@ def stylesheet(dark: bool) -> str:
     QLabel#group, QLabel#course { color: %(faint)s; }
     QLabel#group, QLabel#count { font-size: 11px; font-weight: 700; }
     QLabel#count { color: %(muted)s; background: %(field)s; border-radius: 10px; padding: 6px 16px; }
-    QLabel#glyph, QLabel#activeGlyph {
+    QLabel#glyph {
         background: %(soft)s; color: %(blue)s; border-radius: 10px;
         font-size: 15px; font-weight: 700;
     }
-    QLabel#activeGlyph { background: %(onSoft)s; }
+    QLabel#navigationIcon, QLabel#activeNavigationIcon { border-radius: 10px; }
+    QLabel#navigationIcon { background: %(navIconSurface)s; color: %(navIcon)s; }
+    QLabel#activeNavigationIcon { background: #eaf2ff; color: #164eab; }
     QLabel#activeNavName { color: %(onAccent)s; }
     QLabel#inputError { color: %(danger)s; }
     QLabel#advice { background: %(field)s; border-radius: 14px; padding: 12px 16px; }

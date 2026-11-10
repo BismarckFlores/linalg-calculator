@@ -116,3 +116,45 @@ valores al cerrar con el botón o con Escape.
 Se comprobó el arranque y la navegación por las once herramientas en Linux
 con X11. Queda pendiente verificar los tres casos en Windows, incluida la
 identidad de la aplicación en la barra de tareas.
+
+### Teclado de funciones
+
+El teclado incorpora una plantilla de logaritmo con base editable y usa
+barras para el valor absoluto. Se verificaron en Linux el avance con Tab,
+la exportación de ambas plantillas y su evaluación. Las expresiones de
+texto `log(x)`, `log10(x)` y `abs(x)` conservan su significado.
+
+### Encabezados ilustrados
+
+Inicio y las once herramientas usan un encabezado común con ilustraciones
+SVG locales. Se revisaron los doce encabezados en los temas claro y oscuro,
+con ventanas de 960 y 1180 píxeles de ancho. Pasaron `check.py` y las 52
+pruebas de la suite.
+
+### Notación trigonométrica
+
+El editor y el motor admiten las seis funciones trigonométricas y sus
+inversas en radianes. Se verificaron en Regula Falsi los doce botones del
+teclado y en Bisección la gráfica de una función con arcoseno y una potencia
+de coseno. Pasaron `check.py` y las 55 pruebas de la suite.
+
+### Limpieza de entradas
+
+Las once herramientas tienen una acción para limpiar las entradas y
+quitar los resultados. Las matrices conservan sus dimensiones y quedan
+en cero. El teclado matemático puede limpiar el campo activo. Se verificó
+el botón en las once herramientas y el atajo con entradas Qt y MathLive.
+Pasaron `check.py` y las 56 pruebas de la suite.
+
+### Iconos del menú lateral
+
+El menú lateral usa SVG para Inicio y las once herramientas. Se verificaron
+el contraste y el estado de selección en ambos temas y el renderizado a
+escalas 1× y 2×. Pasaron `check.py` y las 56 pruebas de la suite.
+
+### Accesos ilustrados en Inicio
+
+Los once accesos de Inicio reutilizan la ilustración de su herramienta.
+Se comprobó la distribución en una y dos columnas, ambos temas y la
+apertura con clic en la tarjeta o con el botón Abrir mediante el teclado.
+Pasaron `check.py` y las 56 pruebas de la suite.

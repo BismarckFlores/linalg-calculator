@@ -2,9 +2,13 @@
 
 Abre la calculadora con `python main.py` después de instalar
 `requirements.txt`. **Inicio** y el menú lateral agrupan las once
-herramientas. Las tarjetas se muestran en dos columnas cuando hay espacio.
+herramientas. El menú lateral usa un icono vectorial por herramienta y
+resalta la selección. En Inicio, cada acceso reutiliza el banner de su
+herramienta. Haz clic en la tarjeta o usa **Abrir**. Los accesos se muestran
+en dos columnas cuando hay espacio.
 Cada página se crea al abrirla por primera vez y conserva sus entradas al
-cambiar de herramienta. El botón junto a **Álgebra Lineal** abre el menú
+cambiar de herramienta. Inicio y cada herramienta tienen un encabezado
+ilustrado que sigue el tema activo. El botón junto a **Álgebra Lineal** abre el menú
 **Apariencia**. El monitor indica **Automático** y sigue el modo del sistema.
 El sol indica **Claro** y la luna, **Oscuro**. El menú marca la opción
 seleccionada y la conserva al volver a abrir la aplicación.
@@ -36,6 +40,11 @@ tipografía de la interfaz y las operaciones y matrices usan monoespaciado.
 Las tablas permiten desplazarse para inspeccionar todas las
 columnas. Editar una entrada invalida el cálculo anterior.
 
+En cada herramienta, **Limpiar** o **Ctrl+Mayús+Supr** borra las entradas y
+quita los resultados. Las matrices quedan en cero y conservan sus dimensiones.
+En Bisección y Regula Falsi también se quita la gráfica. El botón **Limpiar**
+del teclado matemático borra el campo que estás editando.
+
 | Herramienta | Controles y resultados |
 | --- | --- |
 | Eliminación Gaussiana | Gauss o Gauss–Jordan, entrada por coeficientes o ecuaciones, reducción, rangos, soluciones y comprobación. |
@@ -55,7 +64,12 @@ columnas. Editar una entrada invalida el cálculo anterior.
 En **Métodos Numéricos** escribe con el teclado físico o pulsa **Teclado**
 para usar los símbolos Qt. `^` abre el exponente, `/` crea una fracción y
 la flecha derecha sale del exponente o del denominador. Puedes pegar
-expresiones como `5x^3` o `sqrt(x+1)/2`. **Graficar función** muestra los
+expresiones como `5x^3` o `sqrt(x+1)/2`. El botón **log** coloca el cursor en
+la base del logaritmo. Pulsa **Tab** para pasar al argumento. El botón
+**|x|** inserta las barras de valor absoluto. El teclado también incluye
+las seis funciones trigonométricas y sus inversas. El editor acepta el
+exponente sobre el nombre de la función, como en `cos^2(2x)`.
+**Graficar función** muestra los
 controles de intervalo y tolerancia. El zoom con la rueda y el arrastre
 permiten inspeccionar el intervalo. **Maximizar** amplía la gráfica sobre
 la misma ventana. Consulta [los métodos numéricos](bisection.md) para ver

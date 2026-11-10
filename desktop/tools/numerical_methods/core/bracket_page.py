@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QVBoxLayout, QWidget
 from core.numerical_methods.handlers.real_function import RealFunction
 from core.numerical_methods.handlers.root_bracket import BracketResult, BracketStep, RootCriterion, RootStop
 
-from desktop.core.forms import StepView
+from desktop.core.forms import StepView, input_actions
 from desktop.core.math_input import MathInput
 from desktop.core.widgets import ResultTable, SegmentedControl, Stepper, action, card, label, page_header
 
@@ -52,13 +52,13 @@ class RootBracketPage(QWidget):
         fields.addWidget(self.editor)
         fields.addSpacing(6)
         fields.addWidget(label("Cargar ejemplo", "caption"))
-        presets = SegmentedControl(*(item[0] for item in self.presets), selected=-1)
-        presets.setAccessibleName("Cargar ejemplo")
-        presets.activated.connect(lambda index: self._example(*self.presets[index][1:]))
-        fields.addWidget(presets, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.examples = SegmentedControl(*(item[0] for item in self.presets), selected=-1)
+        self.examples.setAccessibleName("Cargar ejemplo")
+        self.examples.activated.connect(lambda index: self._example(*self.presets[index][1:]))
+        fields.addWidget(self.examples, alignment=Qt.AlignmentFlag.AlignLeft)
         graph = action("Graficar función")
         graph.clicked.connect(self._graph)
-        fields.addWidget(graph, alignment=Qt.AlignmentFlag.AlignRight)
+        fields.addLayout(input_actions(self, graph, self._clear_inputs))
         self.graph_error = label("", "inputError")
         self.graph_error.hide()
         fields.addWidget(self.graph_error)
@@ -162,10 +162,16 @@ class RootBracketPage(QWidget):
 
     def _invalidate(self) -> None:
         self._function = None
+        self.plot.set_function(None)
         self.graph_error.hide()
         self.graph_card.hide()
         self.controls.hide()
         self._clear_result()
+
+    def _clear_inputs(self) -> None:
+        self.examples.setCurrentIndex(-1)
+        for field in (self.a, self.b, self.tolerance, self.editor):
+            field.clear()
 
     def _example(self, function: str, a: str, b: str, tolerance: str, criterion: RootCriterion) -> None:
         self.editor.set_value(function)

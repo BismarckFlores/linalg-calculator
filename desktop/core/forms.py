@@ -4,6 +4,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from PySide6.QtCore import QSize, Qt
+from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QBoxLayout, QCheckBox, QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit, QPushButton, QVBoxLayout, QWidget,
 )
@@ -18,6 +19,20 @@ def text_input(name: str, value: str, *, multiline: bool = False) -> QWidget:
     if multiline:
         widget.setFixedHeight(110)
     return widget
+
+
+def input_actions(page: QWidget, submit: QPushButton, on_clear: Callable[[], None]) -> QHBoxLayout:
+    actions = QHBoxLayout()
+    actions.addStretch()
+    clear = link("Limpiar")
+    clear.setToolTip("Limpiar entradas y resultado (Ctrl+Mayús+Supr)")
+    clear.clicked.connect(on_clear)
+    actions.addWidget(clear)
+    actions.addWidget(submit)
+    shortcut = QShortcut(QKeySequence("Ctrl+Shift+Delete"), page)
+    shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+    shortcut.activated.connect(clear.click)
+    return actions
 
 
 class FieldRow(QWidget):
@@ -182,7 +197,7 @@ class ToolPage(QWidget):
         self.error = label("", "inputError")
         self.error.hide()
         self.form.addWidget(self.error)
-        self.form.addWidget(submit, alignment=Qt.AlignmentFlag.AlignRight)
+        self.form.addLayout(input_actions(self, submit, lambda: self._clear_inputs(inputs)))
         layout.addWidget(panel)
         self.result = QWidget()
         results = QVBoxLayout(self.result)
@@ -244,6 +259,12 @@ class ToolPage(QWidget):
     def _clear(self) -> None:
         self.result.hide()
         self.error.hide()
+
+    def _clear_inputs(self, inputs: list[QWidget]) -> None:
+        for field in inputs:
+            if isinstance(field, (MathInput, QLineEdit, QPlainTextEdit)):
+                field.clear()
+        self._clear()
 
     def _calculate(self) -> None:
         self._clear()

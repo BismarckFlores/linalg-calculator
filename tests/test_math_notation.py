@@ -9,6 +9,20 @@ from desktop.core.math_notation import from_ascii, matrix_rows, to_latex
 
 
 class MathNotationTests(unittest.TestCase):
+    def test_trigonometric_powers_render_without_confusing_inverse_and_reciprocal(self):
+        self.assertEqual(
+            to_latex("sin^(-1)(x)+cos^2(2x)", "function"),
+            r"\arcsin\left(x\right)+\cos^{2}\left(2x\right)",
+        )
+        self.assertEqual(to_latex("sin(x)^(-1)", "function"), r"\sin\left(x\right)^{-1}")
+        self.assertEqual(from_ascii("a r c s e c (x)", "function"), "arcsec(x)")
+
+    def test_function_displays_log_base_and_absolute_bars(self):
+        self.assertEqual(
+            to_latex("log(2, abs(x-1))", "function"),
+            r"\log_{2}\left(\left|x-1\right|\right)",
+        )
+
     def test_function_displays_coefficients_by_juxtaposition(self):
         self.assertEqual(to_latex("x^4 - 5x^3 + 0.5x^2 - 11x + 10", "function"),
                          "x^{4}-5x^{3}+0.5x^{2}-11x+10")

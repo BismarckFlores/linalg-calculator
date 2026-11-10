@@ -12,16 +12,29 @@ KEYS = (
         ("a⁄b", r"\frac{#@}{#?}", "Insertar fracción", "template"),
         ("√", r"\sqrt{#0}", "Insertar raíz cuadrada", "template"),
         ("π", r"\pi", "Insertar pi", "symbol"),
-        ("←", ("moveToPreviousChar",), "Mover a la izquierda", "edit"),
-        ("→", ("moveToNextChar",), "Mover a la derecha", "edit"),
+        ("ln", r"\ln\left(#0\right)", "Insertar logaritmo natural", "symbol"),
+        ("log", r"\log_{#?}\left(#?\right)", "Insertar logaritmo con base", "symbol"),
+        ("|x|", r"\left|#0\right|", "Insertar valor absoluto", "symbol"),
         ("⌫", ("deleteBackward",), "Borrar hacia atrás", "edit"),
+        ("Limpiar", ("deleteAll",), "Limpiar el campo matemático", "edit"),
     ),
     (
         ("sin", r"\sin\left(#0\right)", "Insertar seno", "symbol"),
         ("cos", r"\cos\left(#0\right)", "Insertar coseno", "symbol"),
         ("tan", r"\tan\left(#0\right)", "Insertar tangente", "symbol"),
-        ("ln", r"\ln\left(#0\right)", "Insertar logaritmo natural", "symbol"),
-        ("abs", r"\operatorname{abs}\left(#0\right)", "Insertar valor absoluto", "symbol"),
+        ("sec", r"\sec\left(#0\right)", "Insertar secante", "symbol"),
+        ("csc", r"\csc\left(#0\right)", "Insertar cosecante", "symbol"),
+        ("cot", r"\cot\left(#0\right)", "Insertar cotangente", "symbol"),
+        ("←", ("moveToPreviousChar",), "Mover a la izquierda", "edit"),
+        ("→", ("moveToNextChar",), "Mover a la derecha", "edit"),
+    ),
+    (
+        ("arcsin", r"\arcsin\left(#0\right)", "Insertar arcoseno", "symbol"),
+        ("arccos", r"\arccos\left(#0\right)", "Insertar arcocoseno", "symbol"),
+        ("arctan", r"\arctan\left(#0\right)", "Insertar arcotangente", "symbol"),
+        ("arcsec", r"\operatorname{arcsec}\left(#0\right)", "Insertar arcosecante", "symbol"),
+        ("arccsc", r"\operatorname{arccsc}\left(#0\right)", "Insertar arcocosecante", "symbol"),
+        ("arccot", r"\operatorname{arccot}\left(#0\right)", "Insertar arcocotangente", "symbol"),
         ("↶", ("undo",), "Deshacer", "edit"),
         ("↷", ("redo",), "Rehacer", "edit"),
     ),
@@ -38,7 +51,7 @@ class MathKeyboard(QFrame):
         grid = QGridLayout(self)
         grid.setContentsMargins(12, 12, 12, 12)
         grid.setSpacing(6)
-        columns = len(KEYS[0])
+        columns = max(map(len, KEYS))
         grid.addWidget(label(
             "Usa ^ para potencias y / para fracciones. Pulsa → para salir del exponente o denominador.",
             "caption",

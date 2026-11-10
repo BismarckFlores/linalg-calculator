@@ -9,6 +9,38 @@ from core.linear_algebra.handlers.equations import EquationError, parse_equation
 
 
 class ImplicitProductTests(unittest.TestCase):
+    def test_trigonometric_functions_inverses_and_powers(self):
+        cases = (
+            ("e^x-sin^(-1)(x)+cos^2(2x)", 0.5, math.exp(0.5) - math.asin(0.5) + math.cos(1)**2),
+            ("sin⁻¹(x)+cos²(2x)", 0.5, math.asin(0.5) + math.cos(1)**2),
+            ("2cos^2(sin^2(x))", 0.5, 2 * math.cos(math.sin(0.5)**2)**2),
+            ("cos^(1/2)(0)", 0, 1),
+            ("sin(x)^(-1)", math.pi / 2, 1),
+            ("sec(x)", math.pi / 3, 2),
+            ("csc(x)", math.pi / 6, 2),
+            ("cot(x)", math.pi / 4, 1),
+            ("arccos(x)", 0, math.pi / 2),
+            ("arctan(x)", 1, math.pi / 4),
+            ("sec^-1(x)", 2, math.pi / 3),
+            ("arccsc(x)", 2, math.pi / 6),
+            ("arccot(x)", -1, 3 * math.pi / 4),
+        )
+        for expression, x, expected in cases:
+            with self.subTest(expression=expression):
+                self.assertAlmostEqual(RealFunction(expression)(x), expected)
+        for expression in ("sec(pi/2)", "csc(pi)", "cot(0)", "tan(pi/2)", "arcsin(2)", "arcsec(0.5)"):
+            with self.subTest(expression=expression), self.assertRaises(BisectionError):
+                RealFunction(expression)(0)
+
+    def test_logarithms_with_and_without_explicit_base(self):
+        self.assertAlmostEqual(RealFunction("log(2, x)")(8), 3)
+        self.assertAlmostEqual(RealFunction("log(1/2, x)")(4), -2)
+        self.assertAlmostEqual(RealFunction("log(x)")(math.e), 1)
+        self.assertAlmostEqual(RealFunction("log10(x)")(100), 2)
+        for expression in ("log(1, x)", "log(0, x)", "log(-2, x)", "log(2, -x)", "abs(1, x)"):
+            with self.subTest(expression=expression), self.assertRaises(BisectionError):
+                RealFunction(expression)(8)
+
     def test_products_in_functions(self):
         cases = (
             ("5x^3", 2, 40), ("0.5x^2", 2, 2), ("(1/2)x", 2, 1),

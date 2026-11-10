@@ -6,7 +6,7 @@ import re
 from itertools import groupby
 
 from core.linear_algebra.handlers.equations import parse_equation
-from core.numerical_methods.handlers.real_function import RealFunction
+from core.numerical_methods.handlers.real_function import TRIG_FUNCTIONS, RealFunction
 from core.scalar import format_scalar, to_scalar
 from core.linear_algebra.vectors import parse_vector
 
@@ -83,7 +83,9 @@ def _number_latex(text: str) -> str:
 
 def from_ascii(text: str, kind: str) -> str:
     if kind == "function":
-        return text.replace("a b s (", "abs(").replace("l o g10 (", "log10(")
+        for name in ("abs", "arcsec", "arccsc", "arccot"):
+            text = text.replace(f"{' '.join(name)} (", f"{name}(")
+        return text.replace("l o g10 (", "log10(")
 
     def fraction(match: re.Match) -> str:
         numerator, denominator = match.groups()
@@ -146,7 +148,11 @@ def formula_latex(text: str) -> str:
             argument = render(node.args[0])
             if name == "sqrt":
                 return rf"\sqrt{{{argument}}}"
-            if name in ("sin", "cos", "tan", "exp", "ln", "log"):
+            if name == "abs":
+                return rf"\left|{argument}\right|"
+            if name == "log" and len(node.args) == 2:
+                return rf"\log_{{{argument}}}\left({render(node.args[1])}\right)"
+            if name in TRIG_FUNCTIONS or name in ("arcsin", "arccos", "arctan", "exp", "ln", "log"):
                 return rf"\{name}\left({argument}\right)"
             return rf"\operatorname{{{name}}}\left({argument}\right)"
         else:
@@ -156,8 +162,17 @@ def formula_latex(text: str) -> str:
                 content = rf"\frac{{{render(node.left)}}}{{{render(node.right)}}}"
             elif isinstance(node.op, ast.Pow):
                 precedence = 4
-                base = render(node.left, precedence + 1)
-                content = rf"{base}^{{{render(node.right)}}}"
+                exponent = render(node.right)
+                if (
+                    isinstance(node.left, ast.Call) and node.left.func.id in TRIG_FUNCTIONS
+                    and isinstance(node.right, ast.Constant) and isinstance(node.right.value, int)
+                ):
+                    name = node.left.func.id
+                    argument = render(node.left.args[0])
+                    content = rf"\{name}^{{{exponent}}}\left({argument}\right)"
+                else:
+                    base = render(node.left, precedence + 1)
+                    content = rf"{base}^{{{exponent}}}"
             else:
                 sign, precedence = {
                     ast.Add: ("+", 1), ast.Sub: ("-", 1), ast.Mult: (r"\cdot ", 2),

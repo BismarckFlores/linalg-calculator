@@ -16,6 +16,7 @@
 ## Entender el código
 
 - [Decisiones de diseño](design.md). Explora cómo se organizan el motor, los manejadores y la aplicación de escritorio.
+- [Integrar una herramienta nueva](design.md#integrar-una-herramienta-nueva). Revisa qué debe incluir además del cálculo.
 - [Referencia del código](reference.md). Consulta las funciones, los tipos y los módulos.
 
 ## Historial

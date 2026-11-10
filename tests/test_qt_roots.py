@@ -16,6 +16,7 @@ except ImportError as problem:
     raise unittest.SkipTest("Instala requirements.txt para probar Qt.") from problem
 
 from core.numerical_methods.handlers.root_bracket import RootCriterion, RootStop
+from core.numerical_methods.handlers.real_function import RealFunction
 from desktop.core.math_input import MathInput
 from desktop.tools.numerical_methods.core.plot import FunctionPlot, PlotOverlay, _grid_ticks
 from desktop.window import CalculatorWindow
@@ -181,3 +182,66 @@ class QtRootTests(unittest.TestCase):
         self.assertFalse(page.result_card.isVisible())
         self.assertIsNone(page.plot.result)
         self.assertTrue(page.graph_card.isVisible())
+
+    def test_5_math_keyboard_exports_log_base_and_absolute_value(self):
+        editor = self.open_page("bisection").editor
+        editor.keyboard_button.setChecked(True)
+        keys = {button.text(): button for button in editor.keyboard.findChildren(QPushButton)}
+        editor.set_value("")
+        keys["log"].click()
+        editor.web.page().runJavaScript('''
+            {
+                const field = document.querySelector("math-field");
+                field.insert("2", {format: "latex"});
+                field.executeCommand("moveToNextPlaceholder");
+                field.insert("x", {format: "latex"});
+            }
+        ''')
+        QTest.qWait(150)
+        self.assertAlmostEqual(RealFunction(editor.value())(8), 3)
+
+        editor.set_value("")
+        keys["|x|"].click()
+        editor.web.page().runJavaScript('''
+            document.querySelector("math-field").insert("x-4", {format: "latex"});
+        ''')
+        QTest.qWait(150)
+        self.assertEqual(RealFunction(editor.value())(1), 3)
+
+    def test_6_graph_accepts_trigonometric_superscripts_from_mathlive(self):
+        page = self.open_page("bisection")
+        editor = page.editor
+        editor.set_value("")
+        editor.web.page().runJavaScript(r'''
+            document.querySelector("math-field").insert(
+                "e^x-\\sin^{-1}(x)+\\cos^{2}(2x)", {format: "latex"}
+            );
+        ''')
+        QTest.qWait(150)
+        self.click(page, "Graficar función")
+        self.assertFalse(page.graph_error.isVisible(), page.graph_error.text())
+        self.assertAlmostEqual(page.plot.function(0), 2)
+
+    def test_7_clear_from_form_and_math_keyboard(self):
+        page = self.open_page("bisection")
+        page.examples.findChildren(QPushButton)[0].click()
+        self.click(page, "Graficar función")
+        self.click(page, "Calcular raíz")
+        self.assertTrue(page.result_card.isVisible())
+        clear_form = next(button for button in page.findChildren(QPushButton, "link")
+                          if button.text() == "Limpiar")
+        clear_form.click()
+        QTest.qWait(40)
+        self.assertEqual(page.examples.currentIndex(), -1)
+        for field in (page.editor, page.a, page.b, page.tolerance):
+            self.assertEqual(field.value(), "")
+        self.assertIsNone(page.plot.function)
+        self.assertFalse(page.graph_card.isVisible())
+        self.assertFalse(page.result_card.isVisible())
+
+        page.examples.findChildren(QPushButton)[0].click()
+        self.assertTrue(page.a.value())
+        page.editor.keyboard_button.setChecked(True)
+        self.click(page.editor.keyboard, "Limpiar")
+        self.assertEqual(page.editor.value(), "")
+        self.assertTrue(page.a.value())

@@ -116,6 +116,9 @@ class MathInput(QWidget):
         if self.keyboard_button is not None:
             self.keyboard_button.setChecked(False)
 
+    def clear(self) -> None:
+        self.set_value("")
+
     def set_value(self, text: str) -> None:
         self._value = text
         if self.stack.currentWidget() is self.text:

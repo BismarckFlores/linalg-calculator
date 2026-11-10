@@ -34,7 +34,7 @@ def bases_page() -> ToolPage:
         custom.setVisible(radix.currentIndex() == 3)
         number_caption.setText("NÚMERO DECIMAL" if direction.currentIndex() == 0 else "NÚMERO EN OTRA BASE")
         base_caption.setText("CONVERTIR A" if direction.currentIndex() == 0 else "BASE DE ORIGEN")
-        if showing_example:
+        if showing_example and number.text():
             base = selected_base()
             numeral = "43"
             if direction.currentIndex() == 1:

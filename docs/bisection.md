@@ -17,8 +17,18 @@ función** y luego **Calcular raíz** para ejecutarlo.
 - Se admiten productos implícitos como `5x^3`, `(1/2)x`, `2(x+1)`,
   `(x+1)(x-1)` y `2sin(x)`. También puedes usar `*`.
 - Para potencias usa `^` o `**`. Las funciones requieren paréntesis.
-- Funciones admitidas: `sin`, `cos`, `tan`, `exp`, `ln`, `log` (natural),
-  `log10`, `sqrt` y `abs`. Las constantes son `pi` y `e`.
+- Las funciones trigonométricas usan radianes. Se admiten `sin`, `cos`,
+  `tan`, `sec`, `csc` y `cot`, junto con `arcsin`, `arccos`, `arctan`,
+  `arcsec`, `arccsc` y `arccot`. La rama de `arccot` devuelve ángulos
+  entre 0 y π.
+- Puedes escribir `cos^2(2x)` para elevar el coseno al cuadrado y
+  `sin^(-1)(x)` para el arcoseno. El recíproco del seno se escribe `csc(x)`
+  o `sin(x)^(-1)`.
+- También se admiten `exp`, `ln`, `log` (natural), `log10`, `sqrt` y `abs`.
+  Las constantes son `pi` y `e`.
+- Para indicar una base, escribe `log(2, x)` o usa **log** en el teclado
+  matemático. La base debe ser positiva y distinta de 1. El botón **|x|**
+  inserta las barras de valor absoluto. En la entrada de texto usa `abs(x)`.
 - Escribe `pi x` o `pi*x` para multiplicar dos nombres. Los identificadores
   completos se conservan. `1e-3x` se lee como `0.001*x`.
 - `1/2x` se interpreta como `(1/2)*x`. Usa `1/(2x)` para poner el producto
