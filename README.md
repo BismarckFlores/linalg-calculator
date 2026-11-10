@@ -119,3 +119,4 @@ CustomTkinter y una pantalla Tk.
 - [Matriz inversa y ejercicios](docs/inverse.md)
 - [Decisiones de diseño](docs/design.md)
 - [Referencia del código](docs/reference.md)
+- [Prueba de interfaz con PySide6 y MathLive](docs/revamp-poc.md)

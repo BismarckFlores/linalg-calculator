@@ -1,0 +1,35 @@
+:root {
+  color-scheme: light;
+  color: #172033;
+  background: #fff;
+}
+
+:root[data-dark="true"] {
+  color-scheme: dark;
+  color: #eef2fb;
+  background: #1c2432;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+math-field {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  min-height: 65px;
+  border: 1px solid #a8b5c7;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font-size: 24px;
+  --caret-color: #0071e3;
+}
+
+math-field::part(virtual-keyboard-toggle),
+math-field::part(menu-toggle) {
+  display: none;
+}

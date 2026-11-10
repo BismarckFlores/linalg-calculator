@@ -1,0 +1,78 @@
+function groupFractions(latex) {
+  // AsciiMath exports a fraction as (a)/(b). Group it before a power or product.
+  const fractions = /\\(?:frac|dfrac|tfrac)\s*(?=\{)/g;
+  let result = "";
+  let offset = 0;
+  for (const match of latex.matchAll(fractions)) {
+    if (match.index < offset) continue;
+    const start = match.index + match[0].length;
+    let end = start;
+    for (let argument = 0; argument < 2; argument++) {
+      while (/\s/.test(latex[end] || "")) end++;
+      if (latex[end] !== "{") return latex;
+      let depth = 1;
+      while (depth && ++end < latex.length) {
+        if (latex[end] === "{") depth++;
+        if (latex[end] === "}") depth--;
+      }
+      if (depth) return latex;
+      end++;
+    }
+    result += latex.slice(offset, match.index) +
+      "\\left(" + match[0] + groupFractions(latex.slice(start, end)) + "\\right)";
+    offset = end;
+  }
+  return result + latex.slice(offset);
+}
+
+customElements.whenDefined("math-field").then(() => {
+  MathfieldElement.fontsDirectory = new URL("vendor/fonts/", document.baseURI).href;
+  MathfieldElement.soundsDirectory = null;
+  const field = document.createElement("math-field");
+  field.id = "expression";
+  field.setAttribute("aria-label", "Función");
+  field.mathVirtualKeyboardPolicy = "manual";
+  document.querySelector("#editor").appendChild(field);
+  const keyboard = window.mathVirtualKeyboard;
+  keyboard.layouts = [{
+    label: "Funciones",
+    rows: [
+      ["7", "8", "9", "+", "-", "x", "\\pi", "e"],
+      ["4", "5", "6", "\\times", "\\frac{#@}{#?}", "#@^{#?}", "\\sqrt{#0}", "."],
+      ["1", "2", "3", "0", "(", ")", "\\sin\\left(#0\\right)", "\\cos\\left(#0\\right)"],
+      ["\\tan\\left(#0\\right)", "\\ln\\left(#0\\right)", "\\operatorname{abs}\\left(#0\\right)", "[left]", "[right]", "[backspace]"],
+    ],
+  }];
+
+  new QWebChannel(qt.webChannelTransport, ({objects: {editorBridge}}) => {
+    function sendValue() {
+      const latex = field.getValue("latex");
+      const incomplete = latex.includes("\\placeholder") || field.errors.length > 0;
+      editorBridge.changed(incomplete ? "" : MathLive.convertLatexToAsciiMath(groupFractions(latex)));
+    }
+
+    window.setFormula = (latex) => {
+      field.setValue(latex, {silenceNotifications: true});
+    };
+    window.setEditorDark = (dark) => {
+      document.documentElement.dataset.dark = dark;
+    };
+    window.toggleKeyboard = () => {
+      field.focus();
+      keyboard.visible = !keyboard.visible;
+    };
+    window.hideKeyboard = () => keyboard.hide();
+    let resizeFrame;
+    function resizeEditor() {
+      cancelAnimationFrame(resizeFrame);
+      resizeFrame = requestAnimationFrame(() => {
+        const fieldHeight = Math.max(66, field.getBoundingClientRect().height);
+        editorBridge.viewHeight(Math.ceil(fieldHeight + keyboard.boundingRect.height + 8));
+      });
+    }
+    keyboard.addEventListener("geometrychange", resizeEditor);
+    new ResizeObserver(resizeEditor).observe(field);
+    field.addEventListener("input", sendValue);
+    editorBridge.ready();
+  });
+});
