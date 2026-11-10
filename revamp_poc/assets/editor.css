@@ -26,7 +26,8 @@ math-field {
   font-size: 20px;
   --primary-color: var(--app-accent);
   --caret-color: var(--app-accent);
-  --selection-background-color: var(--app-accent-soft);
+  --selection-background-color: var(--app-accent);
+  --selection-color: var(--app-on-accent);
 }
 
 math-field:focus-within {

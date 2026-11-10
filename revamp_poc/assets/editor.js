@@ -57,6 +57,22 @@ customElements.whenDefined("math-field").then(() => {
     };
     window.focusFormula = () => field.focus({preventScroll: true});
     window.editFormula = (command) => field.executeCommand(command);
+    field.addEventListener("paste", (event) => {
+      const clipboard = event.clipboardData;
+      if (!clipboard || field.mode !== "math" ||
+          clipboard.getData("application/x-latex") || clipboard.getData("application/json+mathlive")) return;
+      const text = clipboard.getData("text/plain").trim();
+      if (!text || /[\\$]/.test(text)) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const value = field.value;
+      const selection = JSON.stringify(field.selection);
+      editorBridge.latexForPaste(text, (latex) => {
+        if (field.value !== value || JSON.stringify(field.selection) !== selection) return;
+        field.insert(latex || text, {format: latex ? "latex" : "auto"});
+      });
+    }, true);
     new ResizeObserver(() => {
       editorBridge.viewHeight(Math.ceil(field.getBoundingClientRect().height) + 2);
     }).observe(field);

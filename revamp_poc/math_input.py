@@ -80,6 +80,14 @@ class EditorBridge(QObject):
     def changed(self, value: str) -> None:
         self.expression_changed.emit(value)
 
+    @Slot(str, result=str)
+    def latexForPaste(self, text: str) -> str:
+        try:
+            return formula_latex(text)
+        except ValueError:
+            # MathLive también permite pegar fragmentos que aún no son una función completa.
+            return ""
+
     @Slot(int)
     def viewHeight(self, height: int) -> None:
         self.field_resized.emit(height)
@@ -173,7 +181,7 @@ class MathInput(QWidget):
         colors = {
             "card": theme.CARD[mode], "field": theme.FIELD[mode],
             "border": theme.BORDER[mode], "ink": theme.INK[mode],
-            "accent": theme.ACCENT, "accent-soft": theme.ACCENT_SOFT[mode],
+            "accent": theme.ACCENT, "on-accent": theme.ON_ACCENT,
             "radius": f"{theme.FIELD_RADIUS}px",
         }
         self.web.page().setBackgroundColor(QColor(colors["card"]))
