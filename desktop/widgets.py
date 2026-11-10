@@ -1,10 +1,10 @@
 """Estilos y componentes Qt compartidos."""
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QFontDatabase
+from PySide6.QtCore import QRectF, Qt, Signal
+from PySide6.QtGui import QColor, QFontDatabase, QIntValidator, QPainter
 from PySide6.QtWidgets import (
-    QAbstractItemView, QFrame, QHBoxLayout, QHeaderView, QLabel, QPushButton,
-    QSizePolicy, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
+    QAbstractItemView, QButtonGroup, QCheckBox, QFrame, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QPushButton, QSizePolicy, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
 from ui import theme_tokens as theme
@@ -86,13 +86,123 @@ def page_header(glyph: str, title: str, subtitle: str) -> QWidget:
     return header
 
 
-def pill_group() -> tuple[QFrame, QHBoxLayout]:
-    panel = QFrame()
-    panel.setObjectName("pills")
-    row = QHBoxLayout(panel)
-    row.setContentsMargins(3, 3, 3, 3)
-    row.setSpacing(2)
-    return panel, row
+class SegmentedControl(QFrame):
+    currentIndexChanged = Signal(int)
+    activated = Signal(int)
+
+    def __init__(self, *values: str, selected: int = 0) -> None:
+        super().__init__()
+        self.setObjectName("pills")
+        row = QHBoxLayout(self)
+        row.setContentsMargins(3, 3, 3, 3)
+        row.setSpacing(2)
+        self._group = QButtonGroup(self)
+        for index, value in enumerate(values):
+            button = QPushButton(value, checkable=True)
+            self._group.addButton(button, index)
+            row.addWidget(button)
+        self.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        self.setCurrentIndex(selected)
+        self._group.idToggled.connect(self._changed)
+        self._group.idClicked.connect(self.activated)
+
+    def _changed(self, index: int, selected: bool) -> None:
+        if selected:
+            self.currentIndexChanged.emit(index)
+
+    def currentIndex(self) -> int:
+        return self._group.checkedId()
+
+    def currentText(self) -> str:
+        button = self._group.checkedButton()
+        return button.text() if button is not None else ""
+
+    def setCurrentIndex(self, index: int) -> None:
+        button = self._group.button(index)
+        if button is not None:
+            button.setChecked(True)
+
+
+class Stepper(QFrame):
+    valueChanged = Signal(int)
+
+    def __init__(self, name: str, low: int, high: int, value: int, *, editable: bool = False) -> None:
+        super().__init__()
+        self.setObjectName("stepper")
+        row = QHBoxLayout(self)
+        row.setContentsMargins(3, 2, 3, 2)
+        row.setSpacing(0)
+        self._value = value
+        self.setAccessibleName(name)
+        self._readout = QLineEdit() if editable else label("", "stepValue")
+        self._readout.setAccessibleName(name)
+        self._readout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        if isinstance(self._readout, QLineEdit):
+            self._validator = QIntValidator(self)
+            self._readout.setValidator(self._validator)
+            self._readout.editingFinished.connect(self._commit)
+        self._less, self._more = QPushButton("−"), QPushButton("+")
+        for button, verb, step in ((self._less, "Reducir", self.stepDown), (self._more, "Aumentar", self.stepUp)):
+            button.setAccessibleName(f"{verb} {name.lower()}")
+            button.setAutoRepeat(True)
+            button.clicked.connect(step)
+        for widget in (self._less, self._readout, self._more):
+            row.addWidget(widget)
+        self.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        self.setRange(low, high)
+
+    def _commit(self) -> None:
+        text = self._readout.text()
+        self.setValue(int(text) if text.isdecimal() else self.value())
+
+    def _refresh(self) -> None:
+        self._readout.setText(str(self._value))
+        size = self._high if isinstance(self._readout, QLineEdit) else self._value
+        self._readout.setFixedWidth(max(24, 12 + 7 * len(str(size))))
+        self._less.setEnabled(self.value() > self._low)
+        self._more.setEnabled(self.value() < self._high)
+
+    def setRange(self, low: int, high: int) -> None:
+        self._low, self._high = low, high
+        if isinstance(self._readout, QLineEdit):
+            self._validator.setRange(low, high)
+        self.setValue(self._value)
+
+    def value(self) -> int:
+        return self._value
+
+    def setValue(self, value: int) -> None:
+        previous = self._value
+        self._value = max(self._low, min(self._high, value))
+        self._refresh()
+        if self._value != previous:
+            self.valueChanged.emit(self._value)
+
+    def stepDown(self) -> None:
+        self.setValue(self.value() - 1)
+
+    def stepUp(self) -> None:
+        self.setValue(self.value() + 1)
+
+
+class Toggle(QCheckBox):
+    """Interruptor horizontal con el comportamiento de un control Qt."""
+
+    def __init__(self, text: str) -> None:
+        super().__init__(text)
+        self.setObjectName("toggle")
+
+    def paintEvent(self, event) -> None:
+        super().paintEvent(event)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        y = self.height() / 2
+        active = self.isChecked() and self.isEnabled()
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor(theme.ACCENT if active else "#95a1ad"))
+        painter.drawRoundedRect(QRectF(0, y - 6, 33, 12), 6, 6)
+        painter.setBrush(QColor(theme.ON_ACCENT if active else "#575a5d"))
+        painter.drawEllipse(QRectF(16 if active else 0, y - 9, 18, 18))
 
 
 def stylesheet(dark: bool) -> str:
@@ -136,6 +246,7 @@ def stylesheet(dark: bool) -> str:
     QLabel#brand { font-size: 14px; font-weight: 600; }
     QLabel#muted, QLabel#caption { color: %(muted)s; }
     QLabel#caption { font-size: 12px; }
+    QLabel#fieldTitle { font-size: 11px; color: %(muted)s; font-weight: 700; }
     QLabel#group, QLabel#course { color: %(faint)s; }
     QLabel#group, QLabel#count { font-size: 11px; font-weight: 700; }
     QLabel#count { color: %(muted)s; background: %(field)s; border-radius: 10px; padding: 6px 16px; }
@@ -147,7 +258,9 @@ def stylesheet(dark: bool) -> str:
     QLabel#activeNavName { color: %(onAccent)s; }
     QLabel#brandGlyph { background: %(blue)s; color: %(onAccent)s; border-radius: 9px; }
     QLabel#inputError { color: %(danger)s; }
-    QLineEdit, QPlainTextEdit, QTableWidget, QSpinBox, QComboBox, QComboBox QAbstractItemView {
+    QLabel#advice { background: %(field)s; border-radius: 14px; padding: 12px 16px; }
+    QLabel#stepTitle { background: %(field)s; border-radius: 12px; padding: 13px 16px; }
+    QLineEdit, QPlainTextEdit, QTableWidget {
         background: %(field)s; border: 1px solid %(line)s;
         border-radius: %(fieldRadius)dpx; padding: 9px;
         font-family: "%(mono)s"; selection-background-color: %(blue)s;
@@ -158,6 +271,16 @@ def stylesheet(dark: bool) -> str:
         background: %(field)s; border: 1px solid %(line)s;
     }
     QCheckBox::indicator:checked { background: %(blue)s; border-color: %(blue)s; }
+    QCheckBox#toggle { spacing: 9px; min-height: 24px; }
+    QCheckBox#toggle::indicator, QCheckBox#toggle::indicator:checked {
+        width: 33px; height: 18px; border: none; background: transparent;
+    }
+    QFrame#stepper { background: %(field)s; border: 1px solid %(line)s; border-radius: %(fieldRadius)dpx; }
+    QFrame#stepper QLineEdit, QLabel#stepValue {
+        background: transparent; border: none; padding: 0; font-size: 12px;
+    }
+    QFrame#stepper QPushButton { background: transparent; border-radius: 8px; padding: 0; min-width: 23px; min-height: 24px; }
+    QFrame#stepper QPushButton:hover:enabled { background: %(hover)s; }
     QTableWidget { background: %(card)s; alternate-background-color: %(field)s; gridline-color: %(line)s; }
     QHeaderView::section {
         background: %(field)s; color: %(text)s; border: 1px solid %(line)s; padding: 5px;
@@ -170,6 +293,7 @@ def stylesheet(dark: bool) -> str:
     QPushButton:focus { border: 1px solid %(blue)s; }
     QPushButton#action {
         background: %(blue)s; color: %(onAccent)s; padding: 10px 20px;
+        min-width: 100px; min-height: 18px; border-radius: 18px;
     }
     QPushButton#action:hover { background: %(blueHover)s; }
     QPushButton#keyboardToggle:checked,
@@ -188,6 +312,9 @@ def stylesheet(dark: bool) -> str:
     QPushButton:disabled { color: %(muted)s; }
     QPushButton#link { background: transparent; color: %(blue)s; }
     QPushButton#link:hover { background: %(field)s; }
+    QPushButton#link:disabled { color: %(faint)s; }
+    QPushButton#stepDot { background: transparent; color: %(blue)s; padding: 4px; min-width: 19px; }
+    QPushButton#stepDot:hover { background: %(field)s; }
     QPushButton#themeSwitch { border-radius: 15px; padding: 0; font-weight: 400; }
     QPushButton#navigation {
         background: transparent; border-radius: %(navRadius)dpx; padding: 0;
@@ -196,7 +323,7 @@ def stylesheet(dark: bool) -> str:
     QPushButton#navigation:checked { background: %(blue)s; }
     QFrame#pills { background: %(field)s; border-radius: 17px; }
     QFrame#pills QPushButton {
-        background: transparent; border-radius: 14px; padding: 6px 14px; font-weight: 400;
+        background: transparent; border-radius: 14px; padding: 6px 16px; font-weight: 400;
     }
     QFrame#pills QPushButton:hover { background: %(hover)s; }
     QFrame#pills QPushButton:checked { background: %(card)s; }

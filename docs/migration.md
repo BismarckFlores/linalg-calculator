@@ -60,3 +60,12 @@ La validación final incluyó una instalación limpia, `pip check`,
 `python check.py` y la suite de 46 pruebas. Se repitió la suite con la
 red aislada en Linux. El teclado físico, el pegado, el teclado Qt y el
 cambio de tema se comprobaron en una sesión gráfica.
+
+### Fidelidad visual
+
+Se compararon las once pantallas de entrada con la versión de CustomTkinter
+del commit `b106fce`. Qt recuperó los selectores segmentados, los controles
+horizontales de tamaño y la disposición compacta de los formularios. En
+Gauss, el planteamiento, el recorrido, el sistema equivalente y la
+comprobación se muestran en tarjetas separadas. Las celdas y fórmulas
+siguen editándose o mostrándose con MathLive.

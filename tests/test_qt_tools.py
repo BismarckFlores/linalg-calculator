@@ -8,14 +8,16 @@ if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY") or sys.pl
     raise unittest.SkipTest("Qt WebEngine requiere una sesión gráfica.")
 
 try:
+    from PySide6.QtCore import QPoint
     from PySide6.QtQuick import QQuickWindow
     from PySide6.QtTest import QTest
-    from PySide6.QtWidgets import QApplication, QComboBox, QLineEdit, QPushButton
+    from PySide6.QtWidgets import QApplication, QLineEdit, QPushButton
 except ImportError as problem:
     raise unittest.SkipTest("Instala las dependencias de la interfaz Qt.") from problem
 
 from desktop.forms import MatrixInput
 from desktop.math_input import MathInput
+from desktop.widgets import SegmentedControl
 from desktop.window import TOOLS, CalculatorWindow
 
 
@@ -49,12 +51,13 @@ class QtToolTests(unittest.TestCase):
         button.click()
         QTest.qWait(50)
         self.assertTrue(page.result.isVisible(), page.error.text())
-        self.assertIn(expected, page.output.value())
+        visible_results = (editor.value() for editor in page.result.findChildren(MathInput) if editor.isVisible())
+        self.assertIn(expected, "\n".join(visible_results))
 
     def test_catalog_and_matrix_operations(self):
         self.assertEqual(len(TOOLS), 11)
         page = self.open_page("operations")
-        select = page.findChild(QComboBox)
+        select = page.findChild(SegmentedControl)
         for index, expected in enumerate(("[ 6; 8 ]", "[ -4; -4 ]", "[ 19; 22 ]", "[ 1/2; 1 ]", "[ 1; 3 ]")):
             select.setCurrentIndex(index)
             self.assertFalse(page.result.isVisible())
@@ -79,11 +82,11 @@ class QtToolTests(unittest.TestCase):
 
     def test_systems_and_echelon(self):
         page = self.open_page("gauss")
-        method, entry = page.findChildren(QComboBox)
-        self.calculate(page, "x = 113/34")
+        method, entry = page.findChildren(SegmentedControl)
+        self.calculate(page, "x = 29")
         self.assertTrue(page.walk.isVisible())
         page.walk.index.stepUp()
-        self.assertIn("f", page.walk.output.value())
+        self.assertIn("f", page.walk.step_title.text())
         method.setCurrentIndex(1)
         entry.setCurrentIndex(1)
         editor = next(field for field in page.findChildren(MathInput) if field.kind == "equations")
@@ -92,6 +95,7 @@ class QtToolTests(unittest.TestCase):
         editor.set_value("x + y = 3\nx + y = 4")
         self.calculate(page, "Sistema Inconsistente")
         page = self.open_page("echelon")
+        page.findChild(MatrixInput).set_value("1;2;0\n0;0;1\n0;0;0")
         self.calculate(page, "Forma escalonada reducida: sí")
         page.findChild(MatrixInput).set_value("0;0\n2;3")
         self.calculate(page, "falla en la fila")
@@ -101,23 +105,47 @@ class QtToolTests(unittest.TestCase):
             with self.subTest(key=key):
                 page = self.open_page(key)
                 self.calculate(page, caption)
-                page.findChild(QComboBox).setCurrentIndex(1)
+                page.findChild(SegmentedControl).setCurrentIndex(1)
                 self.calculate(page, "Comprobación A · x")
         page = self.open_page("determinant")
         page.findChild(MatrixInput).set_value("1;2;3\n0;4;5\n0;0;6")
         self.calculate(page, "det(A) = 24")
         self.assertTrue(page.walk.isVisible())
-        page.findChild(QComboBox).setCurrentIndex(1)
+        method, mode = page.findChildren(SegmentedControl)
+        method.setCurrentIndex(1)
         self.calculate(page, "Comprobación por cofactores: det(A) = 24")
+        mode.setCurrentIndex(1)
+        editor = next(field for field in page.findChildren(MathInput) if field.kind == "equations")
+        editor.set_value("2x = 0\n3y = 0")
+        self.calculate(page, "det(A) = 6")
+
+    def test_matrix_controls_wrap_and_keep_entries(self):
+        page = self.open_page("gauss")
+        a, b = page.findChildren(MatrixInput)
+        self.window.resize(1180, 800)
+        QTest.qWait(100)
+        self.assertEqual(a.mapTo(page, QPoint()).y(), b.mapTo(page, QPoint()).y())
+        self.window.resize(960, 640)
+        QTest.qWait(100)
+        self.assertGreater(b.mapTo(page, QPoint()).y(), a.mapTo(page, QPoint()).y())
+        self.assertEqual(self.window._scroll["gauss"].horizontalScrollBar().maximum(), 0)
+        self.window.resize(1180, 800)
+        b.rows.findChildren(QPushButton)[1].click()
+        self.assertEqual(a.matrix().rows, 4)
+        self.assertEqual(b.matrix().rows, 4)
+        b.rows.stepDown()
+        a.cols.stepDown()
+        a.cols.stepUp()
+        self.assertEqual(a.matrix().row(2), [0, 2, -8])
 
     def test_vectors_bases_and_roman(self):
         page = self.open_page("vectors")
-        operation = page.findChild(QComboBox)
+        operation = page.findChild(SegmentedControl)
         for index, expected in enumerate(("5/2", "7/2", "3/2", "La suma reproduce el vector objetivo")):
             operation.setCurrentIndex(index)
             self.calculate(page, expected)
         page = self.open_page("bases")
-        direction, radix = page.findChildren(QComboBox)
+        direction, radix = page.findChildren(SegmentedControl)
         number = next(field for field in page.findChildren(QLineEdit) if field.accessibleName() == "Número")
         radix.setCurrentIndex(2)
         number.setText("-43")
@@ -130,7 +158,7 @@ class QtToolTests(unittest.TestCase):
         number.setText("XIV")
         self.calculate(page, "14")
         page = self.open_page("roman")
-        operation = page.findChild(QComboBox)
+        operation = page.findChild(SegmentedControl)
         for index, expected in enumerate(("XXIII", "V = 5", "CXXVI")):
             operation.setCurrentIndex(index)
             self.calculate(page, expected)

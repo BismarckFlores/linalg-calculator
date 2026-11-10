@@ -139,7 +139,7 @@ class CalculatorWindow(QMainWindow):
         sidebar.setObjectName("sidebar")
         sidebar.setFixedWidth(268)
         layout = QVBoxLayout(sidebar)
-        layout.setContentsMargins(13, 22, 13, 14)
+        layout.setContentsMargins(9, 22, 13, 14)
         layout.setSpacing(10)
         brand = QHBoxLayout()
         brand.setSpacing(10)
@@ -159,7 +159,7 @@ class CalculatorWindow(QMainWindow):
         separator = QFrame()
         separator.setObjectName("separator")
         separator.setFixedHeight(2)
-        layout.addSpacing(8)
+        layout.addSpacing(12)
         layout.addWidget(separator)
         scroll = QScrollArea()
         scroll.viewport().setObjectName("sidebarViewport")
@@ -168,13 +168,13 @@ class CalculatorWindow(QMainWindow):
         rows.setObjectName("sidebarContent")
         links = QVBoxLayout(rows)
         links.setContentsMargins(0, 0, 0, 0)
-        links.setSpacing(4)
+        links.setSpacing(2)
         links.addWidget(self._navigation("home", "⌂", "Inicio"))
         previous_section = None
         for tool in TOOLS:
             if tool.section != previous_section:
                 heading = label(tool.section.upper(), "group")
-                heading.setContentsMargins(8, 16, 0, 8)
+                heading.setContentsMargins(12, 20, 0, 10)
                 links.addWidget(heading)
                 previous_section = tool.section
             links.addWidget(self._navigation(tool.key, tool.glyph, tool.title))

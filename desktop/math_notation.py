@@ -58,7 +58,7 @@ def to_latex(text: str, kind: str, *, paste: bool = False) -> str:
                 pass
         rows = matrix_rows(text)
         cells = ["&".join(_number_latex(cell) for cell in row) for row in rows]
-        return r"\begin{pmatrix}" + r"\\".join(cells) + r"\end{pmatrix}"
+        return r"\begin{bmatrix}" + r"\\".join(cells) + r"\end{bmatrix}"
     if kind == "vector":
         return ",\\ ".join(_notation(format_scalar(number)) for number in parse_vector(text))
     if kind == "integer":
@@ -115,13 +115,26 @@ def _result_latex(text: str) -> str:
             return prefix + _notation(expression) + (r"\quad" + words(note.strip()) if note else "")
         return words(line)
 
+    def matrix(cells) -> str:
+        rows = [[value.strip() for value in line.split(";")] for line in cells]
+        body = r"\\".join("&".join(_notation(value) for value in row if value != "|") for row in rows)
+        if "|" in rows[0]:
+            alignment = "".join("|" if value == "|" else "c" for value in rows[0])
+            return rf"\left[\begin{{array}}{{{alignment}}}{body}\end{{array}}\right]"
+        return r"\begin{bmatrix}" + body + r"\end{bmatrix}"
+
     lines = []
     for is_matrix, group in groupby(
         map(str.strip, text.splitlines()), lambda line: line.startswith("[ ") and line.endswith(" ]")
     ):
         if is_matrix:
-            cells = ["&".join(_notation(value.strip()) for value in line[2:-2].split(";")) for line in group]
-            lines.append(r"\begin{bmatrix}" + r"\\".join(cells) + r"\end{bmatrix}")
+            rows = [line[2:-2].split(" ] · [ ") for line in group]
+            if all(len(row) == 2 and " ] = [ " in row[1] for row in rows):
+                coefficients = matrix(row[0] for row in rows)
+                variables, constants = zip(*(row[1].split(" ] = [ ", 1) for row in rows))
+                lines.append(coefficients + r"\cdot " + matrix(variables) + "=" + matrix(constants))
+            else:
+                lines.append(matrix(row[0] for row in rows))
             continue
         lines.extend(render_line(line) for line in group)
     return r"\begin{array}{l}" + r"\\".join(lines) + r"\end{array}"

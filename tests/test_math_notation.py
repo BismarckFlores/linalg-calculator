@@ -24,7 +24,7 @@ class MathNotationTests(unittest.TestCase):
     def test_matrix_paste_preserves_its_shape(self):
         self.assertEqual(
             to_latex("1 / 2;2\n3;4", "matrix", paste=True),
-            r"\begin{pmatrix}\frac{1}{2}&2\\3&4\end{pmatrix}",
+            r"\begin{bmatrix}\frac{1}{2}&2\\3&4\end{bmatrix}",
         )
         self.assertEqual(to_latex("1/2", "matrix", paste=True), r"\frac{1}{2}")
         self.assertEqual(matrix_rows("1;2;3\n4;5;6"), [["1", "2", "3"], ["4", "5", "6"]])

@@ -114,7 +114,7 @@ class QtRootTests(unittest.TestCase):
         self.click(page, "Graficar función")
         self.click(page, "Calcular raíz")
         self.assertIs(page.plot.result.criterion, RootCriterion.WIDTH)
-        self.assertAlmostEqual(page.plot.result.root, 2 ** 0.5, places=4)
+        self.assertAlmostEqual(page.plot.result.root, 0.763916015625)
 
     def test_4_bisection_table_walk_and_expanded_plot(self):
         page = self.open_page("bisection")

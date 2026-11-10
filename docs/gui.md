@@ -16,8 +16,14 @@ admiten fracciones. Si falla el editor visual, pulsa **Usar entrada de
 texto** en el campo afectado. Los resultados tienen respaldo de texto
 automático.
 
+Los métodos y las formas de entrada se eligen con botones segmentados.
+En las matrices, **−** y **+** cambian las dimensiones. La matriz A y el
+vector b se muestran en paralelo cuando hay espacio, y sus filas se
+ajustan juntas.
+
 Cuando la operación tiene una traza, usa **Anterior**, **Siguiente** o
-el selector del procedimiento para navegar. **Ver todos los pasos** reúne
+los puntos bajo el procedimiento para navegar. En recorridos largos,
+los puntos se sustituyen por un contador. **Ver todos los pasos** reúne
 la traza. Las tablas permiten desplazarse para inspeccionar todas las
 columnas. Editar una entrada invalida el cálculo anterior.
 

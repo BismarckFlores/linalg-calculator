@@ -1,9 +1,7 @@
 """Página compartida de los métodos de búsqueda por intervalo."""
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (
-    QComboBox, QGridLayout, QHBoxLayout, QPushButton, QSpinBox, QVBoxLayout, QWidget,
-)
+from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QVBoxLayout, QWidget
 
 from core.bisection import bisect
 from core.real_function import RealFunction
@@ -13,7 +11,7 @@ from core.root_bracket import BracketStep, RootCriterion, RootStop
 from .forms import StepView
 from .math_input import MathInput
 from .plot import FunctionPlot
-from .widgets import ResultTable, action, card, label, page_header, pill_group
+from .widgets import ResultTable, SegmentedControl, Stepper, action, card, label, page_header
 
 
 CRITERIA = {
@@ -33,10 +31,10 @@ class RootBracketPage(QWidget):
     criteria = (RootCriterion.WIDTH, RootCriterion.RESIDUAL, RootCriterion.RELATIVE)
     solve = staticmethod(bisect)
     presets = (
-        ("Raíz de 2", "x^2 - 2", "1", "2", "0.0001", RootCriterion.WIDTH),
-        ("Fracción con raíz", "sqrt(x+1)/2 - 1", "2", "4", "0.0001", RootCriterion.WIDTH),
         ("Polinomio del Excel", "x^4 - 5x^3 + 0.5x^2 - 11x + 10", "0.6", "1", "0.0001", RootCriterion.RESIDUAL),
+        ("Raíz de 2", "x^2 - 2", "1", "2", "0.0001", RootCriterion.WIDTH),
         ("Potencia décima", "x^10 - 1", "0", "1.3", "0.0001", RootCriterion.WIDTH),
+        ("Fracción con raíz", "sqrt(x+1)/2 - 1", "2", "4", "0.0001", RootCriterion.WIDTH),
     )
 
     def __init__(self) -> None:
@@ -56,11 +54,9 @@ class RootBracketPage(QWidget):
         fields.addWidget(self.editor)
         fields.addSpacing(6)
         fields.addWidget(label("Cargar ejemplo", "caption"))
-        presets, examples = pill_group()
-        for name, *values in self.presets:
-            button = QPushButton(name)
-            button.clicked.connect(lambda checked=False, inputs=values: self._example(*inputs))
-            examples.addWidget(button)
+        presets = SegmentedControl(*(item[0] for item in self.presets), selected=-1)
+        presets.setAccessibleName("Cargar ejemplo")
+        presets.activated.connect(lambda index: self._example(*self.presets[index][1:]))
         fields.addWidget(presets, alignment=Qt.AlignmentFlag.AlignLeft)
         graph = action("Graficar función")
         graph.clicked.connect(self._graph)
@@ -84,25 +80,25 @@ class RootBracketPage(QWidget):
         self.a = MathInput(a, "Extremo inferior a", "number")
         self.b = MathInput(b, "Extremo superior b", "number")
         self.tolerance = MathInput(tolerance, "Tolerancia E", "number")
+        self.limit = Stepper("Máximo de iteraciones", 1, 1000, 100, editable=True)
         form = QGridLayout()
         form.setHorizontalSpacing(16)
         for index, field in enumerate((self.a, self.b, self.tolerance)):
             row, column = divmod(index, 2)
             form.addWidget(field, row, column)
             field.changed.connect(self._clear_result)
+        limit_field = QVBoxLayout()
+        limit_field.setSpacing(6)
+        limit_field.addWidget(label("Máximo de iteraciones", "caption"))
+        limit_field.addWidget(self.limit, alignment=Qt.AlignmentFlag.AlignLeft)
+        form.addLayout(limit_field, 1, 1)
         control_layout.addLayout(form)
-        self.criterion = QComboBox()
-        self.criterion.addItems([CRITERIA[value] for value in self.criteria])
+        self.criterion = SegmentedControl(*(CRITERIA[value] for value in self.criteria))
+        self.criterion.setAccessibleName("Criterio de parada")
         self.criterion.currentIndexChanged.connect(self._clear_result)
-        self.limit = QSpinBox()
-        self.limit.setRange(1, 1000)
-        self.limit.setValue(100)
         self.limit.valueChanged.connect(self._clear_result)
-        for caption, widget in (("Criterio de parada", self.criterion), ("Máximo de iteraciones", self.limit)):
-            field_label = label(caption, "caption")
-            field_label.setBuddy(widget)
-            control_layout.addWidget(field_label)
-            control_layout.addWidget(widget)
+        control_layout.addWidget(label("Criterio de parada", "caption"))
+        control_layout.addWidget(self.criterion)
         control_layout.addWidget(label(
             "Elige un intervalo donde la función sea continua y cambie de signo. "
             "Para el error relativo, 1 representa 1 %.", "muted",
@@ -116,7 +112,12 @@ class RootBracketPage(QWidget):
         layout.addWidget(self.controls)
         self.controls.hide()
 
-        self.result_card, result_layout = card()
+        self.result_card = QWidget()
+        results = QVBoxLayout(self.result_card)
+        results.setContentsMargins(0, 0, 0, 0)
+        results.setSpacing(16)
+        answer_card, result_layout = card()
+        results.addWidget(answer_card)
         result_layout.addWidget(label("Resultado", "heading"))
         self.answer = MathInput("", "", "output")
         result_layout.addWidget(self.answer)
@@ -126,19 +127,17 @@ class RootBracketPage(QWidget):
         result_layout.addWidget(self.bounds)
         self.walk = StepView("Iteración")
         self.walk.index.valueChanged.connect(self._select_iteration)
-        result_layout.addWidget(self.walk)
-        result_layout.addWidget(label("Tabla de iteraciones", "heading"))
+        procedure_card, procedure_layout = card()
+        procedure_layout.addWidget(self.walk)
+        results.addWidget(procedure_card)
+        table_card, table_layout = card()
+        results.addWidget(table_card)
+        table_layout.addWidget(label("Tabla de iteraciones", "heading"))
         table_controls = QHBoxLayout()
-        self.format = QComboBox()
+        self.format = SegmentedControl("Automático", "Decimal")
         self.format.setAccessibleName("Formato numérico")
-        self.format.addItems(("Automático", "Decimal"))
-        self.decimals = QSpinBox()
-        self.decimals.setAccessibleName("Decimales")
-        self.decimals.setRange(0, 17)
-        self.decimals.setValue(5)
-        self.table_page = QSpinBox()
-        self.table_page.setAccessibleName("Página de la tabla")
-        self.table_page.setMinimum(1)
+        self.decimals = Stepper("Decimales", 0, 17, 5)
+        self.table_page = Stepper("Página de la tabla", 1, 1, 1)
         for widget in (self.format, self.decimals, label("Página", "caption"), self.table_page):
             table_controls.addWidget(widget)
         table_controls.addStretch()
@@ -146,9 +145,9 @@ class RootBracketPage(QWidget):
         self.format.currentIndexChanged.connect(self._fill_table)
         self.decimals.valueChanged.connect(self._fill_table)
         self.table_page.valueChanged.connect(self._fill_table)
-        result_layout.addLayout(table_controls)
+        table_layout.addLayout(table_controls)
         self.table = ResultTable()
-        result_layout.addWidget(self.table)
+        table_layout.addWidget(self.table)
         layout.addWidget(self.result_card)
         self.result_card.hide()
         layout.addStretch()
@@ -224,7 +223,7 @@ class RootBracketPage(QWidget):
             f"Cambio relativo: {relative_text}"
         )
         self.plot.show_result(result)
-        self.table_page.setMaximum(max(1, (len(result.steps) + TABLE_PAGE_SIZE - 1) // TABLE_PAGE_SIZE))
+        self.table_page.setRange(1, max(1, (len(result.steps) + TABLE_PAGE_SIZE - 1) // TABLE_PAGE_SIZE))
         self.table_page.setValue(1)
         self._fill_table()
         steps = tuple(self._step_text(step, len(result.steps)) for step in result.steps)
