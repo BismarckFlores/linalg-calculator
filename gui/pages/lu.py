@@ -83,9 +83,7 @@ def triangular_lines(steps: tuple[Substitution, ...], names: list[str]) -> str:
     lleva unos en la diagonal, pero en U es el pivote, y entonces hay un ultimo
     paso que divide. `names` son los nombres de las incognitas, en orden.
 
-    Vive aqui y no en presentation.py porque solo la dice esta pagina: la terminal
-    no sabe de LU, y un texto compartido no puede depender de un tipo que su
-    programa no trae.
+    La pagina recorre las sustituciones de LU y comparte el formato del despeje.
     """
     lines: list[str] = []
     for step in steps:

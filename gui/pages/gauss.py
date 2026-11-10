@@ -12,8 +12,7 @@ solucion unica se comprueba dos veces: con el producto A x, hecho con la misma
 multiplicacion de matrices de la pagina de Operaciones Matriciales, y ecuacion
 por ecuacion.
 
-Aqui no se decide ni una palabra. ui/presentation.py escribe las frases para la
-terminal y para la ventana por igual; esta pagina las coloca.
+ui/presentation.py prepara el texto de los resultados y esta pagina lo coloca.
 """
 
 from dataclasses import replace

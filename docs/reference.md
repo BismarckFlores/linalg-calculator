@@ -1,646 +1,399 @@
-# Code reference
+# Referencia del código
 
-What every module exposes, so you can work with a piece without reading it.
-Signatures are taken from the source; the docstrings hold the detail this file
-leaves out.
+Las firmas y los nombres corresponden a los módulos del repositorio. Las
+cadenas de documentación de cada función explican los detalles de su contrato.
 
-## The shape of it
+## Capas y flujo de datos
 
-Each layer only knows about the ones above it. Nothing points back down.
+`core/` contiene los algoritmos. `ui/presentation.py` convierte resultados
+en texto y `gui/` conecta el motor con las entradas, gráficas y tarjetas.
 
-```
-scalar        exact numbers
-   │
-matrix        a rectangle of them, and row operations that return new matrices
-   │
-steps         a record: the starting matrix, and one Step per operation
-   │
-worksheet     matrix + record, where an operation happens and is written down
-   │
-elimination   drives a worksheet down to the echelon form, reduced or not
-   │
-systems       classifies what came out, and clears the unknowns
-   │                    verification   checks it independently
-   │                    equations      turns `2x + 3y = 5` into a row
-   │                    echelon        reads the form of a matrix, and its pivots
-   │                    parametric     the family, when there are infinitely many
-   │                    bases          whole numbers between bases, on its own
-   │                    vectors        Rⁿ, and combinations solved as a system
-   │                    roman          Roman numerals, on their own too
-   ├────────────────────────┴──────────────┘
-presentation  turns all of the above into Spanish
-prompts       reads a system from the keyboard, either way round
-   │
-program1      orders the seven sections
+```text
+SystemInput.read() ──> Typed: [A | b], incógnitas y nombres
+                         │
+                         └──> systems.solve() ──> Solution
+                                                  ├── log → StepWalker
+                                                  ├── result → sistema equivalente
+                                                  ├── kind → clasificación
+                                                  ├── substitutions → despeje
+                                                  └── values → verify(A, b, x)
+
+RealFunction ──> RootPlot
+       └──> bisect() o regula_falsi() ──> BracketResult ──> tabla y recorrido
 ```
 
-`gui/` hangs off `presentation` as a second reader of it, next to `prompts`.
-It imports `core/` and `ui/presentation.py`, and nothing imports it.
+`scalar` y `matrix` son la base de la aritmética. `Worksheet` combina una
+matriz y un `StepLog` para que `elimination` pueda registrar operaciones.
+`systems` usa esa reducción. `verification` depende solo de la matriz y
+los escalares para comprobar el sistema original. `echelon` y
+`parametric` consultan la reducción para identificar pivotes y escribir
+familias. `vectors` delega las combinaciones lineales en `solve`.
+`bases` y `roman` tienen su propia aritmética de numerales.
 
-Some modules hang off to the side deliberately. `verification` imports `matrix`
-and `scalar` only, so it cannot accidentally check the elimination against
-itself; `equations` imports the same two, because reading text into a matrix has
-nothing to do with what is later done to that matrix. `echelon` and `parametric`
-hang off `elimination` rather than off `systems`, because they are about a
-matrix and not about a system: one reads the form of any matrix, the other reads
-a family off a reduced one. `presentation` imports `parametric` too, to write
-that family out, which is why the handed-in files carry it in the shared engine.
+## Métodos numéricos
 
-`vectors` sits below `systems`, the other way round from `bases`: a combination
-is a question about a system, so it asks `solve` rather than solving it again.
+La [guía de raíces](bisection.md) explica las condiciones y ejemplos.
 
-## What flows through it
-
-```
-keyboard ──prompts.ask_system()──> Matrix [A | b], names
-                                      │            │
-                                      │            └──> every presentation.render_*
-                                      │
-                                      └──systems.solve()──> Solution
-                                                              ├─ .log          → presentation.render_steps
-                                                              ├─ .result       → presentation.render_equations
-                                                              ├─ .kind         → presentation.describe
-                                                              ├─ .values       → presentation.render_values
-                                                              ├─ .substitutions→ presentation.render_substitutions
-                                                              └─ .coefficients, .constants, .values
-                                                                        └─verification.verify()─> Verification
-                                                                                                     → presentation.render_verification
-```
-
-One call to `solve` produces everything the seven sections need. Nothing is
-computed twice.
-
----
-
-## Numerical root modules
-
-Numerical real roots, separate from exact matrix arithmetic. See
-[bisection.md](bisection.md) for the algorithm, assumptions and course cases.
-
-| Module | Name | Contract |
+| Módulo | Nombre | Contrato |
 | --- | --- | --- |
-| `core/real_function.py` | `RealFunction(text)` | Validates and interprets arithmetic in x with an AST whitelist. Raises `RootInputError` for invalid expressions or evaluations. |
-| `core/real_function.py` | `sample_function(function, a, b, count=401)` | Plot samples. Undefined evaluations produce `(x, None)` gaps. |
-| `core/root_bracket.py` | `read_root_number(value)` | Reuses `to_scalar` and converts to a finite float. |
-| `core/root_bracket.py` | `RootCriterion`, `RootStop` | Criteria are `WIDTH`, `RESIDUAL`, `RELATIVE` (percent). Stop reasons are `ZERO`, `TOLERANCE`, `LIMIT`, `STAGNATION`. |
-| `core/root_bracket.py` | `solve_bracket(...)` | Takes an estimate function. Checks endpoint signs or a zero, preserves the bracket and records the iteration history. |
-| `core/root_bracket.py` | `BracketStep`, `BracketResult` | Frozen iteration and result with endpoints, estimates, evaluations, error measures and stop reason. |
-| `core/bisection.py` | `bisect(function, a, b, tolerance="0.0001", *, criterion=WIDTH, max_iterations=100)` | Returns a `BracketResult` using midpoint estimates. |
-| `core/regula_falsi.py` | `regula_falsi(function, a, b, tolerance="0.01", *, criterion=RELATIVE, max_iterations=100)` | Returns a `BracketResult` using secant intersections. |
+| `core/real_function.py` | `RealFunction(text)` | Lee una función en x con un AST restringido. Se puede llamar con un valor de x. Eleva `RootInputError` ante una expresión o evaluación inválida. |
+| `core/real_function.py` | `sample_function(function, a, b, count=401)` | Devuelve muestras. Los puntos indefinidos se representan como `(x, None)`. |
+| `core/root_bracket.py` | `read_root_number(value)` | Usa `to_scalar` y convierte a un `float` finito. |
+| `core/root_bracket.py` | `RootCriterion` | `WIDTH`, `RESIDUAL` y `RELATIVE` (porcentaje). |
+| `core/root_bracket.py` | `RootStop` | `ZERO`, `TOLERANCE`, `LIMIT` y `STAGNATION`. |
+| `core/root_bracket.py` | `solve_bracket(function, a, b, tolerance, criterion, max_iterations, estimate)` | Recibe una función de estimación. Comprueba los extremos, conserva el cambio de signo y guarda la traza. |
+| `core/bisection.py` | `bisect(function, a, b, tolerance="0.0001", *, criterion=WIDTH, max_iterations=100)` | Usa el punto medio y devuelve un `BracketResult`. |
+| `core/regula_falsi.py` | `regula_falsi(function, a, b, tolerance="0.01", *, criterion=RELATIVE, max_iterations=100)` | Usa la intersección de la secante y devuelve un `BracketResult`. |
 
-The original `Bisection*`, `bisection_number` and `sample_bisection` imports
-continue to resolve from `core/bisection.py`.
+`BracketStep` guarda `index`, `a`, `b`, `c`, `fa`, `fb`, `fc` y
+`relative_error`. Expone el ancho, cota, residuo y decisión de signo.
+`BracketResult` guarda la función, extremos iniciales y finales,
+tolerancia, criterio, iteraciones, motivo de parada, aproximación y valor.
+También expone `converged` y `bound`. Ambos registros son inmutables.
+`core/bisection.py` conserva los nombres anteriores `Bisection*`,
+`bisection_number` y `sample_bisection` como alias.
 
 ## `core/scalar.py`
 
-The number every matrix entry is stored as.
-
-| Name | Meaning |
+| Nombre | Significado |
 | --- | --- |
-| `Scalar` | `Fraction`. What an entry always is once inside a matrix. |
-| `NumberLike` | `int \| float \| Fraction \| str`. What is accepted at the door. |
-| `to_scalar(value) -> Scalar` | Normalizes anything readable. Accepts `"2,5"` and `"1/3"`. Raises `ValueError` on text that is not a number, `TypeError` on a bool. |
-| `format_scalar(value) -> str` | `3`, `-4`, `1/3`. |
-| `format_factor(value) -> str` | The same, parenthesized when negative or fractional: `(-1)`, `(1/3)`, but `5`. For step labels. |
+| `Scalar` | `Fraction`, el tipo de las entradas matriciales. |
+| `NumberLike` | `int \| float \| Fraction \| str`. |
+| `to_scalar(value) -> Scalar` | Acepta, por ejemplo, `"2,5"` y `"1/3"`. Lanza `ValueError` para texto inválido y `TypeError` para booleanos. |
+| `format_scalar(value) -> str` | Formato como `3`, `-4` o `1/3`. |
+| `format_factor(value) -> str` | Agrega paréntesis cuando es negativo o fraccionario, como `(-1)` o `(1/3)`. |
 
 ## `core/matrix.py`
 
-A rectangle of exact numbers. Indices count from 1 in `elem`, `row`, `column`
-and every row operation; `Matrix.data` underneath is a plain 0-based list of
-lists.
+`Matrix` representa un rectángulo de escalares exactos. Los índices de
+filas y columnas de su API empiezan en 1. `data` es una lista de listas
+con índices desde 0. La construcción rechaza filas de distinto tamaño.
 
-Construction raises `ValueError` if the rows are not all the same length.
-
-Two errors about the shape of a matrix live here, because every module that needs
-a square one raises the same pair: **`NotSquare`** carries `rows` and `cols`, and
-**`SingularMatrix`** carries the `column` where a pivot was missing, or `None`.
-`require_square()` raises the first, and `minor(i, j)` gives what is left after
-crossing out a row and a column.
-
-**Reading**
-
-| Method | Returns |
+| Método | Resultado |
 | --- | --- |
-| `elem(i, j)` | The entry `a_ij`. |
-| `row(i)`, `column(j)` | That row or column as a list. |
-| `diagonal()` | The main diagonal, as far as it reaches. |
-| `size()` | `(rows, cols)`. Also available as `.rows` and `.cols`. |
-| `is_square()`, `is_zero_row(i)` | Predicates. |
+| `elem(i, j)` | Entrada `a_ij`. |
+| `row(i)`, `column(j)` | Fila o columna como lista. |
+| `diagonal()` | Diagonal principal hasta donde alcance. |
+| `size()` | Par `(rows, cols)`. También hay atributos `rows` y `cols`. |
+| `is_square()`, `is_zero_row(i)` | Comprueban forma cuadrada o fila nula. |
+| `require_square()` | Exige matriz cuadrada. Lanza `NotSquare` con `rows` y `cols`. |
+| `transpose()` | Intercambia filas y columnas. |
+| `augment(other)` | `[A \| B]`. Exige el mismo número de filas. |
+| `take_columns(first, last)` | Selecciona columnas, incluyendo ambos extremos. |
+| `minor(i, j)` | Elimina la fila i y la columna j. |
+| `swap_rows(i, j)` | Intercambia dos filas. |
+| `scale_row(i, k)` | Multiplica por k. Rechaza k = 0. |
+| `add_scaled_row(i, j, k)` | Suma k veces la fila j a la i. Rechaza i = j. |
 
-**Shape**
+Las operaciones por filas devuelven una matriz nueva. Usa `Worksheet`
+para conservar la operación en el registro. `SingularMatrix` contiene la
+columna del pivote faltante, o `None`.
 
-| Method | Returns |
-| --- | --- |
-| `transpose()` | Rows become columns. |
-| `augment(other)` | `[A \| B]`. Raises if the row counts differ. |
-| `take_columns(first, last)` | A slice of columns, both ends included. |
-
-**Elementary row operations** — each returns a *new* matrix and records
-nothing. Use `Worksheet` when the step has to be kept.
-
-| Method | Operation |
-| --- | --- |
-| `swap_rows(i, j)` | `f_i <-> f_j` |
-| `scale_row(i, k)` | `f_i -> k*f_i`. Raises if `k` is zero. |
-| `add_scaled_row(i, j, k)` | `f_i -> f_i + k*f_j`. Raises if `i == j`. |
-
-**Arithmetic** — through the operators: `A + B`, `A - B`, `A * B`, `k * A`,
-`A * k`, `-A`, `A == B`. Mismatched shapes raise `ValueError` naming both. The
-scalar factor may be text, so `A * "1/2"` works.
-
-**Building** — `Matrix.zero(rows, cols)`, `Matrix.identity(n)`,
-`Matrix.column_vector(values)`.
-
-**Printing** — `str(m)` is the blackboard form, aligned on the widest entry;
-`repr(m)` is valid Python that rebuilds it. A list of matrices printed directly
-shows the reprs.
+Los operadores son `A + B`, `A - B`, `A * B`, `k * A`, `A * k`, `-A`
+y `A == B`. Las formas incompatibles dan `ValueError`. Un escalar puede
+escribirse como texto, por ejemplo `A * "1/2"`. Los constructores
+auxiliares son `Matrix.zero(rows, cols)`, `Matrix.identity(n)` y
+`Matrix.column_vector(values)`. `str(m)` alinea las entradas y `repr(m)`
+representa la construcción de la matriz.
 
 ## `core/steps.py`
 
-The record of what was done.
-
-| Name | Meaning |
+| Función | Ejemplo de etiqueta |
 | --- | --- |
-| `label_swap(i, j)` | `"f_1 <-> f_2"` |
-| `label_scale(i, k)` | `"f_2 -> (1/3)*f_2"` |
-| `label_add_scaled(i, j, k)` | `"f_2 -> f_2 + 3*f_1"`, dropping the factor when it is 1 or -1. |
+| `label_swap(i, j)` | `f_1 <-> f_2` |
+| `label_scale(i, k)` | `f_2 -> (1/3)*f_2` |
+| `label_add_scaled(i, j, k)` | `f_2 -> f_2 + 3*f_1`. Omite la magnitud del factor si vale 1 o −1. |
 
-**`Step`** — frozen. Fields `before`, `label`, `after`, `note`. `render()`
-draws it as `before --[ label ]-> after`.
+`Step` es inmutable y guarda `before`, `label`, `after` y `note`.
+`render()` muestra ambos estados junto a la etiqueta.
 
-**`StepLog`** — built on a starting matrix.
-
-| Member | Meaning |
+| Miembro de `StepLog` | Significado |
 | --- | --- |
-| `snapshot(k)` | The matrix after `k` operations; `snapshot(0)` is the initial one. The whole of a 'previous / next' control. |
-| `result` | Where the chain ends. |
-| `record(before, label, after)` | Appends. Normally called by `Worksheet`, not directly. |
-| `annotate(text)` | Attaches a note to the step just recorded. |
-| `is_empty()`, `len(log)`, `log[i]`, iteration | The steps themselves. |
-| `summary()`, `render()`, `str(log)` | Developer views, in English. |
+| `snapshot(k)` | Matriz después de k operaciones. El estado 0 es la inicial. |
+| `result` | Último estado. |
+| `record(before, label, after)` | Agrega una operación. Habitualmente se llama desde `Worksheet`. |
+| `annotate(text)` | Añade una nota al último paso. |
+| `is_empty()`, `len(log)`, `log[i]`, iteración | Consultan el contenido del registro. |
+| `summary()`, `render()`, `str(log)` | Vistas de depuración. |
 
 ## `core/worksheet.py`
 
-A matrix being worked on, plus its record. `sheet.matrix` is where the work
-stands; `sheet.log` is how it got there.
+`sheet.matrix` es el estado actual y `sheet.log` es el recorrido.
 
-| Method | Operation |
+| Método | Operación |
 | --- | --- |
-| `swap(i, j)` | `f_i <-> f_j`, skipped when `i == j`. |
-| `scale(i, k)` | `f_i -> k*f_i`, skipped when `k` is 1. |
-| `add_scaled(i, j, k)` | `f_i -> f_i + k*f_j`, skipped when `k` is 0. |
-
-"Skipped" means the matrix is unchanged and nothing is written down: an
-operation that does nothing would be noise in the step by step.
+| `swap(i, j)` | Intercambia filas. Omite el paso si i = j. |
+| `scale(i, k)` | Multiplica por k. Omite el paso si k = 1. |
+| `add_scaled(i, j, k)` | Suma k veces la fila j a la i. Omite el paso si k = 0. |
 
 ## `core/elimination.py`
 
-| Name | Meaning |
+| Función | Resultado |
 | --- | --- |
-| `to_ref(matrix, title="") -> Elimination` | Reduces to row echelon form, recording every operation. |
-| `to_rref(matrix, title="") -> Elimination` | Keeps going to the reduced form: Gauss-Jordan. |
-| `rank(matrix) -> int` | How many pivots that form has. |
+| `to_ref(matrix, title="") -> Elimination` | Reduce a forma escalonada con registro. |
+| `to_rref(matrix, title="") -> Elimination` | Añade el recorrido ascendente que hace ceros encima de cada pivote. |
+| `rank(matrix) -> int` | Cuenta los pivotes. |
 
-`to_rref` is `to_ref` plus a second pass, not a second algorithm: the walk down
-finds the pivots and normalizes them, the walk back up clears the entries above
-each one, rightmost pivot first. Going back up never moves a pivot.
-
-**`Elimination`** — frozen. Fields `original`, `result`, `log`, `pivots`
-(a tuple of `(row, col)`, 1-based, ordered by row) and `reduced`, which says
-which of the two forms `result` is in.
-
-| Member | Meaning |
-| --- | --- |
-| `rank` | Number of pivots. |
-| `pivot_columns()` | The columns holding one. |
-| `free_columns()` | The columns without one. |
-| `zero_rows()` | Rows that ended up entirely zero. |
-
-After `to_ref`, every pivot is exactly 1 and everything below it is 0.
-After `to_rref`, everything above it is 0 as well, so a pivot is the only
-non-zero entry in its column.
+`Elimination` es inmutable. Contiene `original`, `result`, `log`,
+`pivots` y `reduced`. Los pivotes son pares `(fila, columna)` con índices
+desde 1 y ordenados por fila. Las consultas son `rank`,
+`pivot_columns()`, `free_columns()` y `zero_rows()`. Los pivotes de la
+forma escalonada producida por el algoritmo valen 1 y tienen ceros debajo.
+En la forma reducida también tienen ceros arriba.
 
 ## `core/inverse.py`
 
-| Name | Meaning |
+| Función | Contrato |
 | --- | --- |
-| `invert(matrix) -> InverseResult` | For a nonempty square A, reduces `[A \| Iₙ]` by Gauss–Jordan. Raises `ValueError` for a nonsquare A and `SingularMatrix` when the left block cannot become `Iₙ`. |
-| `solve_with_inverse(matrix, constants) -> InverseSystem` | Requires an invertible square A and an n×1 b; returns `A⁻¹b` and checks it against the original equation. |
+| `invert(matrix) -> InverseResult` | Reduce `[A \| Iₙ]`. Lanza un error para una A no cuadrada y `SingularMatrix` si el bloque izquierdo no llega a `Iₙ`. |
+| `solve_with_inverse(matrix, constants) -> InverseSystem` | Requiere A invertible y b de n×1. Calcula `A⁻¹b` y comprueba el sistema original. |
 
-`InverseResult` carries A, its inverse, the elimination log, and the exact
-products `A A⁻¹` and `A⁻¹ A`. `InverseSystem` carries those data, b, x and the
-exact check `Ax`.
+`InverseResult` conserva A, la inversa, el registro y ambos productos.
+`InverseSystem` agrega b, x y la comprobación `Ax`.
 
 ## `core/systems.py`
 
-| Name | Meaning |
+`solve(augmented) -> Solution` recibe una matriz aumentada con al menos
+una ecuación y dos columnas. `SystemKind` distingue `UNIQUE`,
+`INFINITE` e `INCONSISTENT`.
+
+`BackSubstitution` guarda `column`, `row`, `constant`, los `terms` como
+pares de coeficiente y columna, y `value`.
+
+| Campo de `Solution` | Significado |
 | --- | --- |
-| `solve(augmented) -> Solution` | The whole thing. Raises `ValueError` if the matrix has fewer than one equation or two columns. |
-| `SystemKind` | `UNIQUE`, `INFINITE`, `INCONSISTENT`. |
-
-**`BackSubstitution`** — frozen. One unknown cleared: `column`, `row`,
-`constant`, `terms` (the `(coefficient, column)` pairs that had to be replaced),
-`value`.
-
-**`Solution`** — frozen. Everything the seven sections read.
-
-| Member | Meaning |
-| --- | --- |
-| `kind` | Which of the three. |
-| `unknowns` | How many variables the system has. |
-| `values` | The value of each unknown, in order. **Empty unless `kind` is `UNIQUE`.** |
-| `free_columns` | The variables with no pivot. Empty unless `kind` is `INFINITE`. |
-| `substitutions` | The clearing, last unknown first. Empty unless `kind` is `UNIQUE`. |
-| `homogeneous` | Whether every constant is zero. |
-| `log` | The step by step of the elimination. |
-| `augmented`, `result` | `[A \| b]` as given, and the echelon form. |
-| `coefficients`, `constants` | `A` and `b` pulled back apart, for verifying. |
-| `rank`, `coefficient_rank` | `rank(A\|b)` and `rank(A)`. Comparing them is the classification. |
-| `reduction` | The `Elimination` underneath, if the pivots are needed. |
+| `kind`, `unknowns` | Clasificación y número de incógnitas. |
+| `values` | Valores en orden de columna para solución única. |
+| `free_columns` | Columnas sin pivote para infinitas soluciones. |
+| `substitutions` | Despejes desde la última incógnita para solución única. |
+| `homogeneous` | Indica si todas las constantes son cero. |
+| `log` | Registro de la eliminación. |
+| `augmented`, `result` | Matrices inicial y final. |
+| `coefficients`, `constants` | A y b separados para comprobar. |
+| `rank`, `coefficient_rank` | Rangos de `[A \| b]` y A. |
+| `reduction` | Objeto `Elimination` con la información de pivotes. |
 
 ## `core/notation.py`
 
-`explicit_products(text, functions=(), *, scientific=True)` inserts explicit
-multiplication at adjacent factor boundaries, preserving the original text and
-complete names. Known function names followed by parentheses remain calls.
-It is shared by `RealFunction` and the linear-equation reader; validation stays
-with each reader. `scientific=False` preserves the linear reader's existing
-interpretation of identifiers such as `e3x` after a coefficient.
+`explicit_products(text, functions=(), *, scientific=True)` agrega productos
+entre factores adyacentes y conserva nombres completos y llamadas conocidas.
+`scientific=False` mantiene la interpretación lineal de nombres como
+`e3x` después de un coeficiente. Cada lector valida su gramática.
 
 ## `core/equations.py`
 
-Reading a system the way it is written down. Imports `matrix`, `scalar` and
-the shared notation normalizer, and says nothing to anybody: the Spanish for a mistake is decided in
-`ui/prompts.py`.
-
-| Name | Meaning |
+| Función | Contrato |
 | --- | --- |
-| `parse_equation(text) -> Equation` | Reads one line. Moves unknowns left and constants right, so what comes back is always `terms = constant`. |
-| `unknown_names(equations) -> list[str]` | Every name mentioned, in column order: alphabetical, with digits compared as numbers so `x2` sorts before `x10`. |
-| `to_augmented(equations, names) -> Matrix` | Lays the equations out as `[A \| b]` against those names. An unknown an equation never mentions gets a 0. |
+| `parse_equation(text) -> Equation` | Mueve incógnitas a la izquierda y constantes a la derecha. |
+| `unknown_names(equations) -> list[str]` | Nombres en orden natural, de modo que x2 aparece antes de x10. |
+| `to_augmented(equations, names) -> Matrix` | Organiza `[A \| b]` en ese orden y completa coeficientes ausentes con cero. |
 
-**`Equation`** — frozen. `terms` (the non-zero coefficient of each unknown),
-`constant`, and `text` as it was typed.
-
-**Errors** — all of them subclass `EquationError`, which subclasses
-`ValueError`.
-
-| Raised | When |
-| --- | --- |
-| `MissingEquals` | The line does not hold exactly one `=`. |
-| `UnreadableTerm` | A fragment is not a term. `.text` is the fragment, for pointing at it. |
+`Equation` guarda `terms`, `constant` y el `text` original.
+`MissingEquals` indica que la línea requiere exactamente un signo igual.
+`UnreadableTerm.text` guarda el fragmento ilegible. Ambos errores
+derivan de `EquationError` y la interfaz agrega el número de línea.
 
 ## `core/determinant.py`
 
-The determinant, by both methods the course teaches, with the working kept.
-
-| Name | Meaning |
+| Función | Contrato |
 | --- | --- |
-| `by_cofactors(matrix, depth=FULL) -> Cofactors` | Expansion along the line with the most zeros, recursive: each minor carries its own expansion, down to the 2 × 2 that `Rule` writes as `ad − bc`. `depth` caps how many levels keep their working. Raises `NotSquare`. |
-| `by_lu(matrix) -> ByLU` | The determinant read off `factorize`: the product of the diagonal of U, with a sign for each swap. Raises `NotSquare`. |
-| `determinant(matrix) -> Scalar` | The number alone, by the shortest road: the formula up to 2 × 2, LU above it. |
-| `costs(order) -> Costs` | What each method would cost for that order, and which is advised. |
-| `best_line(matrix) -> (str, int)` | The row or column with the most zeros, `ROW` or `COLUMN`. |
-| `COFACTOR_LIMIT`, `LU_FROM` | 8, past which cofactors are refused, and 4, from which LU is advised. |
+| `by_cofactors(matrix, depth=FULL) -> Cofactors` | Expansión recursiva por la línea con más ceros. `depth` limita los niveles guardados. |
+| `by_lu(matrix) -> ByLU` | Producto de la diagonal de U ajustado por el signo de la permutación. |
+| `determinant(matrix) -> Scalar` | Fórmula directa hasta 2×2 y LU para órdenes mayores. |
+| `costs(order) -> Costs` | Estima multiplicaciones y recomienda un método. |
+| `best_line(matrix)` | Devuelve `ROW` o `COLUMN` con el índice de la línea con más ceros. |
+| `COFACTOR_LIMIT`, `LU_FROM` | Límite de cofactores en la interfaz y orden desde el cual se recomienda LU, 8 y 4 respectivamente. |
 
-**`Cofactors`** — the `matrix`, the line it expanded `along` and its `index`,
-the `terms`, the `rule` and the `value`; `expanded` says whether it carries its
-working or only its number. Each **`Summand`** carries the entry, its `sign`,
-the `minor` — another `Cofactors`, which is what makes the structure recursive
-— the `cofactor` and the `amount` it contributes. Entries equal to zero are
-left out: their minor is never computed.
-
-**`Rule`** — `a`, `b`, `c`, `d` and the `value` they make, `ad − bc`. It is the
-bottom of the recursion: an order-2 determinant needs no minors.
-
-**`ByLU`** — the `factorization` it read, from `core/lu.py`, and the `value`:
-`(−1)^swaps` times the product of the diagonal of U. It owns neither; LU is a
-factorisation and this only reads one.
-
-**`Costs`** — `order`, `cofactor` and `lu` multiplication counts, `advised`,
-and `times`, how many times dearer the expansion is.
+Se exige una matriz cuadrada. `Cofactors` conserva `matrix`, `along`,
+`index`, `terms`, `rule`, `value` y si se expandió (`expanded`).
+Cada `Summand` guarda la entrada, signo, menor, cofactor y contribución.
+`Rule` representa `ad − bc`. `ByLU` contiene la factorización y el valor.
+`Costs` contiene `order`, `cofactor`, `lu`, `advised` y `times`.
 
 ## `core/lu.py`
 
-The LU factorisation of a square matrix, and the systems it solves. The
-determinant and the window's LU tab both read it; it knows nothing of either.
-
-| Name | Meaning |
+| Función | Contrato |
 | --- | --- |
-| `factorize(matrix, partial=False, strict=False) -> Factorization` | `PA = LU` by row replacement, every operation recorded on a `Worksheet`. `partial` picks the largest absolute value as pivot instead of the first non-zero; `strict` raises `SingularMatrix` rather than leave a zero on the diagonal of U. Raises `NotSquare`. |
-| `solve_with_lu(matrix, constants, partial=False) -> LUSystem` | `Ax = b` as `Ly = Pb`, then `Ux = y`, and `A x` checked against `b`. Raises `SingularMatrix` when U has a zero on its diagonal. |
+| `factorize(matrix, partial=False, strict=False) -> Factorization` | Factoriza `PA = LU`. `partial` elige el pivote de mayor valor absoluto. `strict` eleva `SingularMatrix` ante un pivote faltante. |
+| `solve_with_lu(matrix, constants, partial=False) -> LUSystem` | Resuelve `Ly = Pb` y `Ux = y`. Comprueba `Ax = b`. Lanza `SingularMatrix` si U tiene un cero en la diagonal. |
 
-**`Factorization`** — `matrix`, `lower`, `upper`, `permutation`, `swaps`, `rank`
-and the `log` of the reduction. The log is a `StepLog` like any other
-elimination's, so the window walks it with `StepWalker` and what it shows is
-what produced L and U. Derived: `permuted`, `singular`, `diagonal`, `row_order`
-(P as a list), `permuted_matrix` (`PA`), `product` (`LU`) and `holds`, the
-exact comparison `PA = LU` with L unit lower triangular and U upper triangular.
+`Factorization` guarda `matrix`, `lower`, `upper`, `permutation`,
+`swaps`, `rank` y `log`. Las propiedades derivadas son `permuted`,
+`singular`, `diagonal`, `row_order`, `permuted_matrix`, `product` y
+`holds`. L es triangular inferior unitaria y U es triangular superior.
+Se comprueba `PA = LU` con igualdad exacta.
 
-**`LUSystem`** — the `factorization`, `constants`, `permuted` (`Pb`), the two
-tuples of `Substitution` and the vectors `intermediate` (`y`) and `solution`
-(`x`), and `check`, `A x`. Each **`Substitution`** is one equation of a
-triangular system: the `unknown`, the `known` terms as
-`(coefficient, value, index)`, the `constant`, the `divisor` — 1 in L, the pivot
-in U — and the `value`.
-
-Everything is exact. The tolerance a floating-point LU needs (comparing a pivot
-with ε, cleaning `1.2e-16` into `0`) answers a problem `Fraction` does not have:
-what is zero is zero, so a pivot is compared with `0` and nothing is rounded. The
-default pivot is the first non-zero, which is what the course's slides do and
-why their `L` and `U` come out unchanged; `partial` is there for the other
-convention.
+`LUSystem` incluye la factorización, `constants`, `permuted` (Pb), las
+sustituciones, `intermediate` (y), `solution` (x) y `check` (Ax). Una
+`Substitution` guarda `unknown`, `known` como ternas de coeficiente, valor
+e índice, `constant`, `divisor` y `value`. En L el divisor es 1. En U es
+el pivote. Se usa el primer pivote distinto de cero salvo al activar
+pivoteo parcial.
 
 ## `core/echelon.py`
 
-The definitions themselves: what form a matrix is in, and where its pivots are.
-Nothing here reduces anything except `pivot_positions`, which has to.
-
-| Name | Meaning |
+| Función o dato | Significado |
 | --- | --- |
-| `leading_column(matrix, row)` | The column of the leading entry of a row, or `None` for a row of zeros. |
-| `leading_entries(matrix)` | `((row, col), ...)` for every row that has one, in row order. |
-| `analyse(matrix) -> Form` | Checks the five numbered properties. |
-| `pivot_positions(matrix)` | Where the leading entries of the **reduced** form are. Reduces to find out. |
-| `pivot_columns(matrix)`, `free_columns(matrix)` | The columns that hold one, and the ones that do not. |
-| `ECHELON`, `REDUCED` | `(1, 2, 3)` and `(4, 5)`: which properties define which form. |
+| `leading_column(matrix, row)` | Columna de la entrada principal o `None` para fila nula. |
+| `leading_entries(matrix)` | Pares `(fila, columna)` en orden de fila. |
+| `analyse(matrix) -> Form` | Comprueba las cinco propiedades. |
+| `pivot_positions(matrix)` | Reduce y encuentra las posiciones pivote de la forma reducida. |
+| `pivot_columns(matrix)`, `free_columns(matrix)` | Columnas con pivote y sin pivote. |
+| `ECHELON`, `REDUCED` | Propiedades (1, 2, 3) y propiedades adicionales (4, 5). |
 
-**`Condition`** — frozen. `number`, `holds`, and `row`/`column`, 1-based, saying
-where the property broke. They mean nothing when `holds` is true. Property 1
-fails at a whole row, so its `column` stays 0.
-
-**`Form`** — frozen. `matrix`, `conditions`, `leading`.
-
-| Member | Meaning |
-| --- | --- |
-| `condition(n)` | The verdict on property `n`. Raises for a number that is not 1..5. |
-| `is_echelon` | Properties 1, 2 and 3 all hold. |
-| `is_reduced` | All five do. |
-
-A matrix of zeros satisfies all five: every property is a claim about the rows
-that are not zero, and it has none.
+`Condition` registra el número, si se cumple y dónde falla. La
+propiedad 1 corresponde a la fila, así que su columna se marca con 0.
+`Form` conserva `matrix`, `conditions` y `leading`. `condition(n)`
+consulta una propiedad de 1 a 5. `is_echelon` exige las primeras tres
+y `is_reduced` exige las cinco. La matriz nula satisface todas.
 
 ## `core/parametric.py`
 
-The general solution, for a system with infinitely many.
+`general_solution(reduction, unknowns) -> General` lee la familia de
+una reducción en forma escalonada reducida. Lanza `ValueError` si
+recibe una reducción sin terminar. Se clasifica primero el sistema,
+porque un pivote en la columna de constantes indica contradicción.
 
-| Name | Meaning |
-| --- | --- |
-| `general_solution(reduction, unknowns) -> General` | Reads the family off a **reduced** elimination. Raises `ValueError` if handed an unreduced one. |
-
-**`Basic`** — frozen. One basic variable: `column`, `constant`, and `terms` as
-`((coefficient, free column), ...)`, so `x = constant + sum(coefficient * free)`.
-
-**`General`** — frozen. `basic` and `free`, both in column order.
-
-Only the columns of A count. A pivot on the constants column means there is no
-solution at all and no family to write, so the caller classifies first.
+`Basic` guarda `column`, `constant` y pares `(coeficiente, columna libre)`
+para expresar la variable como constante más términos libres. `General`
+agrupa `basic` y `free` en orden de columna.
 
 ## `core/bases.py`
 
-Whole numbers in any base from 2 to 36. It imports nothing from the rest of
-`core`: a numeral is not a matrix.
-
-| Name | Meaning |
+| Función o dato | Contrato |
 | --- | --- |
-| `to_base(value, base) -> ToBase` | Repeated division of the absolute value, the minus put back in front of the digits. Raises `ValueError` for a base outside `LOWEST_BASE`..`HIGHEST_BASE`. |
-| `from_base(text, base) -> FromBase` | The linear combination of powers. Ignores spaces and letter case; one leading `-` negates the result, one leading `+` changes nothing. Raises `EmptyNumeral` (also for a lone sign) or `BadDigit` (also for a sign anywhere else). |
-| `digit_value(character, base)` | What one digit is worth, `B` being 11. |
-| `DIGITS` | `0-9` then `A-Z`: the digit symbols, one per value from 0 to 35. |
-| `LOWEST_BASE`, `HIGHEST_BASE` | 2 and 36. The top is where the alphabet runs out, since a digit has to be one symbol. |
+| `to_base(value, base) -> ToBase` | Divide el valor absoluto y restituye el signo. Valida la base. |
+| `from_base(text, base) -> FromBase` | Evalúa la combinación de potencias. Ignora espacios y mayúsculas. Admite un signo inicial. |
+| `digit_value(character, base)` | Valor de una cifra en la base. |
+| `DIGITS` | Símbolos 0–9 y A–Z para valores 0–35. |
+| `LOWEST_BASE`, `HIGHEST_BASE` | 2 y 36. |
 
-**`ToBase`** — `value` (signed), `base`, `divisions` and `numeral`, and
-`negative`. Each **`Division`** is `dividend = base * quotient + remainder`, in
-the order they were done, on the absolute value, so the numeral is the
-remainders read backwards with a `-` in front when the value is negative.
+`ToBase` guarda `value`, `base`, `divisions`, `numeral` y `negative`.
+Cada `Division` cumple `dividend = base * quotient + remainder`. Las
+divisiones van en el orden de cálculo y las cifras se leen al revés.
 
-**`FromBase`** — `numeral` (with its `-`), `base`, `terms`, `value` (signed),
-`negative`, and `magnitude`, what the terms add up to before the sign. `-0`
-comes back as `0`, not negative. Each **`Term`** is one
-digit: `digit`, its `value`, its `position` counted from 0 on the right, the
-`power` of the base there and the `amount` it contributes.
-
-**`BadDigit`** carries the offending `digit` and the `base`, so the interface
-can name both. Both errors descend from `NumeralError`, a `ValueError`.
-
-Nothing is delegated to `int(text, base)`, `bin`, `oct` or `hex`.
+`FromBase` guarda `numeral`, `base`, `terms`, `value`, `negative` y
+`magnitude`. Cada `Term` tiene `digit`, `value`, `position` desde cero a
+la derecha, `power` y `amount`. `-0` se normaliza a cero.
+`EmptyNumeral` incluye un signo sin cifras. `BadDigit` contiene el
+`digit` inválido y la `base`. Ambos derivan de `NumeralError`.
 
 ## `core/roman.py`
 
-Roman numerals as text and as values. It imports nothing from the rest of
-`core`: a numeral is not a matrix.
-
-| Name | Meaning |
+| Función o dato | Contrato |
 | --- | --- |
-| `to_value(text) -> int` | `XIV` is 14. Only the canonical spelling is accepted. |
-| `to_roman(value) -> str` | Takes the largest piece that fits, again and again. Raises `OutOfRange` outside 1..`LARGEST`. |
-| `read(text) -> Numeral` | The numeral, its value and its pieces, for showing the working. |
-| `sum_of(a, b)`, `difference_of(a, b)` | Read both, operate on the values, write the answer back. |
-| `product_of(a, b)` | One numeral times another, keeping the repeated addition it stands for in `terms`. |
-| `PIECES`, `SYMBOLS`, `LARGEST` | The thirteen pieces largest first, the seven symbols, and 3999. |
+| `to_value(text) -> int` | Lee la escritura canónica. `XIV` vale 14. |
+| `to_roman(value) -> str` | Toma repetidamente la pieza más grande que cabe. Lanza `OutOfRange` fuera de 1–3999. |
+| `read(text) -> Numeral` | Devuelve texto, valor y piezas. |
+| `sum_of(a, b)`, `difference_of(a, b)` | Lee ambos operandos y convierte el resultado. |
+| `product_of(a, b)` | Guarda además la suma repetida. |
+| `PIECES`, `SYMBOLS`, `LARGEST` | Las trece piezas, los siete símbolos y 3999. |
 
-**`Numeral`** — `text`, `value` and `pieces`. Each **`Piece`** is `text` and
-`value`, with `subtractive` true for the six pairs.
-
-**`Operation`** — `left`, `right`, `sign`, `value`, `numeral` and `terms`.
-`numeral` is empty when the answer cannot be written, which `writable` reports;
-`terms` is the repeated addition of a multiplication and is empty otherwise.
-
-**`NotCanonical`** carries the `numeral` and the `canonical` spelling it should
-have had; **`BadOrder`** carries a numeral whose order spells nothing;
-**`BadLetter`** carries the `letter`. All descend from `RomanError`, a
-`ValueError`.
-
-The names are `sum_of` and `difference_of` rather than `add` and `subtract`
-because `core/vectors.py` already has those, and every module lands in one
-namespace in the file handed in.
+`Numeral` guarda `text`, `value` y `pieces`. Cada `Piece` tiene texto,
+valor y `subtractive` para los pares de resta. `Operation` guarda
+`left`, `right`, `sign`, `value`, `numeral` y `terms`.
+`writable` indica si el resultado tiene representación romana.
+`NotCanonical` lleva el numeral y su forma canónica. `BadOrder` lleva
+el numeral con orden inválido y `BadLetter` su letra inválida.
+Los errores derivan de `RomanError`.
 
 ## `core/vectors.py`
 
-Vectors of Rⁿ as tuples of `Fraction`. The dimension is the length of the tuple
-and nothing else; every function that takes two vectors refuses two of different
-length.
-
-| Name | Meaning |
+| Función o dato | Contrato |
 | --- | --- |
-| `Vector` | `tuple[Scalar, ...]`. |
-| `parse_vector(text) -> Vector` | `(1, -2, 1/3)`, `1 -2 1/3` or `[1; -2; (1/3)]`. Components split on commas, semicolons or spaces, so a decimal takes a point. Raises `EmptyVector` or `UnreadableComponent`. |
-| `add(u, v)`, `subtract(u, v)` | Component by component. Raise `DimensionMismatch`. |
-| `scale(k, u)` | Every component times `k`. |
-| `linear_sum(weights, vectors)` | `c₁v₁ + … + cₖvₖ`, scaling each vector and adding them in turn. |
-| `combination_matrix(vectors, target) -> Matrix` | `[ v₁ … vₖ \| b ]`, the vectors as columns. |
-| `combine(vectors, target) -> Combination` | Builds that matrix and solves it. |
+| `Vector` | Tupla de escalares exactos. Su longitud determina la dimensión. |
+| `parse_vector(text) -> Vector` | Admite `(1, -2, 1/3)`, `1 -2 1/3` y `[1; -2; (1/3)]`. Usa punto decimal. |
+| `add(u, v)`, `subtract(u, v)` | Operan por componente. Exigen dimensiones iguales. |
+| `scale(k, u)` | Multiplica las componentes por k. |
+| `linear_sum(weights, vectors)` | Suma `c₁v₁ + … + cₖvₖ`. |
+| `combination_matrix(vectors, target) -> Matrix` | Forma `[v₁ … vₖ \| b]`. |
+| `combine(vectors, target) -> Combination` | Forma el sistema y lo resuelve. |
 
-**`Combination`** — frozen. `vectors`, `target`, the `solution` of the system,
-and `general`, the family when there are infinitely many. `is_combination` is
-false only for an inconsistent system. `weights` is the one solution, or with
-infinitely many the one that sets every free scalar to 0, or `None`.
-
-**`UnreadableComponent`** carries the `text` that was typed; **`DimensionMismatch`**
-carries `first` and `second`, the two dimensions. All three errors descend from
-`VectorError`, a `ValueError`.
+`Combination` conserva `vectors`, `target`, `solution` y `general`.
+`is_combination` indica consistencia. `weights` es la solución única o,
+si hay infinitas, la que fija los escalares libres a cero. Si el sistema
+es inconsistente, es `None`. `EmptyVector` indica ausencia de componentes.
+`UnreadableComponent.text` guarda el texto inválido y `DimensionMismatch`
+contiene ambas dimensiones. Derivan de `VectorError`.
 
 ## `core/verification.py`
 
-| Name | Meaning |
-| --- | --- |
-| `verify(coefficients, constants, values) -> Verification` | Evaluates `A x = b` row by row. Raises `ValueError` if `b` is not one column, if the row counts differ, or if the number of values does not match the unknowns. |
-
-**`RowCheck`** — frozen. One equation: `row`, `terms` as
-`(coefficient, value, column)`, `left`, `right`, and `holds`.
-
-**`Verification`** — frozen. `checks`, `holds` (all of them), `failures()`.
-
-Knows nothing about `systems` or `elimination` on purpose.
+`verify(coefficients, constants, values) -> Verification` evalúa `Ax = b`
+fila por fila. Exige una columna de constantes, igual número de filas y
+tantos valores como incógnitas. `RowCheck` guarda `row`, `terms` como
+ternas de coeficiente, valor y columna, `left`, `right` y `holds`.
+`Verification` reúne `checks`, `holds` y `failures()`.
 
 ## `ui/presentation.py`
 
-The only module that writes Spanish. Every function returns a string and prints
-nothing.
+Prepara el texto matemático que usan las páginas. Los nombres vienen de
+la entrada de ecuaciones o se completan con x, y, z, w, x5 y siguientes.
 
-| Function | Produces |
+| Función | Qué produce |
 | --- | --- |
-| `unknown_name(col, names=())` | The name that was typed, when there is one; otherwise `x`, `y`, `z`, `w`, then `x5` and up. |
-| `render_augmented(matrix, unknowns)` | `[  1  -2   1 \|  0 ]`, with the bar. |
-| `render_steps(log, unknowns)` | Every operation, numbered, with the matrix after it. |
-| `render_despeje(head, name, divisor, known, constant, value)` | The lines of one clearing — the equation, the values put in, the constant moved, the result — shared by the elimination's back substitution and by LU's two. A `divisor` other than 1 adds the step that divides. |
-| `pretty_label(label)` | One step label in typographic notation: `f_2 -> f_2 + 3*f_1` becomes `f₂ → f₂ + 3 · f₁`. For a front end with the glyphs for it; the handed-in file prints the plain form. |
-| `describe(solution)` | The classification, in the assignment's exact words. |
-| `render_values(solution, names=())` | The values, or the free variables, or the contradictory row — whichever applies to the kind. |
-| `render_equations(solution, names=())` | The echelon form read back as equations. |
-| `render_system(matrix, unknowns, names=())` | Any augmented matrix read as equations — the one `render_equations` uses, and the one that writes a combination out as a system. |
-| `render_general(family, names=())` | The general solution, one line per basic variable: `x = 1 - 4z`. A constant of zero is left out when there is anything else to write. |
-| `render_linear_sum(weights, names)` | `3v₁ - v₂ + (1/2)v₃`, zeros left out; `0` when every weight is zero. |
-| `typographic_rows(block)` | `f_2:` as `f₂:` inside a block, keeping what was lined up under it. For the window, like `pretty_label`. |
-| `render_substitutions(solution, names=())` | The clearing, four lines per unknown, or three when the last two would say the same. |
-| `render_verification(verification)` | Each equation substituted, and the verdict. |
+| `subscript(number)`, `superscript(number)` | Dígitos en subíndice o superíndice. |
+| `unknown_name(col, names=())` | Nombre introducido o el predeterminado para esa columna. |
+| `render_despeje(head, name, divisor, known, constant, value)` | Ecuación, sustitución, constante despejada y resultado. Incluye división cuando el divisor difiere de 1. |
+| `pretty_label(label)` | Notación tipográfica, como `f₂ → f₂ + 3 · f₁`. |
+| `describe(solution)` | Clasificación a partir de `CLASSIFICATIONS`. |
+| `render_values(solution, names=())` | Valores, variables libres o fila contradictoria. |
+| `render_equations(solution, names=())` | Forma escalonada escrita como ecuaciones. |
+| `render_system(matrix, unknowns, names=())` | Sistema representado por cualquier matriz aumentada. |
+| `render_general(family, names=())` | Una línea por variable básica, como `x = 1 - 4z`. |
+| `render_linear_sum(weights, names)` | Combinación de vectores sin términos de coeficiente cero. |
+| `typographic_rows(block)` | Convierte `f_2:` en `f₂:` y mantiene la alineación. |
+| `render_substitutions(solution, names=())` | Pasos del despeje, omitiendo líneas repetidas. |
+| `render_verification(verification)` | Sustitución y veredicto por ecuación. |
 
-Products are written the way they are written by hand: `2y`, `1(29)`, `(1/3)x`. A value substituted for an unknown arrives in brackets, because `2*16` with the star dropped would read as `216`.
-
-`CLASSIFICATIONS` is the dict holding the three required sentences. Change the
-wording there and it changes everywhere.
-
-`names` is the list of unknowns in column order, straight from `ask_system`.
-Leaving it out falls back to `x`, `y`, `z`, `w`, which is what the coefficient
-by coefficient route produces, since nothing there ever names anything.
-
-## `ui/prompts.py`
-
-The only module that calls `input`. A bad answer re-asks; nothing a person
-types can end the program. End of input travels up to the caller.
-
-| Function | Asks for |
-| --- | --- |
-| `ask_int(question, minimum=1, maximum=10)` | A whole number in range. |
-| `ask_scalar(question)` | One number: integer, decimal or fraction. |
-| `ask_yes_no(question)` | `s` or `n`. |
-| `ask_system()` | Which of the two ways, then reads it. Returns `[A \| b]` and the names. |
-| `ask_equations()` | The equations, one per line, until a blank one. Returns `[A \| b]` and the names. |
-| `ask_coefficients()` | `m`, `n`, and every coefficient by name. Returns `[A \| b]`. |
-| `pause(message)` | Enter — but only when `stdin` is a terminal. |
-
-`ask_system` returns an empty name list for the coefficient route: nothing
-there ever says what the unknowns are called.
-
-`SIZE_LIMIT = 10` caps `m`, `n`, and the number of equations that can be typed.
-
-## `deliverables/program1.py`
-
-The script. Calculates nothing and words nothing beyond its headings.
-
-| Function | Does |
-| --- | --- |
-| `banner(text, wait=True)` | A section heading, pausing first unless told not to. |
-| `solve_one_system()` | The seven sections, once. |
-| `main()` | The header, the loop, and a clean exit on Ctrl+C or Ctrl+D. |
+Los productos se presentan como `2y`, `1(29)` y `(1/3)x`. Los
+paréntesis separan el valor sustituido de su coeficiente.
 
 ## `gui/`
 
-The window. `python -m gui`, from the repository root. Full notes in
-[gui.md](gui.md); this is the map.
+Abre la ventana con `python -m gui`. La [guía de la interfaz](gui.md)
+describe qué muestra cada herramienta.
 
-| Module | Holds |
+| Módulo | Responsabilidad |
 | --- | --- |
-| `gui/theme.py` | Every colour as a `(light, dark)` pair, the fonts, `set_dark`, and `on_change` for the parts drawn by hand. |
-| `gui/widgets.py` | `Wide`, the strip that slides sideways when its content is wider than its place — every result card draws on one. `ResultsPage`, the base every page with results inherits — the cards below the input, and dropping them when anything is retyped. It also holds what several pages drew by hand: `_draw_walk` and `_walker_in`, the step walker with its `3 / 7` badge; and `_product_check`, `A · x = b` worked out with the matrix product. `FactorizationDisplay`, `P · A = L · U` as one line of four matrices. Plus `Card`, `PageHeader`, `SectionTitle`, `Bracket`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `ErrorBanner`, `Chip`, `StepWalker`, `FractionCell`, `MathLine`, `MathBlock`, `MathChip`, and `ColumnDisplay` and `Expression`, which write an equation between matrices in a row: `A · x = b`, `c₁ v₁ + c₂ v₂ = b`. |
-| `gui/entry.py` | `SystemInput`, the input card both pages use, and `Typed`, what it hands back: the matrix, the names of the unknowns, and how many columns are coefficients. `augmentable=True` adds the switch that marks a single grid as `[ A \| b ]`. |
-| `gui/app.py` | `GROUPS` — the sidebar, by subject — with `MODULES` flattened out of it, plus `Group`, `Module`, `NavRow`, `Application` and `main()`. |
-| `gui/pages/vectors.py` | `VectorsPage`: `u + v`, `u − v`, `k · u` and linear combinations in Rⁿ, as columns and component by component. Owns its Spanish. |
-| `gui/pages/lu.py` | `LUPage`: `PA = LU` with the reduction, the four matrices and the `PA = LU` check; or `Ax = b` by the two substitutions. Pivoting and strict mode as switches. Owns its Spanish. |
-| `gui/pages/determinant.py` | `DeterminantPage`: det A by cofactors or LU, with the cost of each shown before the choice. Owns its Spanish. |
-| `gui/pages/operations.py` | `OperationsPage`: the five matrix operations. |
-| `gui/pages/roman.py` | `RomanPage`: Roman numerals added, subtracted and multiplied, with each numeral read piece by piece and a switch for the repeated addition. Owns its Spanish. |
-| `gui/pages/inverse.py` | `InversePage`: inverse and `Ax = b`, both entered through the shared coefficient grids or equation parser, with matrix displays, product checks and `StepWalker`. |
-| `gui/pages/echelon.py` | `EchelonPage`: the five properties, the leading entries and the pivots. Owns their Spanish, since no other front end says it. |
-| `gui/pages/bases.py` | `BasesPage`: decimal to base 2, 8, 16 or any other from 2 to 36 and back, with the divisions, the combination and a table of positions. |
-| `gui/root_plot.py` | `RootPlot`: Canvas with wheel and button zoom, drag, reset and expansion. |
-| `gui/pages/root_bracket.py` | `RootBracketPage`: graph-first input, result, verification, shared `StepWalker` and paginated table with decimal or automatic formatting. |
-| `gui/pages/bisection.py` and `gui/pages/regula_falsi.py` | `BisectionPage` and `RegulaFalsiPage`: method-specific examples, criteria, formula and solver. |
-| `gui/pages/gauss.py` | `GaussPage`: `A x = b` by either method, from coefficients or from written equations, shown first as the matrix equation, with the step by step, and a unique solution checked with the product `A x` as well as equation by equation. |
+| `gui/app.py` | `Application`, `HomePage`, `NavRow`, `Group` y `Module`. `GROUPS` define las herramientas que usa Inicio y el menú. |
+| `gui/theme.py` | Pares de colores claro/oscuro, tipografías, `set_dark` y `on_change`. |
+| `gui/widgets.py` | `ResultsPage`, `StepWalker`, `Wide`, `Card`, `PageHeader`, `SectionTitle`, `Stepper`, `MatrixEntryGrid`, `MatrixDisplay`, `SegmentedControl`, `PrimaryButton`, `LinkButton`, `ErrorBanner`, `Chip`, `Bracket`, `FractionCell`, `MathLine`, `MathBlock`, `MathChip`, `Expression`, `ColumnDisplay` y `FactorizationDisplay`. |
+| `gui/entry.py` | `SystemInput` y `Typed`, entrada por cuadrícula o ecuaciones. |
+| `gui/root_plot.py` | `RootPlot` con Canvas, zoom, arrastre, restablecimiento y vista ampliada. |
+| `gui/pages/root_bracket.py` | `RootBracketPage` comparte gráfica previa, criterios, resultado, pasos y tabla. |
+| `gui/pages/bisection.py`, `gui/pages/regula_falsi.py` | Configuración de cada método, ejemplos y llamada al solucionador. |
+| `gui/pages/gauss.py` | `GaussPage`, eliminación, clasificación y verificación. |
+| `gui/pages/echelon.py` | `EchelonPage`, propiedades de la forma escalonada y pivotes. |
+| `gui/pages/operations.py` | `OperationsPage`, operaciones matriciales. |
+| `gui/pages/inverse.py` | `InversePage`, inversa y resolución por inversa. |
+| `gui/pages/lu.py` | `LUPage`, factorización y sustituciones. |
+| `gui/pages/determinant.py` | `DeterminantPage`, cofactores y LU. |
+| `gui/pages/vectors.py` | `VectorsPage`, operaciones y combinación lineal. |
+| `gui/pages/bases.py` | `BasesPage`, conversiones de numerales. |
+| `gui/pages/roman.py` | `RomanPage`, aritmética romana. |
 
-`GROUPS` holds only what works. A row is added when its page is; a program with
-no page has no row, and `_build_page` raises for a key it does not know rather
-than falling back to something apologetic.
+`SystemInput.read()` devuelve `Typed` con matriz, nombres y número de
+incógnitas. `Typed.coefficients` y `Typed.constants` separan A y b.
+`augmentable=True` agrega el selector de matriz aumentada.
+`SystemInput.size()` devuelve las dimensiones de la cuadrícula o `None`
+cuando se muestran ecuaciones sin leer. `max_size=None` quita el límite
+de tamaño de la entrada de inversa y `Stepper(maximum=None)` permite
+seguir aumentando ese tamaño.
 
-`Wide.refresh()` settles pending layout requests and remeasures the content and
-scroll region. Call it after changing the children of an existing strip;
-the canvas-assigned content width can stay fixed even when the required width
-changes. `_titled_card(..., scrollable=False)` returns a plain card body for
-pages that need to keep controls outside a more narrowly scoped `Wide`.
+`ResultsPage` agrega tarjetas con `_add_card` e invalida resultados con
+`_clear_output`. `_draw_walk` y `_walker_in` construyen `StepWalker`.
+`_product_check` muestra `A · x = b`. `Wide` permite desplazar contenido
+que excede el ancho de la tarjeta. `Expression` reúne matrices, columnas
+y símbolos en una línea. `FactorizationDisplay` presenta `PA = LU`.
 
-`StepWalker(master, log, ...)` keeps its matrix contract: the initial snapshot
-and each operation, with the common header, dots, links and all-steps view.
-For non-matrix states, use `StepWalker(master, captions=..., draw_snapshot=...)`:
-captions must be non-empty and `draw_snapshot(parent, index)` draws one saved
-state. The two routes are exclusive. `ResultsPage._draw_walk` forwards those
-keywords and maintains the same card counter. `LinkButton` is the shared
-transparent text button with accent text and faint disabled text; the reader,
-bisection graph controls and pagination use it.
+## Pruebas y convenciones
 
-`SystemInput(max_size=None)` and `MatrixEntryGrid(max_size=None)` remove the
-default dimension cap for the inverse page. Other callers retain the default
-limit of ten. `Stepper(maximum=None)` keeps its plus button enabled.
-
-`SystemInput.size()` gives the grid's size, or `None` when equations are
-showing and nothing has been read yet. It is for what depends on the size and
-not on the numbers, like pricing the two ways to a determinant before either
-runs.
-
-`Typed.coefficients` and `Typed.constants` split what was typed into A and b, whichever way it was typed — a grid gives only A, equations and an augmented matrix give both — so a page asking for A does not need to know which it got.
-
-`SystemInput.read()` is the boundary worth knowing: it hands back a `Typed`,
-exactly what `prompts.ask_system` hands the terminal, or raises with a Spanish
-message. The names are empty for the grid route, because nothing there ever says
-what the unknowns are called.
-
-Nothing in `gui/` solves the mathematics; graph view transformations belong
-to drawing. `build.py` assembles it into `Programa Biseccion_Grupo5.py`,
-`Programa 2_Grupo5.py` and `Programa Vectores y Sistemas Numericos_Grupo5.py`,
-the deliverables that open a window.
-
-## Outside the packages
-
-| File | Does |
-| --- | --- |
-| `check.py` | Runs the engine end to end and prints one line per claim. Run it after touching `core/`. |
-| `tests/test_bisection.py` | Numerical regression and boundary tests. Run with `python -m unittest discover -s tests -v`. |
-| `tests/test_step_walker.py` | Matrix and numerical reader compatibility, both views, common controls and input invalidation. Skips if CustomTkinter or a Tk display is unavailable. |
-| `build.py` | Assembles the handed-in files. `PROGRAMS` lists what gets built, each with a preamble and its blocks; `ENGINE` is what they share, `WINDOW_BLOCKS` and `CONSOLE_BLOCKS` what each adds. `GROUP_NUMBER` and each program's `number` name the output; an assignment with a name instead of a number uses the name. `clashes` refuses a program whose blocks define the same global twice. |
-| `requirements-gui.txt` | CustomTkinter. Needed by `gui/` and by nothing else. |
-
-## Conventions worth knowing before changing anything
-
-**Indices count from 1** everywhere a mathematician would count from 1: `elem`,
-`row`, `column`, the row operations, `pivots`, `free_columns`, `RowCheck.row`.
-`Matrix.data` is the exception and is 0-based, because it is a plain list.
-
-**Values are frozen.** Every dataclass is `frozen=True` and `Matrix` operations
-return new matrices. Nothing mutates under you.
-
-**`core/` never speaks.** No `print`: it returns data and raises exceptions,
-whose text is in Spanish. What a person can get wrong is caught in `ui/` and
-worded there, so every front end says the same thing.
-
-**Empty is meaningful.** `Solution.values` is empty for anything but a unique
-solution, and `free_columns` is empty for anything but an indeterminate one.
-Check `kind` before reading either.
+- `check.py` ejecuta comprobaciones del motor.
+- `python -m unittest discover -s tests -v` ejecuta las pruebas unitarias.
+  Las de interfaz requieren una pantalla Tk y CustomTkinter.
+- Los índices de las operaciones matriciales empiezan en 1. Las listas
+  de Python como `Matrix.data` empiezan en 0.
+- Las matrices producen valores nuevos al operar. Los registros de
+  resultados usan dataclasses inmutables.
+- `core/` devuelve datos o lanza excepciones. La interfaz muestra los
+  avisos de entrada y la explicación del resultado.

@@ -1,339 +1,139 @@
-# Design notes
+# Decisiones de diseño
 
-Why the engine is split the way it is. The API lives in the docstrings; this
-file holds the decisions that took thinking.
+El proyecto separa el cálculo, la presentación de resultados y la interfaz.
+`core/` contiene los algoritmos, `ui/presentation.py` prepara los textos
+matemáticos y `gui/` administra los controles. La entrega se ejecuta desde
+el repositorio con `python -m gui`.
 
-Add a section here when a module lands, not before.
+## Matriz, registro y hoja de trabajo
 
-## The record does not live inside the matrix
-
-Three pieces, one job each:
-
-| Piece | What it is |
+| Pieza | Responsabilidad |
 | --- | --- |
-| `Matrix` | A value. Row operations return a new matrix and say nothing about themselves. |
-| `StepLog` | A record. The starting matrix and one `Step` per operation. |
-| `Worksheet` | The blackboard: a matrix being worked on and the record of what was done to it. |
+| `Matrix` | Guarda un valor matricial. Las operaciones por filas devuelven otra matriz. |
+| `StepLog` | Guarda la matriz inicial y un `Step` por operación. |
+| `Worksheet` | Aplica la operación sobre la matriz de trabajo y registra el resultado. |
 
-Keeping them apart means a matrix used for plain arithmetic carries no
-bookkeeping, a matrix being reduced is not a different kind of object, and an
-algorithm controls what gets written down instead of writing it down as a side
-effect of operating. The reduction then reads like the blackboard it imitates:
+Una suma ordinaria de matrices puede usar `Matrix` directamente. Durante la
+eliminación, la hoja registra la operación en el mismo punto en que la
+aplica.
 
 ```python
-sheet = Worksheet(ab, "Gaussian elimination")
+sheet = Worksheet(ab, "Eliminación gaussiana")
 sheet.swap(1, 2)
 sheet.scale(1, Fraction(1, 3))
 sheet.add_scaled(2, 1, -4)
 ```
 
-`sheet.log.snapshot(k)` returns the k-th link of the chain, which is literally
-all a 'next' button needs.
-
-## Operations that do nothing are not recorded
-
-`Worksheet` silently drops `swap(i, i)`, `scale(i, 1)` and `add_scaled(i, j, 0)`.
-They leave the matrix untouched, and in a step by step they are noise: someone
-reading the trace would see a step where nothing happened.
-
-`Matrix.scale_row(i, 0)` and `Matrix.add_scaled_row(i, i, k)` raise instead.
-They are not elementary operations and they are not reversible, so asking for one
-is a bug in the algorithm, not an operation that happens to be redundant.
-
-## The matrix validates its own shape
-
-`Matrix([[1, 2], [3]])` fails at construction. A ragged matrix that is accepted
-does not fail where it was built; it fails much later, inside some unrelated
-`elem`, with an `IndexError` that explains nothing.
-
-## Exact matrix numbers, all the way down
-
-Every entry is a `Fraction`. Rounding never enters the calculation, so a third
-prints as `1/3` and not as `0.3333333333333333`, the elimination is exact from
-end to end, and a result can be checked against the same exercise done by hand.
-The cost is that a decimal typed in becomes a fraction on the way out — `0.18`
-comes back as `9/50` — which is the right trade for a course where the answers
-are fractions.
-
-Numerical root finding uses `float` and supports elementary transcendental
-functions. `core/real_function.py` evaluates the expression, and
-`core/root_bracket.py` owns the interval, iteration trace and stop rules.
-Bisection and Regula Falsi each supply their own estimate. Width, residual and
-relative change measure different quantities. The result records convergence,
-stagnation or the iteration limit separately. See [bisection.md](bisection.md)
-for the assumptions and numerical limitations.
-
-## Bisection reuses the page and step reader
-
-Mathematical text also has a shared piece: `core/notation.py` inserts omitted
-multiplication signs before each reader applies its own grammar. Bisection can
-therefore accept `5x^3` and `2(x+1)` while the linear reader still accepts `2x`
-and `(1/2)x` and rejects products of unknowns. Function calls and whole variable
-names are preserved. The normalizer does not solve, expand or evaluate input.
-
-`ResultsPage`, the cards, theme and wide strips express the surrounding
-interface. `StepLog` remains a record of row-equivalent matrices; frozen
-bisection records keep the intervals and evaluations. Both are shown by
-`StepWalker`: its existing matrix route reads `StepLog.snapshot`, while the
-non-matrix route receives captions and a callback that draws each saved state.
-The header, dots, previous/next controls, counter and all-steps view are shared.
-`ResultsPage._draw_walk` constructs the same reader for both routes.
-
-`LinkButton` holds the text-button styling used by the reader and by secondary
-actions in the bisection graph, table and help disclosure. `SegmentedControl`
-selects criteria and examples, as it already selects methods and operations on
-other pages. `MathBlock` and `MathLine` draw the numerical working and values.
-The scalar fields and iteration columns remain page-specific because the
-existing matrix input and matrix display do not represent those data.
-
-Retained endpoint values mean one new function
-evaluation per iteration. A restricted AST interpreter evaluates f(x) without
-`eval` or a solver dependency.
-
-The graph uses the existing Tkinter dependency. Its only interactions are zoom,
-pan and reset; the assignment prohibits cursor-value inspection. Geometry is
-owned by the graph, function sampling by the core. A dedicated graph backend,
-browser integration or general chart framework is unnecessary here. The
-sidebar gains scrolling because the additional group no longer fits in the
-minimum window height.
-
-## Only what has been asked for
-
-The engine reduces to the echelon form, carries the elimination on to the
-reduced form, and clears the unknowns by back substitution. It has no way to
-pick between methods, though: a caller names the reduction it wants by calling
-it, and no `Method` enum sits in between, because nothing has needed one yet.
-
-That is the rule for this repository generally: a capability lands when an
-assignment asks for it, not when it looks like it might be useful later. A
-`Method` enum with a single member is weight that has to be read, tested and
-kept correct for no return.
-
-`to_rref` is the exception that proves it: the reduced form landed the day
-Programa 2 asked for it, not the day `to_ref` made it look easy. It costs
-almost nothing precisely because it was not designed for in advance — it is the
-same walk with a second pass, so there was no abstraction waiting for it.
-
-## Classification comes from the pivots, not from the answer
-
-The system is classified before any value is computed, by counting pivots:
-
-    rank(A) < rank(A|b)                 no solution
-    rank(A) = rank(A|b) < unknowns      infinitely many
-    rank(A) = rank(A|b) = unknowns      exactly one
-
-`rank(A|b)` is how many pivots the reduction found; `rank(A)` is how many of them
-landed on an unknown rather than on the constants column. A pivot on the
-constants column *is* the row that reads `0 = k`, so the inconsistent case falls
-out of the same count instead of needing a scan of its own.
-
-Values are only computed in the unique case. The infinite case reports which
-columns are free and stops there; writing the family out in terms of parameters
-is a separate job.
-
-## Verification does not trust the elimination
-
-`verify` takes A, b and a list of values, and knows nothing about how those
-values were found — not the method, not the log, not even that a `Solution`
-exists. If it took the reduced form as its input it would be checking the
-elimination against itself, and would agree with any bug that was consistent.
-
-It compares both sides exactly, with no tolerance. That is affordable only
-because nothing was ever rounded, and it is why every entry is a `Fraction`.
-
-## An inverse is one augmented reduction
-
-`core/inverse.py` asks the existing Gauss–Jordan algorithm to reduce
-`[A | Iₙ]`. Invertibility is decided by checking the entire left block against
-`Iₙ`, rather than assuming a pivot count on the augmented matrix proves it:
-the identity on the right always contributes pivots even when A is singular.
-Only then is the right block read as `A⁻¹`. Both products with the original A
-are checked exactly.
-
-The inverse page reuses `SystemInput`, `MatrixEntryGrid`, `MatrixDisplay`,
-`Expression` and `StepWalker`, so its inputs, fractions and working look like
-the other matrix pages. `SystemInput` and `MatrixEntryGrid` accept an optional
-`max_size`: ten by default, or `None` for the unrestricted inverse page.
-`Stepper` accepts `maximum=None` for that case. The equation parser follows the
-same per-input limit. The practical limits remain memory and the time required
-by exact fraction arithmetic. The page also applies the inverse to `Ax = b`
-and checks the answer with the original A.
-
-## A linear combination is a system, not a new algorithm
-
-Whether b is a combination of v₁, …, vₖ is a question about scalars: is there a
-choice of c₁, …, cₖ with c₁v₁ + … + cₖvₖ = b? Written component by component
-that is n equations in k unknowns, and its augmented matrix is the vectors
-standing as columns next to b. So `core/vectors.py` builds `[ v₁ … vₖ | b ]`
-and hands it to `solve`, and the three answers are the three classifications:
-one way, infinitely many ways, or not a combination at all.
-
-That keeps the step by step, the ranks, the general solution and the check the
-same objects the elimination page already draws, and it means a combination
-cannot disagree with the system it is.
-
-The dimension n is never declared. A vector is its components, and the only
-rule is that one calculation's vectors agree; anything that would fix n first
-would be answering a question the assignment says is not known.
-
-## A page is its input card and the cards it draws below
-
-Every page in the window has the same shape: something to type into, and under
-it the cards one calculation produced, which are thrown away the moment the
-input changes. That was written out eight times, once per page, each copy a
-little different — one called it `_section`, another `_add_card`, a third
-padded its headings by 14 instead of 12.
-
-`ResultsPage` in `gui/widgets.py` is that shape, and the pages inherit it. A
-page that needs more does more: the elimination page also forgets the walk it
-was drawing, so it extends the clearing rather than copying it.
-
-The duplication was invisible while it was seven copies of a six-line method.
-It became obvious when an eighth page needed the same thing, which is the usual
-way: the second occurrence is a coincidence, the eighth is a missing piece.
-
-## LU is a factorisation, and the determinant reads it
-
-The determinant assignment asked for two methods, cofactors and LU, and the first
-version put the factorisation inside `core/determinant.py`: `by_lu` returned an
-object whose main field was the determinant, and the page that showed it was the
-determinant page. That conflated two things. LU is `A = LU`, a way to solve
-systems that happens to make the determinant easy to read; the determinant is a
-number, and cofactors reach it without any factorisation at all.
-
-`core/lu.py` owns the factorisation now — pivoting, the singular cases, `P`, the
-check, and the substitutions that solve `Ax = b` — and `core/determinant.py` calls
-`factorize` and multiplies a diagonal. The dependency runs one way, and the LU tab
-and the determinant tab draw the same objects with the same widgets.
-
-The tolerance a professor's floating-point checklist asks for (an ε for the pivot,
-cleaning `1.2e-16` to `0`) is not implemented, on purpose: it answers rounding,
-and there is none here. The exactness is stated where a reader would look for the
-tolerance, in the module and in the check card, instead of silently skipped.
-
-## A shared text cannot depend on a type its program does not carry
-
-`ui/presentation.py` is part of the engine every deliverable carries, and `core/lu.py`
-is only in the window's. When the LU renderer first lived in `presentation.py` it
-imported `Substitution` from `core/lu.py`, and the terminal program's file —
-which does not carry LU — referred to a name that did not exist. Python 3.14 defers
-annotations, so it still ran here; on the 3.12 the course asks for it would have
-failed on start. Pyright, run over the generated files, is what caught it.
-
-The shared piece is `render_despeje`, which takes plain numbers and names. The
-function that walks a list of `Substitution` lives in the LU page, which is in the
-window's program and so can name the type. The rule: what several programs share
-must be written in terms of what all of them carry.
-
-## The window is a front end, not a second program
-
-`gui/` sits beside `core/` and `ui/`, imports both, and is imported by neither.
-It draws matrices, reads them back, and calls `solve`, `to_rref`, `verify` and
-the `Matrix` operators for everything else. Not one number on screen is computed
-inside the package.
-
-That is what the layering was for, and it is the first time it has been tested:
-a window landed without a line of `core/` changing, and it says exactly what the
-terminal says because both ask `ui/presentation.py` for the words.
-
-It is handed in the same way as everything else: one generated self-contained
-file. The difference is that this one is not standard library — CustomTkinter
-draws it — so its first page says how to make a `.venv` and install that, and
-says in as many words that the mathematics below does not depend on it.
-`requirements-gui.txt` says the same thing to anyone working in the repository:
-it is the requirements of one package, not of the project.
-
-`ui/` was not the place for it either. `ui/prompts.py` calls `input`, which
-makes that package the terminal's; `ui/presentation.py` only builds strings,
-which is why both front ends can share it.
-
-## The handed-in file is built, never written
-
-The course wants one self-contained `.py`. A project split into modules is what
-is worth writing. `build.py` resolves that by assembling the file: it reads the
-modules in dependency order, drops the imports between them (everything lands in
-one namespace anyway), merges the standard-library imports into one block, and
-puts a Spanish heading in front of each block explaining what it does.
-
-The generated file is never edited — a change goes into the module and the file
-is built again.
-
-There is more than one such file, so the list of blocks belongs to a program and
-not to `build.py`. `ENGINE` is what every deliverable carries; `WINDOW_BLOCKS`
-and `CONSOLE_BLOCKS` are what each front end adds. That is what stops the
-window's file from carrying the keyboard prompts nobody there will call, and the
-terminal's from carrying a widget.
-
-A program also owns the preamble of its own file. The window's says how to make
-a `.venv` and install CustomTkinter, because it is the one deliverable that
-needs anything installed and the person opening it has only that file.
-
-One block is not a module. `gui/` writes `theme.INK` and `theme.font(...)`,
-qualified, and flattening the modules into one namespace puts those names in the
-file itself — so the window's build inserts a generated line pointing `theme`
-back at the file. Rewriting `gui/` to import the names directly would have made
-the repository worse to read in order to make the build simpler; one generated
-line, with a heading explaining it, is the cheaper side of that trade.
-
-Flattening has one cost the repository never shows: every module's globals
-land in the same namespace, and a name two modules both define is silently
-replaced by the later one. So `build.py` compares the globals of every block
-before it assembles anything and refuses a program where two of them collide.
-It was not hypothetical — two pages both had a `SUBTITLES`, and later two had
-an `EXAMPLE`.
-
-## The comments are written in Spanish, in the repository
-
-The file handed in has to read in Spanish, comments and docstrings included.
-That used to be a build step: `translations.py` held the Spanish for every
-docstring and comment, keyed by the exact English text, and `build.py` swapped
-one for the other as it assembled. It worked, and it cost a second copy of
-every sentence, kept in step by a build that refused to run when one went
-missing.
-
-Now the sentences are written in Spanish once, in the modules themselves, and
-`build.py` copies the lines across untouched. There is one text instead of two,
-nothing to keep in step, and what a reader of the repository sees is what the
-person marking the assignment sees.
-
-Identifiers stay in English — `to_rref`, `SingularMatrix`, `render_equations` —
-so the code still reads as code and nothing had to be renamed. The comments
-carry no accents, which is how they already reached the handed-in file.
-
-The text of the exceptions the engine raises is in Spanish too. It used to stay
-in English, on the grounds that nobody but a programmer reads it, but a message
-that escapes — a size mismatch, a singular matrix, a base out of range — then
-reached a Spanish-speaking user in English, and the file handed in has to read
-in Spanish end to end. The interface still catches what a person can get wrong
-and words it itself; the engine's text is the safety net underneath.
-
-`build.py` compiles what it produced before writing it out, so a build that
-succeeds cannot have shipped a syntax error.
-
-## The engine raises in Spanish
-
-`core/` never prints, but what it raises is in Spanish. Its messages describe a
-mistake ("No se pueden multiplicar: A tiene 2 columnas y B tiene 1 filas") and
-read the same wherever they surface. When the mistake belongs to the person
-using the program, the interface catches it and says so in Spanish before
-calling the engine. That is why the interface checks dimensions the engine also
-checks: two different audiences, not duplication.
-
-## The parser raises one exception per kind of mistake
-
-A typed equation is the first place where the mistake is genuinely the reader's,
-so the wording matters and none of it can live in `core/`. `core/equations.py`
-raises instead: `MissingEquals` when there is no `=` to split on, and
-`UnreadableTerm` carrying the exact fragment that stopped it. Both descend from
-`EquationError`, so `ui/prompts.py` can name the two it has a sentence for and
-still catch anything added later without going silent.
-
-The fragment is what makes the difference. "No pude leer esa ecuación" sends
-somebody hunting through a line they already believe is correct; "No entiendo la
-parte '&'" points at the character. That is worth an attribute on an exception.
-
-The unknowns are read out of the equations rather than declared first. It is not
-only shorter to type: the list that comes back is a proof of what was
-understood. `Incógnitas encontradas (3): x, y, z` catches `2x + 3x = 5` written
-where `2x + 3y = 5` was meant, at the moment it was typed, instead of three
-sections later as a system that classifies wrong for no visible reason.
+`sheet.log.snapshot(k)` devuelve el estado después de k operaciones. Eso
+permite que el recorrido avance y retroceda sin volver a calcular.
+
+`Worksheet` omite `swap(i, i)`, `scale(i, 1)` y `add_scaled(i, j, 0)`
+porque dejan la matriz igual. `Matrix.scale_row(i, 0)` y
+`Matrix.add_scaled_row(i, i, k)` lanzan un error porque no representan
+operaciones elementales válidas. La construcción de una matriz también
+valida su forma. Por ejemplo, `Matrix([[1, 2], [3]])` falla al construirse.
+
+## Aritmética exacta y búsqueda numérica
+
+Las entradas matriciales son `Fraction`. Escribir `0.18` produce `9/50` y
+un tercio sigue siendo exacto. Esto permite comprobar la solución con
+igualdades exactas.
+
+La búsqueda de raíces usa `float` para evaluar funciones elementales.
+`core/real_function.py` interpreta la expresión, `core/root_bracket.py`
+conserva el intervalo, aplica la parada y registra las iteraciones.
+Bisección aporta el punto medio y Regula Falsi aporta el cruce de la
+secante. El resultado distingue tolerancia, cero, estancamiento y límite.
+Consulta las [condiciones y ejemplos](bisection.md).
+
+`core/notation.py` agrega signos de multiplicación omitidos. Cada lector
+aplica después su propia gramática. Búsqueda de raíces acepta `5x^3` y
+`2(x+1)`. Los sistemas aceptan `2x` y `(1/2)x` como términos lineales.
+La normalización conserva los nombres completos y las llamadas a funciones.
+El evaluador de funciones usa un AST restringido. Reutilizar el valor del
+extremo que permanece permite evaluar una sola vez por iteración.
+
+## Clasificación y comprobación
+
+`to_ref` reduce hasta la forma escalonada. `to_rref` continúa hacia arriba
+para crear ceros sobre los pivotes. Quien llama elige la reducción según
+el cálculo. La forma reducida se incorporó cuando la actividad de
+Gauss–Jordan la necesitó.
+
+La clasificación cuenta pivotes antes de resolver. Si `rango(A) < rango(A|b)`
+hay contradicción. Si los rangos coinciden y son menores que el número de
+incógnitas, hay variables libres. Si también coinciden con el número de
+incógnitas, se hace la sustitución hacia atrás. Un pivote en la última
+columna produce una ecuación `0 = k` con k distinto de cero. La familia
+paramétrica se calcula por separado para el caso indeterminado.
+
+`verify` recibe A, b y los valores. Evalúa las ecuaciones originales,
+independientemente del método que dio la solución. Comparar solo con la
+matriz reducida podría ocultar un error de la propia eliminación.
+
+## Inversa, LU y determinante
+
+La inversa reduce `[A | Iₙ]` con Gauss–Jordan y comprueba el bloque
+izquierdo completo. Contar los pivotes de toda la matriz aumentada sería
+insuficiente porque el bloque de identidad también aporta pivotes.
+Cuando el bloque izquierdo llega a `Iₙ`, el derecho es `A⁻¹`. Se comprueban
+ambos productos con la A original. La misma página permite resolver
+`Ax = b` mediante `x = A⁻¹b`.
+
+La página de inversa comparte `SystemInput`, `MatrixEntryGrid`,
+`MatrixDisplay`, `Expression` y `StepWalker`. Usa `max_size=None` en
+la entrada y `maximum=None` en `Stepper`. El límite práctico es el tiempo
+y la memoria de la aritmética exacta. Las demás entradas conservan sus
+límites propios.
+
+`core/lu.py` se encarga de P, L, U, los pivotes, los casos singulares y
+las sustituciones. `core/determinant.py` utiliza la factorización para
+multiplicar la diagonal de U y ajustar el signo. También puede expandir
+cofactores directamente. Los pivotes se comparan con cero exacto.
+
+## Combinaciones lineales
+
+Para determinar si b es combinación de v₁, …, vₖ, se buscan escalares
+c₁, …, cₖ que cumplan `c₁v₁ + … + cₖvₖ = b`. `core/vectors.py` forma
+`[v₁ … vₖ | b]` y llama a `solve`. La dimensión sale de las componentes
+y se comprueba que los vectores sean compatibles. El resultado comparte
+los rangos, la reducción, la solución general y la comprobación del
+solucionador de sistemas.
+
+## Componentes de la interfaz
+
+`ResultsPage` administra las tarjetas y descarta una respuesta al cambiar
+la entrada. Las páginas añaden estado específico, como el recorrido actual.
+`StepWalker` acepta `StepLog.snapshot` para matrices, o títulos y una
+función de dibujo para estados numéricos. Comparte el contador, los puntos
+de navegación y la opción de mostrar todos los pasos.
+
+`RootBracketPage` organiza la gráfica antes de mostrar los controles.
+Cada método configura sus ejemplos, criterios y fórmula. `RootPlot` maneja
+la geometría y el movimiento de la vista. El motor toma las muestras y la
+interfaz las dibuja. La gráfica permite zoom, arrastre, restablecimiento y
+vista ampliada. El diseño del curso omite la inspección de valores con el
+cursor. El menú lateral se desplaza cuando sus herramientas no caben.
+
+`LinkButton` comparte el estilo de las acciones secundarias.
+`SegmentedControl` selecciona métodos, ejemplos y criterios.
+`MathBlock` y `MathLine` muestran las expresiones. Los campos de escalares
+y las columnas de iteraciones se ajustan a los datos de las raíces.
+`Wide` se usa donde el resultado puede necesitar desplazamiento horizontal.
+
+## Texto y lectura de datos
+
+Los identificadores siguen la convención en inglés, como `to_rref`,
+`SingularMatrix` y `render_equations`. Los comentarios y mensajes se
+escriben en español. El motor devuelve datos y lanza excepciones en español.
+La interfaz indica qué campo o ecuación requiere corrección.
+
+`core/equations.py` distingue `MissingEquals` de `UnreadableTerm`, ambos
+derivados de `EquationError`. `UnreadableTerm` conserva el fragmento que
+falló. `gui/entry.py` agrega el número de línea al aviso. La lista de
+incógnitas detectadas ayuda a reconocer, por ejemplo, un `2x + 3x = 5`
+cuando se quería escribir `2x + 3y = 5`.
+
+`render_despeje` comparte el formato de sustitución entre eliminación y LU.
+Recibe números y nombres. La página de LU recorre su propio registro de
+sustituciones y le entrega esos datos.

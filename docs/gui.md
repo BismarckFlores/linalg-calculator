@@ -1,639 +1,256 @@
-# The window
+# Interfaz de escritorio
 
-A desktop front end over the same engine, built with CustomTkinter. It does not
-replace `python -m deliverables.program1`; it is a third caller of `core/`,
-beside the terminal program and the single file handed in to the course.
+La calculadora usa CustomTkinter. Desde la raíz del repositorio:
 
 ```bash
-pip install -r requirements-gui.txt
+python -m pip install -r requirements-gui.txt
 python -m gui
 ```
 
-Run it as a module, from the repository root, for the same reason the terminal
-version is run as `python -m deliverables.program1`: `import core` only resolves
-when the root is the directory Python started from.
+## Inicio y navegación
 
-## What is on it
+**Inicio** muestra las once herramientas con su descripción y un botón
+**Abrir**. Las tarjetas se agrupan igual que el menú lateral. Se muestran
+en una columna cuando el espacio es estrecho y en dos a partir de 720
+píxeles disponibles. Cada pantalla se crea al abrirla por primera vez y
+conserva lo que escribiste al cambiar de herramienta.
 
-The sidebar lists what works, and nothing else, in five groups ordered by what
-somebody sets out to do: **Sistemas Lineales**, **Matrices**, **Vectores** and
-**Sistemas Numéricos**, and **Métodos Numéricos**. Every row has the same square badge for its symbol, in
-the menu and again in the page title, so a wide symbol such as `LU` or `|A|`
-never pushes a name out of line.
-
-| Group | Row | What it does |
+| Grupo | Herramienta | Qué hace |
 | --- | --- | --- |
-| Sistemas Lineales | **Eliminación Gaussiana** | Opens with the window. Solves `A x = b`: the step by step, the classification, the clearing and the verification. The system goes in as coefficients or as written equations, and Gauss or Gauss-Jordan is chosen inside the page. |
-| Sistemas Lineales | **Formas Escalonadas** | Takes a matrix as it stands and answers the definition: is it in echelon form, is it in the reduced one. Then it reduces it, step by step, and marks the pivot positions the reduced form puts on show. Switched to `Es una matriz aumentada [ A \| b ]`, it also reads the pivots as a system. |
-| Matrices | **Operaciones Matriciales** | `A + B`, `A − B`, `A × B`, `k · A`, `Aᵀ`. Each matrix is resized with its own steppers, and B follows A wherever the shapes have to agree. |
-| Matrices | **Matriz Inversa** | Gauss–Jordan on `[A \| Iₙ]` with coefficient grids or equations, shared matrix displays and step navigation, both product checks, and the application `x = A⁻¹b`. Modes `Calcular A⁻¹` and `Resolver A x = b`. See [inverse.md](inverse.md). |
-| Matrices | **Factorización LU** | `PA = LU` with the reduction step by step, the four matrices, and the exact `PA = LU` check (`Factorizar A`); or `A x = b` by the two substitutions, `Ly = Pb` and `Ux = y`, written equation by equation (`Resolver A x = b`). Partial pivoting and strict mode are switches. |
-| Matrices | **Determinante** | det A by cofactor expansion or by LU, with the cost of each said before the method is picked. Shows every minor with its sign, or the reduction with L, U and the diagonal, and checks the answer with the other method. |
-| Vectores | **Operaciones Vectoriales** | `u + v`, `u − v` and `k · u`, as columns side by side and component by component, and whether b is a linear combination of v₁, …, vₖ, solved as the system it is. Nobody says what n is: it is however many components were typed. |
-| Sistemas Numéricos | **Conversiones** | A whole number from decimal to binary, octal, hexadecimal or any base from 2 to 36 by repeated division, and back by the linear combination of powers it stands for. `Romano` converts to and from Roman numerals, which are no base at all. Each direction is checked with the other. |
-| Sistemas Numéricos | **Aritmética Romana** | Adds, subtracts and multiplies Roman numerals, with a switch that writes a multiplication out as the repeated addition it stands for. Says when an answer is one the Romans could not write. |
-| Métodos Numéricos | **Método de Bisección** | Solves f(x) = 0 with selectable stopping measures, original-function substitution, an iteration table and step reader. Canvas graph with zoom and drag, without cursor-value queries. See [bisection.md](bisection.md). |
-| Métodos Numéricos | **Regula Falsi** | Graphs f(x) before showing the solver controls. Estimates the root using the secant of a sign-changing interval and records each iteration. See [the method notes](bisection.md#regula-falsi). |
+| Sistemas Lineales | Eliminación Gaussiana | Resuelve `Ax = b` por Gauss o Gauss–Jordan y muestra la clasificación, las operaciones y la comprobación. |
+| Sistemas Lineales | Formas Escalonadas | Analiza la forma de una matriz, la reduce y localiza sus pivotes. |
+| Matrices | Operaciones Matriciales | Suma, resta, producto, multiplicación por escalar y transpuesta. |
+| Matrices | Matriz Inversa | Calcula `A⁻¹` y resuelve `Ax = b` con ella. |
+| Matrices | Factorización LU | Descompone `PA = LU` y resuelve sistemas por sustitución. |
+| Matrices | Determinante | Calcula por cofactores o por LU y compara los métodos. |
+| Vectores | Operaciones Vectoriales | Suma, resta, producto por escalar y combinación lineal. |
+| Sistemas Numéricos | Conversiones | Convierte entre decimal, bases de 2 a 36 y números romanos. |
+| Sistemas Numéricos | Aritmética Romana | Suma, resta y multiplica numerales romanos. |
+| Métodos Numéricos | Método de Bisección | Aproxima una raíz con el punto medio de un intervalo. |
+| Métodos Numéricos | Regula Falsi | Aproxima una raíz con el cruce de una secante. |
 
-The window opens on **Inicio**, a catalogue of all eleven tools grouped by the
-same subjects as the sidebar. Each card explains its capabilities and provides
-an **Abrir** shortcut. It reuses `Card`, `GlyphBadge`, `PageHeader`,
-`SectionTitle` and `LinkButton`; descriptions live in the existing `Module`
-registry. Cards use one column in narrow content areas and two from 720 pixels.
-The permanent **Inicio** sidebar entry returns to the catalogue without
-recreating tools or losing their inputs. No dependency was added.
+`GROUPS` en `gui/app.py` define el orden y la descripción que usan Inicio y
+el menú. La entrada `HOME` abre el catálogo. Los títulos de grupo son
+etiquetas. La rueda mueve el menú lateral si sus filas no caben, y la fila
+activa se mantiene visible al seleccionar una página o redimensionar.
 
-The tool order is by priority. Solving a system comes first among the tools,
-with reading the form of a matrix next to it. Matrices goes from the basic
-arithmetic to what is computed with it: the inverse, the LU factorization, and
-the determinant, which reads the diagonal of that factorization. The pages that
-have two modes name them the same way: a verb and the object, `Calcular A⁻¹`,
-`Factorizar A`, `Resolver A x = b`.
+## Entrada de matrices y sistemas
 
-Vectores holds one page today and keeps a heading anyway. The subjects
-then read the same way, and a second vector page has somewhere to land.
+**Coeficientes** muestra una cuadrícula para A y, cuando corresponde, una
+columna para b. Los controles ajustan filas y columnas. b sigue el número de
+filas de A. **Ecuaciones** lee una ecuación por línea y conserva los nombres
+de incógnitas encontrados. Los valores se guardan como fracciones exactas.
+La [guía de uso](usage.md#ecuaciones) enumera la sintaxis.
 
-The tool registry is `GROUPS` in `gui/app.py`: the sidebar headings, rows and
-home catalogue are drawn by walking it, and `MODULES` is flattened out of it.
-The separate `HOME` entry is the page that opens. The headings are labels,
-not buttons — everything stays one click away, which is worth more here than a
-tidier sidebar.
+`gui/entry.py` comparte la entrada entre las páginas. Cuando se analiza una
+matriz sin b, el selector **Es una matriz aumentada [ A | b ]** permite
+indicar si la última columna contiene términos independientes. En modo
+Ecuaciones la separación ya se deduce de la entrada. Si hay un error,
+el aviso indica la línea o celda.
 
-Gauss and Gauss-Jordan share one row because they share the walk — one stops at
-the staircase and the other keeps going — so the choice is a setting of one
-method, not a second program. Two rows opening what is almost the same page is
-a duplicated menu, not a feature.
+### Eliminación Gaussiana y Gauss–Jordan
 
-A program that has not been written has no row. A menu of things that do
-nothing is a plan, and the plan lives in this repository, not in the window.
-
-### Two ways to hand over a matrix
-
-The pill at the top of the input card is the same choice `ui/prompts.py` offers
-in the terminal, and it reads what was typed with the same two modules. Both
-pages have it, and both get it from the same widget: `gui/entry.py`.
-
-**Coeficientes** is a grid for A and a column for b, resized with their own
-steppers. b follows A: one equation is one row of A and one entry of b, and they
-cannot drift apart.
-
-**Ecuaciones** is a box where the system is written the way it is on paper, one
-equation per line:
-
-```
-a - 2b + c = 0
-2b - 8c = 8
--4a + 5b + 9c = -9
-```
-
-`core/equations.py` reads them. Nobody says how many unknowns there are — they
-are whatever the equations turn out to mention, and the list of them is read
-back under the box (`Incógnitas encontradas (3): a, b, c`) before anything is
-done with it. That echo is the point: `2x + 3x = 5` written where `2x + 3y = 5`
-was meant shows up there, immediately, instead of as a system that classifies
-wrong for no visible reason. The window earns it — the line only appears once
-the equations have actually parsed, and disappears the moment one is edited.
-
-Whatever the unknowns were called is what comes out. A system typed in `a`, `b`
-and `c` is cleared, verified and printed in `a`, `b` and `c`; that name list is
-what `ui/presentation.py` has taken as its `names` argument all along. The grid
-route names nothing, so it falls back to `x`, `y`, `z`, `w`.
-
-Everything the terminal parser accepts, this box accepts, because it is the
-same parser: `2*x`, `2.5x`, `2,5x`, `(1/3)x`, unknowns on the right, constants
-on the left, the same unknown twice, and `x2` sorting before `x10`. The table in
-[usage.md](usage.md) is the full list.
-
-What cannot be read is said in Spanish, naming the line — `A la ecuación 2 le
-falta el '='`, `En la ecuación 1 no entiendo la parte '&'`. The terminal does
-not need the number, because it has just asked for that one equation; the window
-does, because all of them are on screen at once.
-
-One grid cannot say whether its last column is b, and a 3x5 augmented matrix
-typed cell by cell reads as five unknowns instead of four. The switch under the
-grid says it: the bar is drawn in every matrix of the page, the pivot columns
-counted are only those of A, and the page reads the pivots as the existence
-theorem does — a system has a solution exactly when the column of b holds no
-pivot, and only one when every column of A holds one. Typed as equations the
-matrix is augmented anyway, so the switch only exists for the grid.
-
-The two verdicts are all that card shows by default. The five numbered
-properties, and the entry that breaks the ones that fail, are behind `Ver por
-qué`: they are what somebody wants when the answer is no, and clutter when it is
-not. A page that reduces a matrix has three cards of output already.
-
-### What comes out
-
-Press **Calcular** and the cards below the input answer the seven requirements
-of Programa 1, in the order the assignment numbers them:
-
-| Requirement | Where it is |
+| Parte del ejercicio | Tarjeta |
 | --- | --- |
-| 1. Entrada de datos | The input card, and **Ecuación matricial A x = b** under it: A, the column of unknowns and b, in brackets side by side — the system as the single matrix equation it is. |
-| 2. Matriz aumentada inicial | The first step of **Paso a paso** — `[ A \| b ]` before anything was done to it. |
-| 3. Eliminación por filas | **Paso a paso**: every elementary operation, one at a time, with the matrix it produced. `Anterior` / `Siguiente` walk it, the dots jump straight to one, and `Ver todos los pasos` lays the whole walk out to be scrolled instead. The labels are the ones `core/steps.py` records, in typographic notation: `f₃ → f₃ + 4 · f₁`. |
-| 4. Sistema equivalente | **Sistema equivalente**: the matrix the walk ended on, read back as equations. |
-| 5. Clasificación | **Resultado**: `rango(A)`, `rango(A\|b)`, the number of unknowns, which columns hold a pivot and which are free, and the classification in the words the assignment demands. |
-| 6. Solución | **Resultado** carries the values; **Despeje por sustitución hacia atrás** carries the clearing, four lines per unknown, exactly as the terminal prints it. |
-| 7. Comprobación | **Comprobación en el sistema original**: first the product `A · x`, worked with the same matrix multiplication as **Operaciones Matriciales**, coming out as b; then the values put back into the equations that were typed, never into the echelon ones. |
+| Datos | **Ecuación matricial A x = b** presenta A, las incógnitas y b. |
+| Matriz aumentada inicial | Primer estado de **Paso a paso**. |
+| Operaciones por filas | **Paso a paso** presenta las operaciones y sus matrices. |
+| Sistema equivalente | La matriz final de la reducción escrita como ecuaciones. |
+| Clasificación | **Resultado** muestra los dos rangos, las incógnitas y columnas pivote o libres. |
+| Solución | Valores, familia paramétrica o fila contradictoria. |
+| Verificación | **Comprobación en el sistema original** muestra `A · x` y la sustitución ecuación por ecuación para una solución única. |
 
-The last two cards only make sense for a system with one solution, so they only
-appear for one. An indeterminate system shows which variables are free, an
-inconsistent one names the row that reads `0 = k`, and both say in as many words
-that there is nothing to substitute — requirement 7 has an answer even when
-there is no answer to check.
+Con Gauss y solución única aparece el despeje por sustitución hacia atrás.
+Con Gauss–Jordan los pivotes quedan solos en su columna y los valores se
+leen directamente. Para infinitas soluciones, **Solución general** expresa
+cada variable básica en términos de las libres, por ejemplo `x = -2 + z`
+y `y = 8 - 2z`. Esa familia se obtiene de la forma reducida aunque se
+haya seleccionado Gauss. Solo se cuentan como columnas pivote del sistema
+las columnas de A. Un pivote en b explica una fila contradictoria.
 
-Somebody following the method wants one operation at a time; somebody checking
-an answer wants to scroll past the lot. Neither is the right default for the
-other, so the step by step does both and the choice is one click. Both pages
-that walk an elimination get it, because both get it from the same widget.
+Los botones **Anterior**, **Siguiente**, los puntos y **Ver todos los pasos**
+navegan la traza guardada. Las fracciones se apilan en matrices, operaciones
+y bloques de trabajo. El signo de una fracción negativa queda a la altura
+de la barra. Se conservan paréntesis cuando hacen falta, como en `3(-17/12)`.
+Los productos se muestran como `2y` o `1(29)`. Un resultado ancho permite
+desplazamiento horizontal y deja fijo el encabezado.
 
-Every fraction in the window is written the way one is written by hand, one
-number over another with a rule between them — in the matrices, in the labels of
-the steps, in the values of the solution, and inside the blocks of working: the
-equivalent system, the clearing, the check and the general solution. A column of
-`22/15` and `-17/15` is much harder to read slashed onto one line, and the
-window has the room the terminal does not. The file handed in still prints the
-plain form, because a transcript has one line per line.
+### Formas escalonadas, operaciones e inversa
 
-The brackets that only a line of text needed are dropped where the stacked
-fraction makes them unnecessary: `(1/2)y` is bracketed so that `1/2y` cannot be
-read as one over two-y, and stacked it says where it ends by itself. They stay
-wherever something is leaning on them — `3(-17/12)` would otherwise become
-`3-17/12`.
+**Formas Escalonadas** informa qué propiedades satisface la matriz original
+y cuáles fallan. El recorrido muestra su reducción y el resultado señala
+los pivotes. Las formas y sus condiciones se detallan en la
+[referencia de echelon](reference.md#coreechelonpy).
 
-A minus sign belongs to the whole fraction, so it stands to the left of the
-stack and on the rule: `-1/4` is one number over another and then negated, which
-is what it looks like that way and not when the sign is stacked with the
-numerator.
+**Operaciones Matriciales** ajusta la entrada a la operación. Para sumar
+o restar se necesitan tamaños iguales. Para multiplicar, las columnas de A
+deben coincidir con las filas de B. La transpuesta intercambia filas y
+columnas.
 
-A product is written by putting the two things next to each other, the way it
-is written by hand: `2y`, not `2*y`; `1(29)`, not `1*(29)`. That is
-`ui/presentation.py`, so the terminal and the file handed in read the same way.
-The sign of a negative term comes out in front of it — `3x - 4(12)` rather than
-`3x + (-4)(12)` — and closes up against the number when it opens the sum:
-`-4(29) + 5(16)`.
+**Matriz Inversa** reduce `[A | I]` y comprueba los dos productos con la
+matriz original. **Resolver A x = b** calcula `x = A⁻¹b`. Los modos
+conservan sus entradas. La [guía de inversa](inverse.md) incluye el
+teorema, sus condiciones y ejercicios.
 
-A result wider than the window used to be cut off at the edge of its card, with
-nothing to say it had been. Every result card now draws on a strip that slides
-sideways: the title stays put, a bar appears under the content when — and only
-when — there is more of it than fits, and `Shift` with the wheel moves it. A
-6 × 6 factorisation `P A = L U` is four matrices in a row, and on a laptop
-screen that is simply wider than the window.
+## Vectores
 
-Those blocks were lined up by counting characters, which stops being true the
-moment a fraction takes two lines instead of one, so `MathBlock` lays them out
-again in a grid. It is told which of the two alignments the text meant: a system
-of equations is written with its left sides pushed right so the equals signs
-fall under each other, and a clearing is written with its lines starting at the
-same place. Both were true before, and both still are.
+Escribe las componentes separadas por comas, punto y coma o espacios,
+por ejemplo `1, -2, 3` o `(1 -2 3)`. La dimensión es el número de
+componentes. Usa punto para decimales, porque `2,5` representa dos
+componentes. Un aviso informa las dos dimensiones si son incompatibles.
 
-Changing any number removes every card below the input. A result that was
-computed from other numbers is not a result any more.
+**u + v**, **u − v** y **k · u** se muestran como columnas y en una línea
+de resultado. El detalle presenta cada componente, como
+`u₃ + v₃ = 3 - 1/2 = 5/2`. La presentación convierte `2 - (-3)` en
+`2 + 3` y conserva los paréntesis al multiplicar, como `(1/2)(-4)`.
 
-### What Gauss-Jordan shows instead
+**Combinación lineal** recibe b y un vector vᵢ por línea.
 
-Everything above, minus the clearing, which the method does not need: in the
-reduced form every pivot is alone in its column, so **Sistema equivalente**
-already reads `x = 29`, `y = 16`, `z = 3` and there is nothing left to
-substitute backwards. The card is not hidden silently — the result says the
-values are read straight off the last column.
-
-The classification and the values are the same either way. They come from
-counting pivots and from an exact arithmetic, so the road taken cannot change
-them; what changes is where the walk stops, which is what the step by step and
-the equivalent system show.
-
-When the system has infinitely many solutions, a **Solución general** card
-writes the family out: every basic variable — the one holding a pivot — in terms
-of the free ones, `x = -2 + z` and `y = 8 - 2*z` with `z es libre`. It is read
-from the reduced form even when the method chosen was Gauss, because that is
-where a pivot is alone in its column and the row is already the answer. The
-family is the same either way, so reducing a second time behind the scenes
-smuggles nothing in.
-
-The pivot columns are named either way too — `columnas pivote: 1, 2` and
-`columnas libres: 3` — because identifying them is what the second assignment
-asks for, and because the free columns are exactly the free variables under
-another name. Only the columns of A are counted: a pivot can also land on the
-constants column, and that one is not a column of the system but the reason an
-inconsistent system is inconsistent, which the classification already says.
-
-### Vectors
-
-The dimension is never asked for. The assignment makes a point of it — n is not
-known in advance — so a vector is typed as its components, `1, -2, 3` or
-`(1 -2 3)`, and n is however many there turn out to be. Components are split on
-commas, semicolons or spaces, which is why a decimal takes a point: `2,5` is two
-components, and the `n = 2` badge on the result says so.
-
-**u + v**, **u − v** and **k · u** show the operation twice. **Resultado** writes
-it as columns side by side, `[u] + [v] = [u + v]`, with the result also in a
-line, `u + v = (5, -2, 5/2)`. **Componente a componente** writes one line per
-component, `u₃ + v₃ = 3 - 1/2 = 5/2`, with the sign of the second number folded
-into the operation the way it is by hand: `3 + (-1/2)` is written `3 - 1/2`, and
-`2 - (-3)` is written `2 + 3`. A scalar multiplies with the component in
-brackets, `-3(-2)`, and a fractional scalar in brackets of its own,
-`(1/2)(-4)`. Two vectors of different dimension are refused before anything is
-added, naming both sizes.
-
-**Combinación lineal** takes b and the vectors v₁, …, vₖ, one per line, and
-answers in four cards:
-
-| Card | What it shows |
+| Tarjeta | Contenido |
 | --- | --- |
-| Planteamiento | The question as the vector equation `c₁[v₁] + c₂[v₂] = [b]`, wrapped every four vectors, and the same thing written out component by component as a system in c₁, …, cₖ. |
-| Paso a paso | That system's augmented matrix, `[ v₁ v₂ \| b ]`, reduced with the same step walker as the elimination page. |
-| Resultado | The ranks and the answer in colour: green for one way of combining them, orange for infinitely many, red for none. With one, the scalars and `b = 3v₁ + 2v₂`. With infinitely many, the general solution and an example with every free scalar at 0. With none, the row that reads `0 = k`. |
-| Comprobación | The scalars put back: each vector scaled, the products added up column by column to b, and the same check component by component. With infinitely many it checks the example. |
+| Planteamiento | Ecuación `c₁[v₁] + c₂[v₂] = [b]` en grupos de cuatro vectores y sistema por componentes. |
+| Paso a paso | Reducción de `[v₁ … vₖ \| b]` con el mismo recorrido de eliminación. |
+| Resultado | Rangos, escalares y combinación. Verde si hay una, naranja si hay infinitas y rojo si no existe. |
+| Comprobación | Multiplica cada vector por su escalar y suma por columnas y componentes. |
 
-It is the definition, solved the way the course solves everything: b is a
-combination exactly when `[ v₁ … vₖ | b ]` is consistent, so `core/vectors.py`
-asks `solve` and adds nothing of its own to the elimination.
+Cuando hay infinitas combinaciones se muestra la familia y se comprueba
+un ejemplo con los escalares libres en cero. Si no hay combinación se
+indica la fila contradictoria. `core/vectors.py` llama al mismo
+solucionador de sistemas que usa Eliminación Gaussiana.
 
-### Numeral systems
+## Conversiones
 
-The assignment asks for two directions, and the page has a pill for each.
+**Decimal → otra base** divide sucesivamente el valor absoluto por la
+base. Cada fila muestra el cociente, el residuo y su dígito, por ejemplo
+`43 = 2 · 21 + 1`. Un residuo de 14 en base 16 se escribe `E`. El
+resultado se lee de abajo hacia arriba y se verifica con la conversión
+inversa.
 
-**Decimal → otra base** takes a whole number and a base, and divides. Every
-division is written as the equation it is, `43 = 2 · 21 + 1`, beside its
-remainder and the digit that remainder becomes, so a remainder of 14 in base 16
-is visibly an `E`. The digits are then read from the bottom up into the result.
+**Otra base → decimal** desarrolla una combinación de potencias y muestra
+una tabla con posiciones, valores y aportes. Las expresiones largas se
+parten en grupos de seis términos.
 
-The base is picked on a pill: binary, octal and hexadecimal by name, because
-those are the ones the course asks for, and **Otra base**, which opens a
-`b =` field beside the pill for any base from 2 to 36. Past 9 the digits are
-letters, `A` for 10 up to `Z` for 35 — the alphabet running out is why 36 is
-the top. The field is read with the same `from_base` the page is about, so not
-even the base goes through `int`; anything that is not a whole number in range
-is refused before converting. The note under the divisions names the letters
-the chosen base uses, and says nothing about letters when it uses none.
-
-**Otra base → decimal** takes a numeral and the base it is written in — the
-same pill, custom field included — and
-writes out the linear combination it stands for — the requirement the
-assignment names — in three stages worked down to one number:
-
-```
+```text
 2B₁₆ = 2·16¹ + 11·16⁰
      = 2·16 + 11·1
      = 32 + 11
      = 43
 ```
 
-with a letter's value named beside it, and the same thing again as a table of
-positions, powers and contributions. A long binary numeral breaks its sum into
-lines of six terms.
+Los botones incluyen binario, octal, hexadecimal y **Otra base** (2 a 36).
+Se usan `A` a `Z` para valores de 10 a 35. Los números son enteros de
+hasta 32 dígitos y se pueden agrupar con espacios. Si hay un carácter
+inválido, el aviso indica qué cifras admite la base. El signo inicial se
+aplica a toda la magnitud. `+` es opcional y `-0` se normaliza a `0`.
+Por ejemplo, `-2B₁₆ = -(32 + 11) = -43`. El signo queda fuera del límite de
+dígitos. Esta representación usa signo y magnitud. El ejemplo inicial
+representa 43 en la base activa y cambia con ella hasta editarlo.
 
-The first direction checks itself with the second: the result is read back as a
-combination right under the divisions, and has to come to the number the
-divisions started from. The divisions are not trusted with their own answer.
+`core/bases.py` realiza las divisiones y las sumas de potencias con
+aritmética entera. **Romano** usa otra regla. Para escribir un numeral,
+toma la pieza más grande que cabe en el valor restante y repite. Al leer,
+suma las piezas y reconoce los seis pares de resta. Los valores romanos
+admitidos van de 1 a 3999.
 
-Neither direction borrows from Python: no `int(text, base)`, no `bin`, `oct` or
-`hex`. The procedure is the point, so the procedure is what runs, in
-`core/bases.py`. Whole numbers are converted, up to 32 digits; a decimal point,
-a sign anywhere but the front, or a digit the base does not have is named back
-in Spanish with the digits that base does use (`En base 20 se usan las cifras
-del 0 al 9 y las letras de la A a la J.`). Spaces are ignored, so a binary
-number can be typed in groups of four.
+## Determinante
 
-Negative numbers are converted the way they are by hand, in every base: the
-sign stays apart from the digits. Towards a base, the divisions are those of
-the absolute value — a note says `|-43| = 43` — and the digits read back come
-out as `-( 1 0 1 0 1 1 )  →  -101011₂`. Back to decimal, each stage of the
-combination is wrapped in the sign, so it is seen to apply to the whole sum and
-not to its first term:
+La entrada muestra una estimación de trabajo según el orden de la matriz
+antes de elegir método. Por ejemplo, para 4 × 4 estima 40 multiplicaciones
+por cofactores y 20 por LU. Los cofactores permiten seguir a mano matrices
+pequeñas. El costo crece rápidamente con el orden.
 
-```
--2B₁₆ = -(2·16¹ + 11·16⁰)
-      = -(2·16 + 11·1)
-      = -(32 + 11)
-      = -43
-```
+**Cofactores** elige la fila o columna con más ceros para omitir menores.
+Cada término muestra la entrada, el signo `(−1)ⁱ⁺ʲ`, el menor y el
+producto. Desarrolla los menores de forma recursiva hasta `ad − bc`.
+La vista cuenta los sumandos y limita el desglose a 30. Informa qué
+niveles se muestran y da el valor de los menores que no expande. El
+límite evita que la altura del lienzo sobrepase la que admite Tk.
 
-and the table of positions adds up the digits, `Suma = 43`, then applies the
-sign, `Con el signo: -43`. A leading `+` is accepted and changes nothing, and
-`-0` is `0`. The sign never counts towards the 32 digits, because it is not one.
-Two's complement — `-43` as `11010101` in 8 bits — is a different notation, tied
-to binary and to a fixed width, and is not what this page does.
+**LU** reutiliza la factorización de `core/lu.py`. Presenta la reducción y
+los factores, luego multiplica la diagonal de U. Si hubo intercambios,
+muestra `PA = LU` y aplica `(−1)^k` al producto. Cuando el tamaño lo
+permite, el otro método comprueba el resultado. La comprobación por
+cofactores se omite por encima de 7 × 7 y la expansión por cofactores
+se limita a 8 × 8.
 
-The assignment reads "binario, octal o decimal a su equivalente número
-decimal"; converting decimal to decimal says nothing, so the page offers
-hexadecimal there, the base the other direction converts into, along with any
-other base through the custom field.
+## Factorización LU
 
-The example in the number box is always 43, written in whichever base is
-showing — `101011`, `53`, `2B`, `133` for base 5, `XLIII` in Roman — and
-follows the custom field as it is typed, until somebody types a number of their
-own.
+**Factorizar** conserva los multiplicadores de las operaciones en L y
+muestra la reducción. Presenta P si se intercambiaron filas, el orden
+de las filas, el rango, la invertibilidad y la comparación exacta
+`PA = LU`. Si no hay permutación, muestra `A = LU`.
 
-**Romano** is on the same pill and is the one choice that is not a base: Roman
-numerals have no positions and no powers, so neither the divisions nor the
-combination apply to them. Going that way, the number is written by taking the
-largest piece that fits and subtracting it, again and again, which the page
-shows as a table — `1994 → M, quedan 994` — and then reads back as a check.
-Coming the other way, the numeral is read as the sum of its pieces, with the
-six subtractive pairs marked. What has no numeral is said rather than drawn:
-zero, a negative and anything above MMMCMXCIX, because Rome wrote none of them.
+**Resolver A x = b** presenta `Ly = Pb` de arriba hacia abajo y `Ux = y`
+de abajo hacia arriba. Las líneas muestran la ecuación, valores sustituidos,
+constante trasladada y resultado. Si el coeficiente del pivote requiere
+división, añade el paso, por ejemplo `-2y = -8` y `y = 4`. Después comprueba
+el sistema original.
 
-Both directions share their wording with the **Aritmética Romana** page, so
-`IIII` is refused with the same sentence wherever it is typed.
+**Pivoteo parcial** elige el mayor valor absoluto de la columna. De forma
+predeterminada solo se intercambia para evitar un pivote cero.
+**Modo estricto** rechaza una matriz singular e indica la columna del
+pivote faltante. Fuera de ese modo se puede mostrar la factorización
+con ceros en la diagonal. Para resolver con LU se requiere una matriz
+invertible. Eliminación Gaussiana clasifica el caso singular.
 
-### The determinant
+## Aritmética romana
 
-The assignment asks for two methods and for the program to say which is more
-efficient **before** either is chosen, so the advice sits in the input card,
-under the matrix and above the button. It needs only the size: a 3 × 3 costs
-9 multiplications by cofactors and 8 by LU, a 4 × 4 costs 40 against 20, and a
-10 × 10 costs 6 235 300 against 330. Cofactors win up to 3 × 3, where they are
-also what somebody follows by hand; from 4 × 4 on it says LU and by how much.
+**Suma**, **Resta** y **Multiplicación** leen los operandos por piezas.
+Por ejemplo, `XIV = X + IV = 14`. Los pares de resta son IV, IX, XL,
+XC, CD y CM. Se calcula con los valores y se presenta el numeral junto
+con su valor decimal. Una lectura final verifica el numeral resultante.
 
-**Cofactores** expands along the row or column with the most zeros, since each
-zero skips a whole minor, and says which line it chose and why. Every term is
-drawn in full: the entry, `(−1)ⁱ⁺ʲ`, the minor as a matrix, and the product the
-three make.
+**Notación de suma** aparece en Multiplicación y está activa al entrar.
+Expande `X × V` como cinco sumandos X. Si hay más de 30 sumandos,
+muestra los primeros 30 y señala el total. Las letras se normalizan a
+mayúsculas. Una entrada como `IIII` indica la escritura canónica `IV`.
+Para cero, negativos o valores mayores de 3999 se muestra el valor
+decimal y el motivo por el que queda fuera del rango romano.
 
-The minor is not left as a number. Underneath each term, indented, comes that
-minor's own expansion, and under its terms theirs, down to a 2 × 2, which is
-written out as `ad − bc` and ends the recursion. That nesting is the step by
-step here: the answer only appears once the last minor has been broken all the
-way down. The badge counts the levels.
+## Bisección y Regula Falsi
 
-How much of that tree fits is measured, not guessed. The page counts the
-summands the full expansion would draw and, when there are more than thirty,
-takes the deepest expansion that stays under it and **says so**: *"El desglose
-completo son 169 sumandos en 5 niveles, y la ventana no aguanta esa altura. Se
-dibujan 3 niveles (17 sumandos)."* Each minor left unbroken repeats the point
-where it stands, with its value.
+Primero se grafica f(x) y luego se muestran los campos de intervalo,
+tolerancia y máximo de iteraciones. La gráfica compartida admite zoom
+con botones o rueda, arrastre, restablecimiento y vista ampliada.
+La [guía de raíces](bisection.md) explica los criterios y los ejemplos.
 
-Thirty is where the drawing actually breaks, not a round number: thirty
-summands take about four seconds, and forty-three kill the X server — `BadAlloc`
-asking for a pixmap, or `BadValue` because the canvas passes the height X
-allows. A 4 × 4 is twelve summands and is always drawn whole; a 5 × 5 is
-fifty-one and never is.
+`RootBracketPage` usa `_draw_walk` para crear `StepWalker`, con un título y
+un estado por iteración más el inicial. `LinkButton` comparte el estilo de
+las acciones de gráfica, ayuda y paginación. La tabla usa `SegmentedControl`
+para **Decimal / Automático** y `Stepper` para seleccionar de 0 a 17
+decimales (5 por defecto). Solo las columnas están dentro de `Wide`.
+Al cambiar la vista o página, `Wide.refresh()` recalcula si hace falta
+desplazamiento horizontal. Los controles permanecen en su lugar.
 
-**LU** does not factorise anything itself: it reads the factorisation of
-`core/lu.py` — the same one the **Factorización LU** tab shows — and multiplies
-the diagonal of U. The reduction is walked with the same **Paso a paso** card as
-every other elimination, so the matrices shown are the ones that produced L and
-U rather than a retelling. Then it draws `A = L U` and the diagonal multiplied
-out. When a pivot is zero the rows are swapped, so what is factorised is
-`P A = L U` and the sign flips once per swap — the page says so and writes
-`(−1)^k` in front of the product.
+## Organización de la interfaz
 
-Whichever method ran, the other one runs too and its value is shown as a check.
-They are different procedures over the same exact numbers, so agreeing is worth
-something. Past 7 × 7 the check is dropped and past 8 × 8 cofactors are refused
-outright: 8! minors is the wall the course's own slides describe.
+| Componente | Responsabilidad |
+| --- | --- |
+| `gui/app.py` | Ventana, Inicio, menú, tema y selección de páginas. |
+| `gui/theme.py` | Colores como pares claro/oscuro y tipografías. Las fuentes se cargan después de abrir la ventana. |
+| `gui/widgets.py` | Tarjetas, matrices, expresiones, fracciones, selectores y navegación compartida. |
+| `gui/entry.py` | Cuadrículas de entrada y lectura de ecuaciones. |
+| `gui/root_plot.py` | Dibujo y transformación de coordenadas de la gráfica. |
+| `gui/pages/` | Entrada y estado de cada herramienta. |
+| `ui/presentation.py` | Texto de ecuaciones, clasificación, sustitución y comprobación. |
+| `core/` | Cálculos, evaluación de funciones y muestras para dibujar. |
 
-### LU factorisation
+La ventana usa el color azul `#0071e3`, las tarjetas redondeadas y el menú
+del diseño de referencia en Figma. Las operaciones se ejecutan con el
+motor Python del repositorio. Las páginas se construyen bajo demanda y las
+tarjetas de resultado se invalidan al editar su entrada.
 
-LU and the determinant are not the same thing, and the menu says so: the
-determinant is one of the things a factorisation makes cheap, not what the
-factorisation is. This tab is the factorisation, and the determinant tab reads it.
+### Detalles de Tkinter
 
-**Factorizar** reduces `A` with row replacements, keeping each multiplier in L,
-and draws what came out: the reduction through the shared **Paso a paso** card,
-then `P A = L U` as four matrices — `P` only appears when rows were swapped —
-with the rank, the order of the rows (`P` as a list, `(1, 3, 2)`) and whether `A`
-is invertible. The last card is the check: `P A` and `L U` side by side and
-compared exactly, `P A = L U  ✓`. It says in as many words that the comparison
-has no tolerance, because with fractions there are no ghost zeros to clean.
-
-**Resolver A x = b** adds what LU is for. `A x = b` becomes `L(U x) = P b`, and the
-page writes the two substitutions the way the elimination writes its own — the
-equation, the values put in, the constant moved, the result — `L y = P b` from
-the top and `U x = y` from the bottom. Because the diagonal of U is not 1, the
-backward one has a last line that divides: `-2y = -8`, then `y = 4`. The solution
-is checked in the original system with the matrix product, by the same widget the
-elimination and the inverse use.
-
-Two switches, for the two decisions that belong to the user. **Pivoteo parcial**
-picks the largest absolute value in each column instead of the first non-zero.
-Exact arithmetic does not need it, and by default only a zero forces a swap,
-which is what the course's slides do and why their `L` and `U` come out
-unchanged. **Modo estricto** refuses a singular matrix naming the column that has
-no pivot; otherwise it completes the factorisation, leaves the `0` on the
-diagonal of U and says so. Solving a singular system by LU is refused either way —
-the backward substitution would divide by zero — and the page points to
-Eliminación Gaussiana, which classifies it.
-
-### Roman numerals
-
-Three operations, one per pill, and all three take any two numerals.
-
-A numeral is read as the sum of its pieces, and the page shows that reading
-before anything else: `XIV = X + IV = 14`, with the six subtractive pairs
-(IV, IX, XL, XC, CD, CM) marked, since those are the only case where a smaller
-symbol comes before a larger one. Then the operation is done on the values and
-the answer is written back as a numeral, with our own numbers underneath so
-both readings are visible.
-
-A multiplication carries the **Notación de suma** switch, which is what the
-assignment asks for: `X × V` is X added five times, so the page writes
-`X + X + X + X + X` and then the total. It is on by default and only appears in
-that mode, because a sum is what a product stands for and the other two
-operations have none.
-
-Turning it off leaves the product alone, which is what somebody multiplying
-`XIV × IX` usually wants — the sum is right there if they want to see it, nine
-terms of XIV. A product needing hundreds of terms shows the first thirty and
-says how many there are: `M × M` would ask for a thousand X's, and `X × MMM`
-for three thousand, and they all say the same thing.
-
-Three answers have no numeral at all, and the page treats that as the answer
-rather than as a failure: zero and the negatives, which Rome had no symbol for,
-and anything above MMMCMXCIX. It gives the value in our numbers and says which
-of the two reasons it is.
-
-What is refused is refused with the reason: `IIII` is told that four is `IV`,
-`IC` that the only subtractions are the six pairs, and a letter outside
-I V X L C D M that it is not a Roman symbol. Lowercase is turned into capitals
-as it is typed, so `xiv` never has to be corrected by hand.
-
-The answer is read back at the end, through the same code the operands went
-through, so the writing is checked against the reading rather than against the
-number that produced it.
-
-### Bisection
-
-The page reuses `ResultsPage`, `Card`, `PageHeader`, `SectionTitle`,
-`ErrorBanner`, `PrimaryButton`, `Wide`, `MathBlock`, `MathLine`,
-`SegmentedControl` and the theme. `_draw_walk` creates the same `StepWalker`
-used by matrix pages. Captions and a drawing callback let it display the initial
-interval and numerical iterations, with the shared header, dots, navigation and
-all-steps view. `LinkButton` shares the reader's existing text-button styling
-with the plot controls, pagination and help disclosure.
-The graph has a responsive Canvas, zoom buttons, reset and left-button drag.
-It has no motion-value callback, picker or coordinate readout. The table is
-paginated to avoid oversized Tk canvases. Its `SegmentedControl` selects decimal
-or automatic notation. Automatic restores the original general format, using
-scientific notation only where appropriate. In decimal mode the existing
-`Stepper` selects 0 to 17 decimal places (5 initially). Display settings persist through calculations and never
-alter the saved numerical trace. See [bisection.md](bisection.md) for
-the stopping rules, source discrepancies and verification examples.
-
-Only the table data is inside its `Wide`; the format controls and pagination
-stay fixed. The page calls `Wide.refresh()` after drawing rows, since a change
-in requested content width need not resize the canvas window. The horizontal
-bar therefore updates immediately when notation, precision or page changes.
-
-The sidebar scrolls independently when the rows exceed the available height;
-the selected row is brought into view on selection or window resize.
-
-## How it is put together
-
-```
-gui/
-├── theme.py       colours, fonts, the light/dark switch
-├── widgets.py     the shapes CustomTkinter does not have
-├── entry.py       the two ways a matrix is handed over, in one card
-├── app.py         the window, the sidebar, and which page is open
-├── __main__.py    python -m gui
-└── pages/
-    ├── vectors.py      Rⁿ: operations and linear combinations
-    ├── operations.py   matrix arithmetic
-    ├── gauss.py        A x = b, both methods
-    ├── inverse.py      A inverse, checks and Ax = b by inverse
-    ├── lu.py           PA = LU, and Ax = b by two substitutions
-    ├── determinant.py  det A by cofactors or by LU, and which one to use
-    ├── echelon.py      the five properties, the reduction, the pivots
-    ├── bases.py        whole numbers between base 10 and bases 2 to 36
-    ├── bisection.py    numerical roots, graph, steps and iteration table
-    └── roman.py        Roman numerals, and the three operations on them
-```
-
-Two things both pages need live outside them, because the second page needing
-one is what proves it was never page-specific: `SystemInput` in `entry.py` is
-the input card with its pill, its grids and its text box, and `StepWalker` in
-`widgets.py` is the step by step with its dots and its two links. Each was
-written inside the elimination page first and moved out when the echelon page
-asked for the same thing.
-
-`StepWalker` also accepts a non-empty sequence of captions and a drawing
-callback instead of a `StepLog`. Bisection uses that route; the default matrix
-route and its callers stay the same. The callback owns the content, while the
-reader owns navigation and the single/all-states views. `LinkButton` is the
-reader's secondary-action button, shared with other controls that need it.
-
-A page lands here when it works. There is no placeholder page, and adding one
-would be the same mistake as a `Method` enum with a single member: weight that
-has to be read and kept correct for no return.
-
-Three rules hold the package together, and they are the same three that hold the
-rest of the repository together.
-
-**No solving arithmetic in `gui/`.** Every calculated mathematical result came out of `core/`. The
-pages read matrices out of their cells, call `solve`, `to_rref`, `verify` or a
-`Matrix` operator, and arrange what comes back. If a calculation ever appears in
-this package it is in the wrong place.
-Graph coordinate transformations and viewport navigation live with the drawing;
-function evaluation and plot sampling live in `core/real_function.py`. The
-shared plot and page live in `gui/root_plot.py` and `gui/pages/root_bracket.py`.
-
-**No wording in `gui/` that another front end also needs.** The five properties
-of the echelon forms are the exception that proves it: only this window says
-them, so `gui/pages/echelon.py` owns those sentences the way `ui/prompts.py`
-owns its menu. The day the terminal needs them they move to
-`ui/presentation.py`, which is where the classification went.
- The classification,
-the values, the clearing and the verification are written by
-`ui/presentation.py`, exactly as the terminal writes them. What the window does
-own is its own chrome — `Calcular`, `Filas`, `Matriz A` — the same way
-`ui/prompts.py` owns the wording of its menu.
-
-**The window is handed in as one file, like everything else.** `build.py`
-assembles `deliverables/out/Programa 2_Grupo5.py` out of `core/`,
-`ui/presentation.py` and this package, with every docstring and comment in
-Spanish, and its first lines tell whoever opens it to make a `.venv` and
-`pip install customtkinter` — the only thing any deliverable of this repository
-has ever needed installed, and only to draw. `requirements-gui.txt` says the
-same thing for anyone working in the repository: nothing else here requires
-anything.
-
-The terminal program is still built too, as `Programa 1_Grupo5.py`, and it is
-still standard library from end to end.
-
-`ui/` is not the window's home, either. `ui/prompts.py` calls `input`, which
-makes that package the terminal's. `ui/presentation.py` is shared by both
-because it only builds strings.
-
-### The layers inside it
-
-`theme.py` holds every colour as a `(light, dark)` pair, which is what
-CustomTkinter reads directly — the theme switch is one call and no widget is
-rebuilt. Fonts cannot exist before a window does, so `load_fonts()` runs once the
-application has started.
-
-`widgets.py` has the pieces the toolkit does not: a card, a stepper, a matrix
-you type into, a matrix drawn read-only, the brackets around both. It knows what
-a matrix looks like and nothing about what one means.
-
-`pages/` is one module per page. A page owns its widgets and its state and is
-built the first time it is opened, so switching away and back finds what was
-typed still there.
-
-## Things that cost an afternoon
-
-Written down because none of them are guessable.
-
-**The wheel arrives at the window, not at the page under the pointer.**
-CustomTkinter binds it application-wide and then walks up from the widget the
-pointer is over, which means anything outside the scrolling area — the sidebar,
-a text box — swallows the notch. It also moves thirty pixels at a time on Linux,
-so a long page took forty notches. `Application._wire_wheel` replaces that
-binding with one that answers from anywhere and moves three lines, and steps
-aside only for a text box with scrolling of its own to do.
-
-**Two modules that each define the same global are fine until they are one
-file.** `gui/pages/gauss.py` and `gui/pages/bases.py` both had a `SUBTITLES`.
-In the repository that is two names in two namespaces; assembled, the second
-replaced the first and the elimination page would have raised `KeyError` the
-moment it opened. `build.py` now refuses to assemble a program where two blocks
-define the same name, and says which two. It caught the next one on its own:
-the custom base brought an `EXAMPLE` that `gui/pages/echelon.py` already had.
-
-**A `CTkFrame` one pixel wide draws nothing at all.** Not a thin line — nothing.
-The bar between A and b, and the divider in the sidebar, are two pixels for that
-reason and no other.
-
-**A bar drawn per row sets the height of every row.** A `CTkFrame` defaults to
-200x200, and gridding one into each row with `sticky="ns"` asks every row to be
-200 pixels tall. The bar is one frame with `rowspan`.
-
-**A header wider than the matrix stretches the matrix.** With the header spanning
-the columns of the same grid, the extra width lands in the cell column and the
-brackets stand away from the numbers. The header is packed above a separate body
-frame instead.
-
-**The brackets are drawn by hand,** on a canvas, which is the one thing here that
-does not follow the theme by itself: a canvas holds a colour, not a pair of
-them. `theme.on_change` exists for exactly that, and `Bracket` unsubscribes when
-it is destroyed.
-
-**`f_2` written `f₂` is one character shorter,** which is invisible until it
-lands in a block `ui/presentation.py` has already lined up by counting
-characters. The window puts the missing space back after the colon.
-
-## The design
-
-The application's wheel handler sets the page and sidebar canvases to a
-30-pixel vertical scroll unit on every platform. CustomTkinter otherwise uses
-one pixel on Windows, making the same application wheel step almost invisible.
-`tests/test_scroll.py` recreates that default and checks Windows delta events,
-Linux button events and both directions. Graph-local wheel zoom still consumes
-its own events before the application handler.
-
-It follows a mockup made in Figma, close enough that the two are recognisably
-the same program: the blue `#0071e3`, the rounded cards, the pill of choices,
-the sidebar.
-
-What was not taken from it is the mathematics. That mockup carries its own
-implementation in TypeScript, with its own fraction type, and it is not as
-careful as the engine here — `1/0` comes back as `1` from it rather than as an
-error, and `2x` as `0`. The window calls `core/`, which is exact all the way
-down and has `check.py` behind it.
-
-What was dropped from it is the menu of programs that do not exist, and the
-second elimination row: the mockup routes to a Gauss-Jordan page it never lists,
-which is the same duplication seen from the other side.
+- `Application._wire_wheel` aplica unidades verticales de 30 píxeles al
+  menú y a la página. Los valores predeterminados de CustomTkinter
+  difieren entre Windows y Linux. Los campos con scroll propio lo
+  conservan y la gráfica consume la rueda para hacer zoom.
+- El divisor de dos píxeles evita el problema de `CTkFrame` cuando su
+  ancho de un píxel impide que se dibuje.
+- Una barra con `rowspan` separa A y b. Un marco por fila forzaría la
+  altura predeterminada de `CTkFrame`.
+- El encabezado de una matriz va fuera de la cuadrícula. Así un título
+  largo conserva el ancho de las celdas.
+- El Canvas usa un color efectivo. `theme.on_change` avisa cuándo volver
+  a dibujar lo que depende del tema.

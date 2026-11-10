@@ -1,250 +1,119 @@
 # linalg-calculator
 
-Calculadora de Álgebra Lineal — Universidad Americana (UAM), Álgebra Lineal
-(MTM0120).
+Calculadora de Álgebra Lineal y Métodos Numéricos del curso MTM0120 de la
+Universidad Americana (UAM). La entrega del curso es este repositorio.
 
-A linear algebra engine written in plain Python. It grows one assignment at a
-time, and the files handed in to the course are generated from it rather than
-written by hand.
+La aplicación de escritorio abre en **Inicio**, con accesos a las once
+herramientas agrupadas por tema. Puedes volver al inicio desde el menú lateral
+y continuar con los datos que escribiste en cada herramienta.
 
-The desktop app opens on **Inicio**, with a grouped catalogue and shortcuts to
-all eleven tools. Return through the sidebar without losing work in each module.
+## Ejecutar la calculadora
 
-## Layout
-
-```
-linalg-calculator/
-├── core/                 # the engine: mathematics, not a word of interface
-│   ├── scalar.py         # the exact number (Fraction) and how it is written
-│   ├── matrix.py         # the matrix and the operations that need no explaining
-│   ├── steps.py          # the step by step (Step, StepLog)
-│   ├── worksheet.py      # matrix + record: the blackboard operations happen on
-│   ├── elimination.py    # row elimination, to the echelon form and the reduced one
-│   ├── systems.py        # classification and solution of a linear system
-│   ├── verification.py   # putting a solution back into the original system
-│   ├── equations.py      # `2x + 3y = 5` read into a row of the augmented matrix
-│   ├── notation.py       # shared implicit products: 2x, (1/2)x and 2(x+1)
-│   ├── echelon.py        # the five properties, the leading entries, the pivots
-│   ├── parametric.py     # the general solution, when there are infinitely many
-│   ├── bases.py          # whole numbers in any base from 2 to 36, working kept
-│   ├── roman.py          # Roman numerals, read, written and operated on
-│   ├── lu.py             # PA = LU, and Ax = b by two substitutions
-│   ├── determinant.py    # det A by cofactors and by LU, and what each costs
-│   ├── real_function.py  # real expression reader and plot samples
-│   ├── root_bracket.py   # shared interval validation, stopping and trace
-│   ├── bisection.py      # root estimate by midpoint
-│   ├── regula_falsi.py   # root estimate by secant intersection
-│   └── vectors.py        # vectors of Rⁿ, and whether b combines the others
-├── ui/                   # everything a person reads, in Spanish
-│   ├── presentation.py   # engine objects → the words that go on screen
-│   └── prompts.py        # reading a system from the keyboard, two ways in
-├── gui/                  # the window: a third front end over the same engine
-│   ├── theme.py          # colours, fonts, the light/dark switch
-│   ├── widgets.py        # the shapes CustomTkinter does not have
-│   ├── entry.py          # the two ways a matrix is handed over, in one card
-│   ├── root_plot.py      # shared function plot, zoom and pan
-│   ├── app.py            # the window, the sidebar, which page is open
-│   └── pages/            # grouped in the sidebar: matrices (operations, inverse,
-│                         # elimination, echelon forms), vectors, numeral systems
-│                         # (conversions, Roman numerals), numerical methods
-├── deliverables/         # the scripts handed in to the course
-│   ├── program1.py       # Programa 1: systems by row elimination
-│   └── out/              # generated single files, not versioned
-├── build.py              # assembles the single file that gets handed in
-├── requirements-gui.txt  # CustomTkinter, needed by the window and nothing else
-└── docs/
-    ├── usage.md          # how to run everything, and what it asks for
-    ├── how-it-works.md   # one system solved end to end, module by module
-    ├── gui.md            # the window: what is on it and how it is put together
-    ├── reference.md      # what each module exposes, and how they connect
-    └── design.md         # why the pieces are split where they are
-```
+Desde la raíz del repositorio, con Python 3.12 o posterior:
 
 ```bash
-python -m deliverables.program1     # run Programa 1
-python -m gui                       # the same engine in a window
-python build.py                     # write every file in deliverables/out/
-python check.py                     # smoke test the engine
-python -m unittest discover -s tests -v  # bisection regression and boundary cases
+python -m pip install -r requirements-gui.txt
+python -m gui
 ```
 
-This section grows as modules land. Nothing is listed here before it exists.
+Si tu instalación de Python no incluye Tkinter, instala también el paquete de
+Tk de tu distribución. La [guía de uso](docs/usage.md) explica la entrada de
+datos y cómo ejecutar las pruebas.
 
-**Start with [docs/usage.md](docs/usage.md)** to run it, and
-[docs/how-it-works.md](docs/how-it-works.md) to understand what it does.
-[docs/gui.md](docs/gui.md) covers the window.
-[docs/reference.md](docs/reference.md) is what to open before changing
-something: it lists what every module exposes without you having to read it.
-[docs/inverse.md](docs/inverse.md) covers the inverse method, applications,
-theorems and course exercises.
-[docs/bisection.md](docs/bisection.md) covers numerical roots, the course
-examples, the graph restrictions and the points to explain in the oral defence.
+## Herramientas
 
-## Rules
+| Área | Herramientas |
+| --- | --- |
+| Sistemas lineales | Eliminación Gaussiana y Gauss–Jordan. Formas escalonadas y pivotes. |
+| Matrices | Suma, resta, multiplicación, producto por escalar y transpuesta. Inversa, factorización LU y determinante. |
+| Vectores | Suma, resta, producto por escalar y combinaciones lineales. |
+| Sistemas numéricos | Conversiones entre bases de 2 a 36 y números romanos. Aritmética romana. |
+| Métodos numéricos | Bisección y Regula Falsi, con gráfica, paso a paso y tabla de iteraciones. |
 
-**Identifiers are English; comments are Spanish.** Every identifier in this
-repository is in English — `to_rref`, `SingularMatrix`. Every comment and docstring is in
-Spanish, without accents, because the file handed in carries them as they are to
-a class taught in Spanish, and so is the text of the exceptions the engine
-raises. The documents under `docs/` are in English.
+## Organización del repositorio
 
-**`core/` does not talk.** No `print`, no message addressed to a person. It
-returns data and raises exceptions, worded in Spanish. The
-wording a user reads is decided in the interface layer, which is why every front
-end says exactly the same thing.
-
-**Standard library only in the engine.** No NumPy, no SciPy, no linear algebra helpers from
-`math`: the assignments require the algorithms to be built from lists,
-conditionals, loops and functions. `fractions`, `dataclasses`, `enum` and
-`tkinter` are standard and are allowed. `gui/` is the one exception: it imports
-CustomTkinter, which draws and does nothing else. No mathematics anywhere in
-this repository depends on it — the engine, the terminal program and the
-terminal deliverable require no external packages — and the window's deliverable says
-so at the top of its own first page, next to the two commands that install it.
-The bisection module uses elementary `math` functions to evaluate f(x), and
-implements the root-finding loop itself. Its graph uses Tkinter Canvas, with
-zoom and pan and no cursor-value queries.
-
-**Deliverables are generated, not written.** Each file handed in is a single
-self-contained script produced out of the modules in this repository. The
-repository is the source of truth; the handed-in file is a build artefact, and
-`build.py` copies the comments across as they are, adding a Spanish heading in
-front of each block.
-
-## The engine so far
-
-`Matrix` is a value: a rectangle of exact rationals, indexed from 1 through
-`elem`, `row` and the row operations, the way they are written on paper. Its
-elementary row operations return a new matrix and say nothing about themselves.
-
-`StepLog` is a record: the matrix you started from and one `Step` per operation.
-`snapshot(k)` returns the k-th matrix of the chain, and that single method is the
-whole 'previous / next' of any interface.
-
-`Worksheet` is the two together — the blackboard, where an operation both
-happens and gets written down:
-
-```python
-sheet = Worksheet(a)
-sheet.swap(1, 2)
-sheet.scale(1, Fraction(1, 3))
-sheet.add_scaled(2, 1, -4)
-sheet.matrix        # where the work stands now
-sheet.log           # every operation that got it there
+```text
+core/
+  scalar.py          Números racionales exactos y su formato
+  matrix.py          Matrices y operaciones elementales
+  steps.py           Registro de operaciones por filas
+  worksheet.py       Matriz de trabajo con registro de sus operaciones
+  elimination.py     Reducción a forma escalonada y escalonada reducida
+  systems.py         Clasificación y solución de sistemas lineales
+  verification.py    Comprobación de las soluciones
+  equations.py       Lectura de ecuaciones lineales
+  notation.py        Multiplicación implícita compartida
+  echelon.py         Propiedades de las formas escalonadas y pivotes
+  parametric.py      Solución general de sistemas indeterminados
+  inverse.py         Inversa y sistemas resueltos por inversa
+  lu.py              Factorización PA = LU y sustituciones
+  determinant.py     Determinantes por cofactores y por LU
+  vectors.py         Operaciones con vectores de Rⁿ
+  bases.py           Conversiones entre bases
+  roman.py           Lectura, escritura y aritmética romana
+  real_function.py   Lectura y muestreo de funciones reales
+  root_bracket.py    Intervalo, criterios de parada y registro compartido
+  bisection.py       Estimación de la raíz por punto medio
+  regula_falsi.py    Estimación de la raíz por el cruce de la secante
+ui/
+  presentation.py    Formato de ecuaciones, sustituciones y resultados
+gui/
+  app.py             Inicio, navegación y selección de herramienta
+  theme.py           Colores, tipografías y tema claro u oscuro
+  widgets.py         Componentes compartidos
+  entry.py           Entrada por coeficientes o ecuaciones
+  root_plot.py       Gráfica de funciones, zoom y arrastre
+  pages/            Pantallas de cada herramienta
+tests/              Pruebas del motor y de la interfaz
+docs/               Guías de uso, diseño y referencia
+check.py            Comprobaciones del motor
 ```
 
-`to_ref` runs on one of those, so a reduction and its step by step are two
-readings of the same walk. It returns an `Elimination`, which carries the
-result, the log and the position of every pivot — and from the pivots come the
-rank, the pivot columns and the free ones.
+## Cómo calcula
 
-`solve` reads an augmented matrix `[A | b]` and classifies the system by
-comparing ranks: `rank(A) < rank(A|b)` has no solution, `rank(A) = rank(A|b) <
-unknowns` has infinitely many, and equality with the number of unknowns has
-exactly one. In that last case it clears the unknowns by back substitution, from
-the last to the first, and keeps every one of those steps: seeing the echelon
-matrix and then the clearing is the point of the method.
+Las matrices y los vectores usan `Fraction` para conservar el valor exacto de
+cada entrada. Una matriz ofrece operaciones por filas y `Worksheet` registra
+cada operación en un `StepLog`. El paso a paso consulta esos estados para
+avanzar y retroceder.
 
-`analyse` asks the opposite question to the elimination: the matrix as it
-stands, is it in echelon form? It checks the five numbered properties of the
-definition one at a time and reports the entry that breaks the ones that fail,
-because a bare yes or no teaches nobody the definition. `pivot_positions` then
-reduces, since a pivot position is defined as a place holding a leading entry in
-the *reduced* form, not in the matrix as it was handed over.
+La eliminación lleva los pivotes a uno y crea ceros debajo. Gauss–Jordan añade
+una pasada hacia arriba. La clasificación compara `rango(A)`, `rango(A|b)`
+y el número de incógnitas. Una solución única se comprueba sustituyéndola en el
+sistema original. Una solución indeterminada muestra las variables libres y
+su familia de soluciones.
 
-`general_solution` writes out the family when there are infinitely many: every
-basic variable — the one holding a pivot — in terms of the free ones. It reads
-the reduced form, where a pivot is 1 and alone in its column, so the row is
-already the answer.
+La inversa reduce `[A | I]` y comprueba ambos productos con A. LU conserva la
+permutación de filas en P y permite resolver `Ly = Pb` y `Ux = y`. El
+determinante se calcula por cofactores o a partir de la diagonal de U y el signo
+de la permutación. Una combinación lineal de vectores se convierte en un
+sistema y reutiliza el mismo solucionador.
 
-`to_base` and `from_base` move a whole number between base 10 and any base from
-2 to 36 without borrowing Python's own conversions: towards a base by repeated
-division, keeping every `n = b·q + r`, and back by the linear combination of
-powers the numeral stands for, keeping every term. A negative number keeps its
-sign apart from its digits, so `-43` is `-101011` in base 2 and `-2B` in base 16.
+Para búsqueda de raíces se usa `float` y las funciones elementales de `math`.
+Bisección y Regula Falsi comparten el lector de funciones, el intervalo con
+cambio de signo y el registro. En ambos casos la gráfica aparece antes de
+introducir el intervalo de resolución. La tabla y el paso a paso se construyen
+con las iteraciones calculadas.
 
-`core/roman.py` reads and writes Roman numerals — `XIV` is X + IV, which is
-14 — and does the three operations the course asks for on them. Sums and
-differences work on the values and write the answer back as a numeral;
-a multiplication also keeps the repeated addition it stands for,
-`X × V = X + X + X + X + X`, which the window shows on request. Zero, negatives and anything above
-MMMCMXCIX come back as answers without a numeral, because the Romans wrote
-none.
+El motor usa la biblioteca estándar de Python. CustomTkinter se usa para la
+interfaz. Los identificadores del código siguen la convención en inglés y
+los comentarios, mensajes y guías se escriben en español.
 
-`add`, `subtract` and `scale` work on vectors of Rⁿ component by component, and
-nothing fixes n in advance: it is however many components were typed.
-`combine` answers whether b is a linear combination of v₁, …, vₖ by building
-`[ v₁ … vₖ | b ]` and solving it with the same `solve` as any system, so one
-solution is one way of combining them, infinitely many are infinitely many
-ways, and none means b is not a combination.
+## Verificar cambios
 
-`factorize` writes a square matrix as `PA = LU`: row replacements reduce it to U,
-each multiplier goes into L, and P remembers the row swaps. `solve_with_lu` uses
-that to solve `Ax = b` with two direct substitutions, `Ly = Pb` forwards and
-`Ux = y` backwards. LU is a factorisation and the determinant is only something
-it makes cheap to read, so the factorisation lives in `core/lu.py` and the
-determinant imports it, not the other way round.
+```bash
+python check.py
+python -m unittest discover -s tests -v
+```
 
-`by_cofactors` and `by_lu` are the two roads to a determinant: the expansion
-along the line with the most zeros, keeping every minor and its sign, and the
-product of the diagonal of U from `factorize`, with a sign for each swap. `costs`
-prices both before either runs — about n! multiplications against n³/3 — which
-is what lets the window say which one to pick.
+`check.py` comprueba el motor. Las pruebas de la ventana requieren
+CustomTkinter y una pantalla Tk.
 
-`verify` is the independent check: hand it A, b and the values found and it
-evaluates every equation of the original system, comparing both sides exactly.
-It trusts nothing the elimination did, which is the only way the check is worth
-anything.
+## Documentación
 
-`invert` applies Gauss–Jordan to `[A | Iₙ]`, reads the right block only when the
-left becomes `Iₙ`, and checks both products with the original A. The inverse
-page also solves `Ax = b` as `x = A⁻¹b` when A is invertible. Its matrix and equation inputs have
-no fixed order limit; [docs/inverse.md](docs/inverse.md) gives the conditional
-theorems and exercises.
-
-`core/bisection.py` solves `f(x) = 0` by repeatedly halving a sign-changing
-interval, keeping every midpoint, evaluation and error measure. It uses
-floating-point arithmetic rather than the exact matrix scalars, and reports
-which stopping rule was reached. The page **Método de Bisección**, under
-**Métodos Numéricos**, shows the answer, original-function check, graph,
-step reader and iteration table. `python build.py` also generates
-`deliverables/out/Programa Biseccion_Grupo5.py` for this assignment.
-
-`core/regula_falsi.py` uses the secant intersection as the estimate. Both
-methods call the interval solver in `core/root_bracket.py` and use the shared
-page in `gui/pages/root_bracket.py`. **Regula Falsi** has its own entry under
-**Métodos Numéricos** and its own generated
-`deliverables/out/Programa Regula Falsi_Grupo5.py`. See [the method notes](docs/bisection.md#regula-falsi).
-
-## The wording
-
-`ui/presentation.py` turns those objects into the text a person reads, and it
-holds every sentence more than one front end says. It builds strings and returns
-them — no `print`, no widgets — so whatever displays them decides where they go
-while the words stay the same everywhere.
-
-It also owns the two pieces of formatting that need to know what a matrix
-*means*: the bar between A and b in `[ 1  -2   1 | 0 ]`, which `Matrix.__str__`
-cannot draw because only a system knows its last column is different, and the
-names of the unknowns — whatever the person called them when they wrote the
-system out, and otherwise `x`, `y`, `z`, `w`, then `x5` and up.
-
-`gui/` is the third caller of the same engine, and it proves the point: a window
-built on `core/` and `ui/presentation.py` needed no change to either. It is a
-CustomTkinter application with a tab per piece of the course: vectors, matrix
-arithmetic, the elimination — the system typed as coefficients or as
-equations, shown as the matrix equation `A x = b`, and Gauss or Gauss-Jordan
-chosen inside it, since they are two settings of one method — echelon forms,
-and numeral systems. It is handed in the same way as everything else, as one generated file,
-which is the only deliverable here that asks for anything to be installed. See
-[docs/gui.md](docs/gui.md).
-
-`ui/prompts.py` is the other half: the only module in the project that calls
-`input`. It offers two ways in. Either the equations go in as they are written,
-`2x + 3y - z = 5`, one per line until a blank one, and `core/equations.py` reads
-the coefficients out of them; or the size comes first and then every coefficient
-by name — `a_11`, `a_12`, `b_1`. A wrong answer just asks again, so nothing a
-person types can end the program. It hands back the augmented matrix and the
-names of the unknowns, and decides nothing else. End of input (Ctrl+D) is left
-to travel up to whoever started the program, which is the only place that knows
-whether stopping is an error.
+- [Guía de uso](docs/usage.md)
+- [Un sistema resuelto de principio a fin](docs/how-it-works.md)
+- [Interfaz de escritorio](docs/gui.md)
+- [Bisección y Regula Falsi](docs/bisection.md)
+- [Matriz inversa y ejercicios](docs/inverse.md)
+- [Decisiones de diseño](docs/design.md)
+- [Referencia del código](docs/reference.md)

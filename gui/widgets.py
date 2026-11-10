@@ -27,7 +27,7 @@ from ui.presentation import pretty_label
 from . import theme
 from .theme import Color
 
-# Diez filas y diez columnas: el mismo tope que pide la version de terminal.
+# Limite predeterminado de las cuadrículas de entrada.
 SIZE_LIMIT = 10
 
 # Cuanto mueve una muesca de la rueda, en unidades de 30 pixeles: unas tres

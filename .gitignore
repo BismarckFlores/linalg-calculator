@@ -14,5 +14,5 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Generated deliverables: rebuilt by build.py, never edited by hand
+# Local archive of earlier course submissions
 deliverables/out/

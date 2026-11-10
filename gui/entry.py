@@ -7,10 +7,7 @@ que lo pide vive aqui en vez de repetirse. Lo que devuelve es un Typed: la
 matriz, los nombres de las incognitas cuando algo las nombro, y cuantas de sus
 columnas son coeficientes y no terminos independientes.
 
-El castellano de lo que no se puede leer vive aqui por la misma razon. Son las
-mismas palabras que usa ui/prompts.py en la terminal, mas el numero de la linea,
-que la terminal no necesita porque acaba de pedir esa ecuacion y la ventana las
-tiene todas en pantalla a la vez.
+Los avisos de lectura indican la linea de la ecuacion que requiere correccion.
 """
 
 from collections.abc import Callable, Sequence
@@ -277,9 +274,8 @@ class SystemInput(ctk.CTkFrame):
         Todas las lineas no vacias leidas, o una frase en castellano sobre la primera
         que no se pudo leer.
 
-        equations.py lanza una excepcion por cada tipo de error y no le dice nada a
-        nadie; la frase se decide aqui, igual que prompts.py la decide para la
-        terminal.
+        equations.py distingue los errores de lectura. Este metodo redacta el
+        aviso y le agrega el numero de linea.
         """
         lines = [line.strip() for line in self._lines.get("1.0", "end").splitlines()]
         lines = [line for line in lines if line]

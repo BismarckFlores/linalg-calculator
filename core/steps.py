@@ -3,10 +3,8 @@ El paso a paso: cada operacion elemental de fila, con la matriz de antes y la de
 despues.
 
 Un StepLog es una cadena de matrices equivalentes por filas. snapshot(k) da el
-eslabon k-esimo, y snapshot(0) es la matriz de la que se partio; ese unico
-metodo es todo el 'anterior / siguiente' de cualquier interfaz: la terminal lo
-recorre con Enter, la ventana con dos botones, y ninguna necesita recalcular
-nada.
+eslabon k-esimo, y snapshot(0) es la matriz de la que se partio. Los botones
+Anterior y Siguiente consultan esos estados guardados.
 
 Las etiquetas van en la notacion que usa el curso: f_2 -> f_2 + 3*f_1.
 """

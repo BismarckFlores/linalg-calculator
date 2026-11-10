@@ -11,10 +11,7 @@ ocupa una entrada principal una vez que la matriz esta en forma escalonada
 reducida, asi que responder donde estan los pivotes es reducir, y una pagina que
 redujera sin ensenar el trabajo estaria pidiendo que se la creyera.
 
-El castellano de las cinco propiedades vive aqui y no en ui/presentation.py
-porque ninguna otra interfaz lo dice: el programa de terminal responde a otra
-tarea. El dia que alguna lo diga, las palabras se mudan alli, que es justo lo
-que le paso a la clasificacion.
+Esta pagina explica las cinco propiedades de la forma escalonada.
 """
 
 from typing import Any

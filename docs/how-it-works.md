@@ -1,49 +1,41 @@
-# How it works
+# Cómo funciona
 
-One system solved from beginning to end, with the module doing the work named
-at each stage. Everything below is real output, not a sketch of it.
+Este ejemplo recorre un sistema desde la entrada hasta la verificación.
+Puedes seguirlo en **Eliminación Gaussiana → Ecuaciones**.
 
-The system:
-
-```
+```text
  x - 2y +  z =  0
      2y - 8z =  8
 -4x + 5y + 9z = -9
 ```
 
-## 1. It becomes a matrix
+## 1. Convertir el sistema en una matriz
 
-Writing the coefficients down and dropping the names of the unknowns loses
-nothing: the position of a number already says which variable it belongs to.
-The constants go in a last column, separated by a bar.
+Cada columna representa una incógnita. Los términos independientes se
+colocan al final, después de la barra.
 
-```
+```text
   [  1  -2   1 |  0 ]
   [  0   2  -8 |  8 ]
   [ -4   5   9 | -9 ]
 ```
 
-That is `[A | b]`, the augmented matrix, and it is a single `Matrix` — the bar
-is drawn by `ui/presentation.py`, which knows the last column means something
-different. `core/matrix.py` just holds a rectangle of numbers.
+La matriz aumentada `[A | b]` es un objeto `Matrix`. La interfaz dibuja la
+barra al conocer el número de incógnitas. Cada entrada es un `Fraction`,
+así que el valor de un coeficiente como `1/3` se conserva exactamente.
 
-Every entry is a `Fraction`, from `core/scalar.py`. Nothing is ever rounded, so
-a coefficient of `1/3` stays `1/3` and the answer can be checked against the
-same exercise done by hand.
+## 2. Reducir por filas
 
-## 2. Rows are combined until a staircase appears
+Las siguientes operaciones conservan el conjunto de soluciones.
 
-Three operations do not change which values solve the system:
+- Intercambiar dos filas, `f_i <-> f_j`.
+- Multiplicar una fila por un número distinto de cero, `f_i -> k*f_i`.
+- Sumar un múltiplo de una fila a otra, `f_i -> f_i + k*f_j`.
 
-- swapping two equations, `f_i <-> f_j`
-- multiplying an equation by a number that is not zero, `f_i -> k*f_i`
-- adding a multiple of one equation to another, `f_i -> f_i + k*f_j`
+`core/elimination.py` busca un pivote, lo lleva a uno y crea ceros debajo.
+Después pasa a la siguiente columna con pivote.
 
-`core/elimination.py` applies them in a fixed order: find a pivot in the first
-column, scale it to 1, and use it to make zeros below. Then the same in the
-next column, one row further down.
-
-```
+```text
 Paso 1:  f_3 -> f_3 + 4*f_1
   [  1  -2   1 |  0 ]
   [  0   2  -8 |  8 ]
@@ -60,56 +52,42 @@ Paso 3:  f_3 -> f_3 + 3*f_2
   [  0   0   1 | 3 ]
 ```
 
-Three operations, three matrices. Nobody had to remember to write them down:
-the elimination runs on a `Worksheet` (`core/worksheet.py`), where an operation
-happening and an operation being recorded are the same act. The record is a
-`StepLog` (`core/steps.py`), and `snapshot(k)` gives the matrix after `k`
-operations — which is all a 'previous / next' button ever needs.
+`Worksheet` aplica y registra cada operación. `StepLog.snapshot(k)` devuelve
+la matriz después de `k` pasos. El paso a paso consulta ese estado al
+avanzar o retroceder. La última matriz está en **forma escalonada** y el
+primer coeficiente distinto de cero de cada fila es un pivote.
 
-The last matrix is in **row echelon form**: each row starts with more zeros
-than the one above, and the first non-zero entry of a row — its **pivot** — is
-1.
+## 3. Leer el sistema equivalente
 
-## 3. The staircase is read back as equations
-
-```
+```text
   f_1:  x - 2y + z = 0
   f_2:      y - 4z = 4
   f_3:           z = 3
 ```
 
-Same solutions as the system at the top, but now the last equation has one
-unknown, the one above it has two, and so on. That shape is the whole point of
-the elimination.
+Las soluciones son las mismas que en el sistema inicial. Ahora la última
+ecuación da directamente el valor de `z`.
 
-## 4. Counting pivots classifies the system
+## 4. Clasificar el sistema
 
-Two numbers decide everything, and neither needs the solution:
+`core/systems.py` aplica Rouché–Frobenius. `rango(A|b)` cuenta todos los
+pivotes y `rango(A)` cuenta los de las columnas de incógnitas.
 
-- **rank(A|b)** — how many pivots the elimination found. Here, 3.
-- **rank(A)** — how many of those pivots landed on a variable rather than on
-  the constants column. Here, also 3.
-
-Rouché–Frobenius, in `core/systems.py`:
-
-| Condition | Kind |
+| Condición | Clasificación |
 | --- | --- |
-| `rank(A) < rank(A\|b)` | Sistema Inconsistente: no solution |
-| `rank(A) = rank(A\|b) < unknowns` | Sistema Consistente Indeterminado: infinitely many |
-| `rank(A) = rank(A\|b) = unknowns` | Sistema Consistente Determinado: exactly one |
+| `rango(A) < rango(A\|b)` | Sistema inconsistente, sin solución. |
+| `rango(A) = rango(A\|b) < incógnitas` | Sistema consistente indeterminado, infinitas soluciones. |
+| `rango(A) = rango(A\|b) = incógnitas` | Sistema consistente determinado, solución única. |
 
-A pivot landing on the constants column *is* a row reading `0 = k` with `k`
-not zero — an equation nothing can satisfy. That is why the inconsistent case
-falls out of counting rather than needing a search of its own.
+Un pivote en la última columna produce una ecuación `0 = k` con `k ≠ 0`.
+En el ejemplo ambos rangos valen 3, igual que el número de incógnitas.
 
-Here `3 = 3 = 3`: one solution.
+## 5. Despejar de abajo hacia arriba
 
-## 5. The unknowns are cleared from the bottom up
+`core/systems.py` guarda cada sustitución. Se empieza por la última
+incógnita y se usan los valores encontrados al subir de fila.
 
-The last equation gives a value straight away. Substituting it into the one
-above gives the next, and so on. `core/systems.py` keeps every line of it:
-
-```
+```text
   f_3:  z = 3
 
   f_2:  y - 4z = 4
@@ -123,17 +101,15 @@ above gives the next, and so on. `core/systems.py` keeps every line of it:
         x = 29
 ```
 
-Four lines per unknown: the equation, the values put in, the constant cleared,
-the result — three when clearing the constant already gives the result, because
-nobody writes the same line twice.
+El despeje muestra la ecuación, la sustitución, el traslado de la constante
+y el resultado. Si dos líneas coinciden, aparece una sola.
 
-## 6. The answer is put back where it came from
+## 6. Comprobar con el sistema original
 
-Solving is one thing; showing the answer holds is another. `core/verification.py`
-takes the values and evaluates every equation of the **original** system —
-never the echelon one:
+`core/verification.py` sustituye los valores en A y b originales. La
+comparación es exacta gracias a que las operaciones usaron fracciones.
 
-```
+```text
   Ecuación 1:  1(29) - 2(16) + 1(3) = 0
                0 = 0   correcto
   Ecuación 2:  0(29) + 2(16) - 8(3) = 8
@@ -144,71 +120,34 @@ never the echelon one:
 Todas las ecuaciones se cumplen: la solución es correcta.
 ```
 
-Checking against the reduced matrix would be checking the elimination against
-itself, and would agree with any bug that was consistent. Checking against what
-was typed in does not. The comparison is exact, with no tolerance, which is
-affordable only because nothing was ever rounded.
+## Los otros dos casos
 
-## The other two endings
+**Infinitas soluciones.** Las ecuaciones `x + y + z = 3` y
+`2x + 2y + 2z = 6` expresan la misma restricción. La segunda fila se reduce
+a ceros. Ambos rangos son 1 y hay tres incógnitas. Las columnas de `y` y `z`
+son libres. Puedes elegirlas y obtener `x = 3 - y - z`.
 
-**Infinitely many.** `x + y + z = 3` together with `2x + 2y + 2z = 6` is the
-same equation twice. The elimination flattens the second row to zeros:
+**Sin solución.** Las ecuaciones `x + y = 5` y `x + y = 8` se contradicen.
+La reducción normaliza la última fila a `0 = 1`. Se obtiene `rango(A) = 1`
+y `rango(A|b) = 2`. La app indica la fila que causa la contradicción.
 
-```
-rango(A) = 1
-rango(A|b) = 1
-número de incógnitas = 3
+## Dónde vive cada parte
 
-Sistema Consistente Indeterminado: Presenta Infinitas Soluciones.
-
-El sistema tiene 3 incógnitas y 1 pivote, así que quedan 2 variables libres: y, z
-```
-
-One pivot for three unknowns. The two without a pivot are free: fix them at any
-values and the first equation gives the third. There is nothing to verify,
-because there is no single answer to put back.
-
-**None.** `x + y = 5` together with `x + y = 8` cannot both hold:
-
-```
-  f_1:  x + y = 5
-  f_2:      0 = 1
-
-rango(A) = 1
-rango(A|b) = 2
-
-Sistema Inconsistente: Sin Solución.
-
-La fila f_2 quedó como  0 = 1, que ningún valor de las
-incógnitas puede cumplir.
-```
-
-The second rank is larger than the first: a pivot fell on the constants column.
-The program names the row rather than saying one exists somewhere.
-
-## Where each piece lives
-
-| Stage | Module |
+| Responsabilidad | Módulo |
 | --- | --- |
-| Exact numbers | `core/scalar.py` |
-| The matrix and its row operations | `core/matrix.py` |
-| Recording the steps | `core/steps.py`, `core/worksheet.py` |
-| The elimination | `core/elimination.py` |
-| Classifying and clearing | `core/systems.py` |
-| Putting the answer back | `core/verification.py` |
-| Reading a written equation | `core/equations.py` |
-| The form of a matrix, and its pivots | `core/echelon.py` |
-| The general solution, when there are many | `core/parametric.py` |
-| Whole numbers between bases | `core/bases.py` |
-| Vectors, and linear combinations | `core/vectors.py` |
-| Every word on screen | `ui/presentation.py` |
-| Reading the keyboard | `ui/prompts.py` |
-| Ordering the seven sections | `deliverables/program1.py` |
-| The same thing in a window | `gui/` |
+| Números exactos | `core/scalar.py` |
+| Matriz y operaciones por filas | `core/matrix.py` |
+| Registro de operaciones | `core/steps.py` y `core/worksheet.py` |
+| Eliminación | `core/elimination.py` |
+| Clasificación y despeje | `core/systems.py` |
+| Comprobación | `core/verification.py` |
+| Lectura de ecuaciones | `core/equations.py` |
+| Forma escalonada y pivotes | `core/echelon.py` |
+| Familia de soluciones | `core/parametric.py` |
+| Conversión entre bases | `core/bases.py` |
+| Vectores y combinaciones lineales | `core/vectors.py` |
+| Formato de los resultados | `ui/presentation.py` |
+| Controles y tarjetas | `gui/` |
 
-Not one of the `core/` modules prints anything or contains a word of Spanish.
-They return data; the interface decides how to say it. That is why the same
-engine drives a window without a line of it changing, and why the wording of the
-classification exists in exactly one place. `docs/gui.md` covers the window.
-
-`docs/design.md` covers why the pieces are split where they are.
+El motor devuelve datos y la interfaz se encarga de mostrarlos. Consulta la
+[guía de la ventana](gui.md) y las [decisiones de diseño](design.md).

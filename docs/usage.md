@@ -1,287 +1,86 @@
-# Using it
+# Guía de uso
 
-Everything runs from the repository root, with no installation and no
-dependencies. Python 3.12 or newer.
-
-```bash
-python -m deliverables.program1     # solve systems, interactively
-python check.py                     # confirm the engine still works
-python build.py                     # write the file that gets handed in
-```
-
-The window is the one thing that needs installing, because it is the one thing
-that is not standard library. [docs/gui.md](gui.md) covers it:
+Abre la calculadora desde la raíz del repositorio con Python 3.12 o posterior.
 
 ```bash
-pip install -r requirements-gui.txt
+python -m pip install -r requirements-gui.txt
 python -m gui
 ```
 
-## Solving a system
+**Inicio** presenta las herramientas por tema. Abre una tarjeta o elige una
+herramienta en el menú lateral.
 
-`python -m deliverables.program1` offers two ways to hand it a system, and then
-walks the whole solution in seven sections.
+## Resolver un sistema lineal
 
-```
-  1) Escribir las ecuaciones tal como se leen
-  2) Dar los coeficientes uno por uno
-```
+En **Sistemas Lineales → Eliminación Gaussiana**, elige Gauss o Gauss–Jordan y
+selecciona **Coeficientes** o **Ecuaciones**.
 
-### Typing the equations
+### Ecuaciones
 
-The first way takes the system as it is written on paper, one equation per
-line, ending on a blank line:
+Escribe una ecuación por línea. Puedes probar este sistema:
 
-```
-  Ecuación 1: x - 2y + z = 0
-  Ecuación 2: 2y - 8z = 8
-  Ecuación 3: -4x + 5y + 9z = -9
-  Ecuación 4:
-
-Incógnitas encontradas (3): x, y, z
+```text
+x - 2y + z = 0
+2y - 8z = 8
+-4x + 5y + 9z = -9
 ```
 
-Nobody says how many unknowns there are: they are whatever the equations turn
-out to mention, sorted into column order, and read back so a typo shows up as
-a wrong matrix rather than as a wrong answer three sections later. The names
-are the ones that were typed, so a system written in `a` and `b` is solved and
-printed in `a` and `b`.
+La app deduce los nombres de las incógnitas, los ordena por columna y usa esos
+mismos nombres en el resultado. Si hay un error de lectura, indica la línea
+que debes corregir.
 
-What the parser accepts:
-
-| Written | Read as |
+| Escritura | Interpretación |
 | --- | --- |
-| `2x + 3y - z = 5` | the plain case, spaces optional |
-| `x + y = 2` | a missing coefficient is 1 |
-| `2*x + 3*y = 1` | `*` is allowed between number and unknown |
-| `2.5x`, `2,5x`, `1/3x`, `(1/3)x` | integers, decimals and fractions |
-| `2x = 3y + 1` | unknowns on the right move left |
-| `2x + 3 = 5` | constants on the left move right |
-| `x + x = 4` | the same unknown twice adds up |
-| `x1`, `x_2`, `X` | names are letters, digits and `_`, and case is ignored |
+| `2x + 3y - z = 5` | Los espacios son opcionales. |
+| `x + y = 2` | Un coeficiente omitido vale 1. |
+| `2*x + 3*y = 1` | Puedes escribir el producto explícitamente. |
+| `2.5x`, `2,5x`, `1/3x`, `(1/3)x` | Se admiten decimales y fracciones. |
+| `2x = 3y + 1` | Las incógnitas pasan a la izquierda. |
+| `2x + 3 = 5` | Las constantes pasan a la derecha. |
+| `x + x = 4` | Se suman los términos de una misma incógnita. |
+| `x1`, `x_2`, `X` | Se admiten letras, dígitos y `_`. Las mayúsculas se tratan como minúsculas. |
 
-`1/3x` is read as `(1/3)x`, never as `1/(3x)`.
-Powers such as `x^2` and products of unknowns such as `x*y` are rejected in
-linear-system input. Bisection accepts those expressions using its function
-reader, including implicit products such as `5x^3` and `2(x+1)`.
+`1/3x` se lee como `(1/3)x`. Las potencias y los productos entre incógnitas se
+admiten en el lector de funciones reales de Métodos Numéricos, mientras que
+la entrada de sistemas lineales exige términos lineales.
 
-### Giving the coefficients one at a time
+### Coeficientes
 
-The second way asks for the size first and then every number by name, which is
-the order the assignment sheet asks for:
+Ajusta el número de ecuaciones y de incógnitas con los controles de tamaño.
+Escribe los coeficientes en A y los términos independientes en b. La celda
+`aᵢⱼ` es el coeficiente de la incógnita j en la ecuación i. La celda `bᵢ`
+es el término independiente de esa ecuación. Las incógnitas se nombran
+`x`, `y`, `z`, `w` y luego `x5`, `x6`, etc.
 
-```
-Número de ecuaciones (m): 3
-Número de variables (n): 3
+La aplicación conserva los valores exactos. Por ejemplo, `1/3` sigue siendo
+un tercio durante toda la reducción. Al resolver puedes revisar la matriz
+inicial, las operaciones por filas, el sistema equivalente, los rangos y la
+solución. Para una solución única también puedes ver la comprobación en el
+sistema original. La [guía de la ventana](gui.md) describe las tarjetas y el
+[ejemplo resuelto](how-it-works.md) explica el cálculo.
 
-Ahora los 12 coeficientes, ecuación por ecuación.
-Se admiten enteros, decimales (2.5 o 2,5) y fracciones (1/3).
+## Resolver una ecuación no lineal
 
-Ecuación 1:
-  a_11 = 1
-  a_12 = -2
-  a_13 = 1
-  b_1  = 0
-```
+Abre **Métodos Numéricos → Método de Bisección** o **Regula Falsi**. Escribe
+`f(x)` y pulsa **Graficar función**. También puedes cargar un ejemplo desde
+esa pantalla. Los controles del intervalo se muestran debajo de la gráfica.
 
-`a_ij` is the coefficient in equation `i` of variable `j`; `b_i` is what
-equation `i` equals. Nothing here names the unknowns, so they come out as the
-blackboard default: `x`, `y`, `z`, `w`, then `x5` upwards.
+Introduce `a`, `b`, la tolerancia y el límite de iteraciones. Comprueba que
+la función sea continua en el intervalo y cambie de signo entre sus extremos.
+Selecciona el criterio y pulsa **Calcular raíz**. La app muestra el motivo
+de parada, la sustitución en la función, el paso a paso y la tabla. Consulta
+[los métodos numéricos](bisection.md) para ver la sintaxis y los ejemplos.
 
-Either way the numbers are kept exactly as written — a third stays a third all
-the way to the answer.
-
-### When something cannot be read
-
-Nothing a person types ends the program. The same question comes back, saying
-what it could not make sense of:
-
-```
-  a_11 = uno
-  'uno' no es un número. Prueba con 3, -2.5 o 1/3.
-
-  Ecuación 1: 2x + 3y
-  Falta el '='. Una ecuación se escribe como  2x + 3y = 5
-
-  Ecuación 1: 2x + & = 3
-  No entiendo la parte '&'. Revísala.
-```
-
-The size is capped at 10 equations and 10 unknowns. That is not a limit of the
-method; it is there so a typo of `100` does not turn into ten thousand
-questions in the middle of a demonstration.
-
-### The seven sections
-
-Each one answers a requirement of the assignment, in the same order.
-
-| Section | What it shows |
-| --- | --- |
-| 1. Entrada de datos | The questions above |
-| 2. Matriz aumentada inicial | `[A \| b]` as it was typed |
-| 3. Eliminación por filas | Every elementary operation, with the matrix after it |
-| 4. Sistema equivalente | The echelon matrix read back as equations |
-| 5. Clasificación del sistema | The two ranks, and which of the three kinds it is |
-| 6. Solución | The clearing and the values, or the free variables |
-| 7. Comprobación | The values substituted into the original system |
-
-Between sections the program waits for Enter, so nothing scrolls away before it
-has been read. That only happens when a person is watching: with the input
-redirected — a pipe, a file, a test — it runs straight through.
-
-At the end it offers another system, which is how three cases fit in one
-session and one screenshot each.
-
-### Stopping
-
-`n` at the closing question leaves normally. Ctrl+C or Ctrl+D leaves at any
-point, without a traceback.
-
-## Checking the engine
-
-`python check.py` runs the engine end to end and prints one line per claim:
-
-```
-  ok   A + B: [  6   8 ] / [ 10  12 ]
-  ok   pivots: ((1, 1), (2, 2), (3, 3))
-  ok   unique: SystemKind.UNIQUE
-  ok   3x = 1: (1/3)
-
-Everything above says ok: the engine is wired correctly.
-```
-
-It stops at the first line that is wrong, printing what it got and what it
-expected. Run it after touching anything in `core/`.
-
-## Building the files to hand in
-
-For the bisection assignment, open **Métodos Numéricos > Método de Bisección**
-in `python -m gui`. Enter f(x), a, b and E; select the stopping measure and
-press **Calcular raíz**. The default is interval width; **Polinomio del Excel**
-loads the spreadsheet's residual criterion. The graph supports zoom buttons,
-dragging and reset without cursor-value queries. See [bisection.md](bisection.md)
-for syntax, examples and the oral-defence guide.
-
-Run `python -m unittest discover -s tests -v` for the bisection checks in
-addition to `python check.py`. The build generates
-`deliverables/out/Programa Biseccion_Grupo5.py`, the same application packaged
-as one self-contained source file for this assignment. Run it with:
+## Comprobar y entregar
 
 ```bash
-python "deliverables/out/Programa Biseccion_Grupo5.py"
+python check.py
+python -m unittest discover -s tests -v
 ```
 
-`python build.py` assembles the modules into single self-contained scripts under
-`deliverables/out/`, with a Spanish heading in front of each block. The comments
-are already in Spanish in the modules, so they travel across untouched. One file
-per assignment:
+`check.py` muestra las comprobaciones del motor y se detiene ante un resultado
+distinto del esperado. Las pruebas unitarias incluyen los casos numéricos y,
+con CustomTkinter y una pantalla Tk, la navegación de la app.
 
-```
-Escrito: deliverables/out/Programa 1_Grupo5.py
-Escrito: deliverables/out/Programa 2_Grupo5.py
-Escrito: deliverables/out/Programa Determinante_Grupo5.py
-Escrito: deliverables/out/Programa Matriz Inversa_Grupo5.py
-Escrito: deliverables/out/Programa Numeros Romanos_Grupo5.py
-Escrito: deliverables/out/Programa Vectores y Sistemas Numericos_Grupo5.py
-Escrito: deliverables/out/Programa Biseccion_Grupo5.py
-```
-
-**`Programa 1_Grupo5.py`** is the terminal program: the seven sections of the
-first assignment, standard library from end to end, nothing to install.
-
-**`Programa 2_Grupo5.py`** is the window: the reduced row echelon form
-(Gauss-Jordan) and the pivot columns, which is what the second assignment asks
-for. Its first lines are the instructions for running it: make a `.venv`,
-`pip install customtkinter`, run the file. That is the only thing any
-deliverable here needs installed, and only to draw — the mathematics inside it
-is standard library too.
-
-**`Programa Determinante_Grupo5.py`** is the same window, handed in for the
-determinant assignment. The window carries the `Factorización LU` tab too — LU is
-its own thing and the determinant only reads it — and the preamble says where it
-is. Its preamble points at the `Determinante` tab: the cost
-of each method before choosing one, the cofactor expansion with its minors, the
-`A = LU` reduction with the diagonal of U, and each method checked against the
-other.
-
-**`Programa Matriz Inversa_Grupo5.py`** is the same window, handed in for the
-inverse assignment. Its preamble points at the `Matriz Inversa` tab, under
-`Matrices`: `Calcular A⁻¹` reduces `[ A | I ]` to `[ I | A⁻¹ ]` and checks both
-products, and `Resolver A x = b` solves a system as `x = A⁻¹ b` and puts the
-answer back into the original A. Its report is `Algebra lineal G5 Programa
-Matriz Inversa.docx`, with its PDF.
-
-**`Programa Numeros Romanos_Grupo5.py`** is the same window again, handed in
-for the Roman numerals assignment. Its preamble points at the `Aritmética Romana`
-tab, under `Sistemas Numéricos`: `Suma`, `Resta` and `Multiplicación`, the last with the `Notación de suma`
-switch that writes the product as the repeated addition the assignment asks
-for.
-No Roman numeral library is used; `core/roman.py` reads and writes them.
-
-**`Programa Vectores y Sistemas Numericos_Grupo5.py`** is the same window,
-handed in once for two assignments that have names rather than numbers: the
-vectors one and the numeral systems one. Its preamble maps every requirement of
-both to the tab that answers it:
-
-| Requirement | Where |
-| --- | --- |
-| Vectors of Rⁿ: `u + v`, `u − v`, `k · u` | Operaciones Vectoriales |
-| Is b a linear combination of v₁, …, vₖ? | Operaciones Vectoriales → Combinación lineal |
-| Matrix sum, difference, scalar and product, sizes checked | Operaciones Matriciales |
-| `A x = b` as a matrix equation, using the earlier program | Eliminación Gaussiana |
-| Decimal to binary, octal, hexadecimal, or any base 2–36 | Conversiones → Decimal → otra base |
-| Any of those back to decimal, as a linear combination | Conversiones → Otra base → decimal |
-
-The program is one file, but the reports are two, one per assignment:
-`Algebra lineal G5 Programa Vectores.docx` and `Algebra lineal G5 Programa
-Sistemas Numericos.docx`, each with its PDF, next to it in `deliverables/out/`.
-Both carry the cover of the first evaluation, then that assignment's
-requirements with a screenshot of each.
-
-`GROUP_NUMBER` at the top of `build.py` names the group; each `Program` in
-`PROGRAMS` carries its own number, title, preamble and blocks, and is written as
-`Programa N_GrupoX.py`, the name the submission has to have.
-
-`ENGINE` is the part every deliverable shares, and `WINDOW_BLOCKS` and
-`CONSOLE_BLOCKS` are what each front end adds — which is why the window's file
-does not carry the keyboard prompts, and the terminal's does not carry a widget.
-
-Almost every block is a module of this repository. The one exception is the
-window's `EL TEMA COMO ESPACIO DE NOMBRES`: `gui/` writes `theme.INK` and
-`theme.font(...)`, and once every module lands in one namespace those names are
-in the file itself, so one generated line points `theme` back at it. That is the
-only code in a deliverable that no module of this repository contains.
-
-The output directory is ignored by git. The generated files are build artefacts,
-not source: **never edit them**. A change belongs in the module it came from,
-followed by another build.
-
-### When the build refuses
-
-```
-No se puede construir Programa 2_Grupo5.py:
-dos modulos definen el mismo nombre, y en un solo archivo se pisarian
-
-  SUBTITLES: gui/pages/gauss.py y gui/pages/bases.py
-```
-
-Each module has a namespace of its own; the file handed in has one. Rename one
-of the two. The build checks this before assembling anything.
-
-## Handing it in
-
-1. Set `GROUP_NUMBER` in `build.py`.
-2. `python build.py`.
-3. Hand in the file for the assignment being handed in — `Programa 2_Grupo5.py`
-   for the window. It carries its own instructions at the top, so whoever opens
-   it does not need this file.
-4. Run it and screenshot three cases: one with a unique solution, one with
-   infinitely many, one with none. The systems in `docs/how-it-works.md` produce
-   one of each.
-5. Put the screenshots and the official cover page in the submission document.
-   The cover is a separate document, which is why `build.py` does not know the
-   names of the members or the teacher.
-
-Before handing the window in, run it once from a fresh `.venv` following its own
-instructions. It is the only deliverable that needs anything installed, and the
-instructions being right is part of it working.
+Entrega el repositorio. Para reproducir una actividad, indica en qué
+herramienta del menú se encuentra y con qué datos se puede probar.

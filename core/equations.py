@@ -11,8 +11,7 @@ Las incognitas son las que resulten mencionar las ecuaciones. Nadie las declara
 de antemano, y ese es el sentido: la persona escribe el sistema y el numero de
 columnas sale de ahi.
 
-Como el resto de core, esto no le dice nada a nadie. Lanza errores, y
-ui/prompts.py decide el castellano.
+La lectura lanza errores y gui/entry.py redacta el aviso para la pantalla.
 """
 
 import re

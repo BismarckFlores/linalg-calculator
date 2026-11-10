@@ -1,3 +1,2 @@
-# Only the window needs this. The engine, the terminal program and the file
-# handed in are standard library and nothing else.
+# Desktop interface dependency. The engine uses the standard library.
 customtkinter>=6.0

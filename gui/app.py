@@ -7,7 +7,7 @@ que no hacen nada es un plan, y un plan no va en un menu. Las paginas se
 construyen la primera vez que se abren y se conservan, asi que volver a una
 encuentra todavia la matriz que se habia escrito en ella.
 
-Se ejecuta desde la raiz del repositorio, igual que la version de terminal:
+Se ejecuta desde la raiz del repositorio:
 
     python -m gui
 """

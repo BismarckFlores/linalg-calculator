@@ -1,81 +1,71 @@
-# Matrix inverse
+# Matriz inversa
 
-The inverse page uses the same **Coeficientes / Ecuaciones** input as the
-elimination page. Coefficients are entered in a matrix grid with row and column
-steppers. Equations are entered one per line; in inverse mode, only their
-coefficient matrix A is inverted, and their right-hand sides are ignored.
-Integers, decimals and fractions remain exact. Neither route has a fixed
-dimension limit on this page; memory and calculation time are practical limits.
+**Matrices → Matriz Inversa** usa la entrada **Coeficientes / Ecuaciones**.
+Puedes redimensionar la cuadrícula o escribir una ecuación por línea. En
+**Calcular A⁻¹**, la app usa la matriz de coeficientes A de las ecuaciones.
+Los enteros, decimales y fracciones se conservan exactamente. El tamaño de la
+matriz está limitado en la práctica por el tiempo de cálculo y la memoria.
 
-Results use the shared matrix displays with stacked fractions, cards and
-`StepWalker`, including its previous/next controls and all-steps view. The page
-has no exercise dropdown or theorem panel. The mathematical reference and
-practice examples below support the calculation without adding UI controls.
+El recorrido muestra la reducción con fracciones apiladas y permite ir a
+cualquier paso o verlos todos. La app reduce `[A | Iₙ]` por Gauss–Jordan.
+Si la parte izquierda llega a `Iₙ`, la parte derecha es `A⁻¹`. Comprueba
+`A A⁻¹ = Iₙ` y `A⁻¹ A = Iₙ` con la matriz original. Si A es rectangular,
+tiene una entrada ilegible o tiene menos de n pivotes, explica el motivo.
 
-Gauss–Jordan reduces `[A | Iₙ]`. If the left block becomes `Iₙ`, the right
-block is `A⁻¹`. The result is checked against the original input with both
-`A A⁻¹ = Iₙ` and `A⁻¹ A = Iₙ`. If A is not square, has an unreadable entry, or
-has fewer than n pivots, the page reports the reason in Spanish.
+**Resolver A x = b** acepta A y b en cuadrículas separadas o los obtiene de
+las ecuaciones. Cada modo conserva sus datos al cambiar al otro. Calcula
+`x = A⁻¹b` y comprueba `Ax = b` con la A original. Este método requiere
+que A sea invertible. Para una A singular, usa Eliminación Gaussiana
+para clasificar el sistema.
 
-The **Resolver A x = b** mode accepts A and b in separate grids, or reads both
-from the equations. Each mode preserves its input when switching away and back. Its
-method is `x = A⁻¹b`, followed by an independent check that `Ax = b` using the
-original A. This method applies only when A is invertible; a singular system
-must be classified by elimination instead.
+## Teoremas y condiciones
 
-## Theorems and their conditions
-
-- **Definition.** A square matrix A of order n is invertible if a square C of
-  the same order satisfies both `AC = Iₙ` and `CA = Iₙ`. That C is `A⁻¹`.
-- **Order two.** For `A = [[a,b],[c,d]]`, if `ad − bc ≠ 0`, then
-  `A⁻¹ = (1/(ad − bc)) [[d,−b],[−c,a]]`. If `ad − bc = 0`, A is singular.
-  This formula is specific to 2×2 matrices; the calculator uses Gauss–Jordan
-  for every order.
-- **Solving a system.** If A is invertible and has order n, then for every
-  `b ∈ ℝⁿ`, `Ax = b` has exactly one solution, `x = A⁻¹b`.
-- **Inverse of an inverse.** If A is invertible, then A⁻¹ is invertible and
+- **Definición.** Una matriz cuadrada A de orden n es invertible si existe una
+  matriz C del mismo orden con `AC = Iₙ` y `CA = Iₙ`. Esa C es `A⁻¹`.
+- **Orden dos.** Para `A = [[a,b],[c,d]]`, si `ad − bc ≠ 0`, entonces
+  `A⁻¹ = (1/(ad − bc)) [[d,−b],[−c,a]]`. Si `ad − bc = 0`, A es singular.
+  Esta fórmula es para matrices 2×2. La app usa Gauss–Jordan para cualquier orden.
+- **Sistemas lineales.** Si A es invertible de orden n, para todo `b ∈ ℝⁿ`
+  hay una única solución de `Ax = b`, dada por `x = A⁻¹b`.
+- **Inversa de la inversa.** Si A es invertible, también lo es `A⁻¹` y
   `(A⁻¹)⁻¹ = A`.
-- **Product.** If A and B are invertible square matrices of the same order,
-  then AB is invertible and `(AB)⁻¹ = B⁻¹A⁻¹`.
-- **Transpose.** If A is invertible, then Aᵀ is invertible and
-  `(Aᵀ)⁻¹ = (A⁻¹)ᵀ`.
+- **Producto.** Si A y B son invertibles y del mismo orden, AB es invertible
+  y `(AB)⁻¹ = B⁻¹A⁻¹`.
+- **Transpuesta.** Si A es invertible, Aᵀ es invertible y `(Aᵀ)⁻¹ = (A⁻¹)ᵀ`.
 
-For a square n×n matrix, the **invertible matrix theorem** says all of the
-following statements are equivalent. They are either all true or all false:
+Para una matriz cuadrada de orden n, el **teorema de la matriz invertible**
+establece que estas afirmaciones son equivalentes.
 
-| Letter | Equivalent statement |
+| Letra | Afirmación |
 | --- | --- |
-| a | A is invertible. |
-| b | A is row equivalent to `Iₙ`. |
-| c | A has n pivot positions. |
-| d | `Ax = 0` has only the trivial solution. |
-| e | The columns of A are linearly independent. |
-| f | `x ↦ Ax` is one-to-one. |
-| g | `Ax = b` has a solution for every `b ∈ ℝⁿ`. |
-| h | The columns of A span `ℝⁿ`. |
-| i | `x ↦ Ax` maps `ℝⁿ` onto `ℝⁿ`. |
-| j | Some n×n C satisfies `CA = Iₙ`. |
-| k | Some n×n D satisfies `AD = Iₙ`. |
-| l | Aᵀ is invertible. |
+| a | A es invertible. |
+| b | A es equivalente por filas a `Iₙ`. |
+| c | A tiene n posiciones pivote. |
+| d | `Ax = 0` solo tiene la solución trivial. |
+| e | Las columnas de A son linealmente independientes. |
+| f | La transformación `x ↦ Ax` es inyectiva. |
+| g | `Ax = b` tiene solución para todo `b ∈ ℝⁿ`. |
+| h | Las columnas de A generan `ℝⁿ`. |
+| i | `x ↦ Ax` aplica `ℝⁿ` sobre `ℝⁿ`. |
+| j | Existe una C de orden n con `CA = Iₙ`. |
+| k | Existe una D de orden n con `AD = Iₙ`. |
+| l | Aᵀ es invertible. |
 
-The square-matrix condition is essential. For a rectangular matrix, pivots and
-solutions still matter, but these twelve statements are not an inverse theorem.
+La condición de que A sea cuadrada es parte del teorema.
 
-## Exercises from the course slides
+## Ejercicios de clase
 
-1. **Compute an inverse.** For `A = [[3,4],[5,6]]`, `ad − bc = −2`, so
-   `A⁻¹ = [[−3,2],[5/2,−3/2]]`. Check both products against `I₂`.
-2. **Practice 2.2.** Enter `[[1,−2,−1],[−1,5,6],[5,−4,5]]`. It has rank 2,
-   so no inverse exists. The left block of `[A | I₃]` cannot become `I₃`.
-3. **Apply the inverse to a system.** With `A = [[3,4],[5,6]]` and
-   `b = [3,7]ᵀ`, calculate `x = A⁻¹b = [5,−3]ᵀ` and verify `Ax = b`.
-   A second application uses `A = [[1,0,−2],[3,1,−2],[−5,−1,9]]` and
-   `b = [3,7,−16]ᵀ`; it gives `x = [1,2,−1]ᵀ`.
-4. **Use the invertible matrix theorem.** The matrix
-   `[[2,3,4],[2,3,4],[2,3,4]]` has repeated rows, so it has fewer than three
-   pivots. It is singular, its columns are dependent, and some `Ax = b` have no
-   solution. For contrast, `[[1,0,−2],[3,1,−2],[−5,−1,9]]` has three pivots.
+1. **Calcular una inversa.** Para `A = [[3,4],[5,6]]`, `ad − bc = −2` y
+   `A⁻¹ = [[−3,2],[5/2,−3/2]]`. Comprueba ambos productos con `I₂`.
+2. **Práctica 2.2.** Introduce `[[1,−2,−1],[−1,5,6],[5,−4,5]]`. Tiene
+   rango 2. La parte izquierda de `[A | I₃]` no puede reducirse a `I₃`.
+3. **Aplicar la inversa a un sistema.** Con `A = [[3,4],[5,6]]` y
+   `b = [3,7]ᵀ`, calcula `x = A⁻¹b = [5,−3]ᵀ` y verifica `Ax = b`.
+   Con `A = [[1,0,−2],[3,1,−2],[−5,−1,9]]` y `b = [3,7,−16]ᵀ`,
+   se obtiene `x = [1,2,−1]ᵀ`.
+4. **Usar el teorema.** La matriz `[[2,3,4],[2,3,4],[2,3,4]]` tiene filas
+   repetidas y menos de tres pivotes. Es singular, sus columnas son
+   dependientes y algunos sistemas `Ax = b` son incompatibles. La matriz
+   `[[1,0,−2],[3,1,−2],[−5,−1,9]]` tiene tres pivotes.
 
-The source presentation is `Materiales de estudio/Inversa de una Matriz.pptx`.
-Its formulas are used as mathematical reference; the calculator requirements
-come from the user request.
+Referencia de las fórmulas y ejercicios: `Materiales de estudio/Inversa de una Matriz.pptx`.

@@ -16,7 +16,6 @@ from collections.abc import Sequence
 from core.matrix import Matrix
 from core.parametric import General
 from core.scalar import Scalar, format_factor, format_scalar
-from core.steps import StepLog
 from core.systems import Solution, SystemKind
 from core.verification import RowCheck, Verification
 
@@ -56,37 +55,6 @@ def unknown_name(column: int, names: Sequence[str] = ()) -> str:
     if column <= len(UNKNOWN_NAMES):
         return UNKNOWN_NAMES[column - 1]
     return f"x{column}"
-
-def render_augmented(matrix: Matrix, unknowns: int, indent: str = "  ") -> str:
-    """
-    La matriz aumentada con la barra que separa A de b: [ 1  -2   1 |  0 ].
-
-    La barra se dibuja aqui y no en Matrix.__str__ porque solo un sistema
-    sabe que su ultima columna significa algo distinto que las demas.
-    """
-    texts = [[format_scalar(value) for value in row] for row in matrix.data]
-    # A y b llevan su propio ancho, para que un coeficiente largo no estire tambien b.
-    left_width = max((len(text) for row in texts for text in row[:unknowns]), default=1)
-    right_width = max((len(text) for row in texts for text in row[unknowns:]), default=1)
-
-    lines = []
-    for row in texts:
-        left = "  ".join(text.rjust(left_width) for text in row[:unknowns])
-        right = "  ".join(text.rjust(right_width) for text in row[unknowns:])
-        lines.append(f"{indent}[ {left} | {right} ]")
-    return "\n".join(lines)
-
-def render_steps(log: StepLog, unknowns: int) -> str:
-    """La eliminacion completa, un bloque numerado por operacion elemental."""
-    if log.is_empty():
-        return "No hizo falta ninguna operación: la matriz ya estaba escalonada."
-
-    blocks = []
-    for number, step in enumerate(log, start=1):
-        blocks.append(
-            f"Paso {number}:  {step.label}\n{render_augmented(step.after, unknowns)}"
-        )
-    return "\n\n".join(blocks)
 
 # Una fila nombrada al principio de una linea, en un bloque ya alineado.
 _ROW_TAG = re.compile(r"f_(\d+):")
