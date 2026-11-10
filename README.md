@@ -9,7 +9,8 @@ y continuar con los datos que escribiste en cada herramienta.
 
 ## Ejecutar la calculadora
 
-Desde la raíz del repositorio, con Python 3.12 o posterior:
+Usa Python 3.12 o posterior. Primero [crea y activa `.venv`](docs/usage.md#preparar-el-entorno-virtual).
+Después ejecuta estos comandos desde la raíz del repositorio.
 
 ```bash
 pip install -r requirements-gui.txt

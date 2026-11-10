@@ -2,6 +2,30 @@
 
 Abre la calculadora desde la raíz del repositorio con Python 3.12 o posterior.
 
+## Preparar el entorno virtual
+
+Crea el entorno una vez desde la raíz del repositorio.
+
+```bash
+python -m venv .venv
+```
+
+Actívalo en la terminal donde vas a ejecutar la app.
+
+**Windows (PowerShell)**
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+**Linux o macOS (Bash o Zsh)**
+
+```bash
+source .venv/bin/activate
+```
+
+Con el entorno activo, instala las dependencias y abre la calculadora.
+
 ```bash
 pip install -r requirements-gui.txt
 python main.py

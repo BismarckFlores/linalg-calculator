@@ -1,6 +1,7 @@
 # Interfaz de escritorio
 
-La calculadora usa CustomTkinter. Desde la raíz del repositorio:
+La calculadora usa CustomTkinter. [Activa el entorno virtual](usage.md#preparar-el-entorno-virtual)
+y ejecuta estos comandos desde la raíz del repositorio.
 
 ```bash
 pip install -r requirements-gui.txt
