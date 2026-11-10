@@ -8,15 +8,16 @@ if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY") or sys.pl
     raise unittest.SkipTest("Las pruebas de Qt WebEngine requieren una sesión gráfica.")
 
 try:
-    from PySide6.QtCore import QPoint, QTimer, Qt
+    from PySide6.QtCore import QPoint, Qt
     from PySide6.QtQuick import QQuickWindow
     from PySide6.QtTest import QTest
-    from PySide6.QtWidgets import QApplication, QDialog, QPushButton
+    from PySide6.QtWidgets import QApplication, QPushButton
 except ImportError as problem:
     raise unittest.SkipTest("Instala requirements.txt para probar Qt.") from problem
 
-from core.root_bracket import RootCriterion, RootStop
-from desktop.math_input import MathInput
+from core.numerical_methods.handlers.root_bracket import RootCriterion, RootStop
+from desktop.core.math_input import MathInput
+from desktop.tools.numerical_methods.core.plot import FunctionPlot, PlotOverlay, _grid_ticks
 from desktop.window import CalculatorWindow
 
 
@@ -65,6 +66,11 @@ class QtRootTests(unittest.TestCase):
         page.walk.index.setValue(4)
         self.assertIn("se detiene", page.walk.output.value())
         self.assertFalse(page.plot.grab().isNull())
+        x0, x1, y0, y1 = page.plot._view
+        rect = page.plot._plot_rect()
+        self.assertAlmostEqual((x1 - x0) / rect.width(), (y1 - y0) / rect.height())
+        self.assertEqual([tick for tick, major in _grid_ticks(-10, 10, 700) if major and -8 < tick < 8],
+                         [tick for tick, major in _grid_ticks(-9.7, 10.3, 700) if major and -8 < tick < 8])
         original = page.plot._range
         self.click(page, "+  Acercar")
         self.assertLess(page.plot._range[1] - page.plot._range[0], original[1] - original[0])
@@ -81,16 +87,16 @@ class QtRootTests(unittest.TestCase):
         self.assertEqual(page.plot._view[:2], original[:2])
         self.assertGreater(page.plot._view[2], original[2])
         self.assertAlmostEqual(page.plot._view[3] - page.plot._view[2], original[3] - original[2])
-        original_mode = self.window._theme_mode
+        original_mode = self.window.theme_button.mode
         try:
-            self.window._theme_actions["dark"].trigger()
+            self.window.theme_button.actions_by_mode["dark"].trigger()
             self.assertTrue(page.plot.dark)
-            self.window._theme_actions["light"].trigger()
+            self.window.theme_button.actions_by_mode["light"].trigger()
             self.assertFalse(page.plot.dark)
-            self.window._theme_actions["auto"].trigger()
+            self.window.theme_button.actions_by_mode["auto"].trigger()
             self.assertEqual(page.plot.dark, self.app.styleHints().colorScheme() == Qt.ColorScheme.Dark)
         finally:
-            self.window.set_theme_mode(original_mode)
+            self.window.theme_button.set_mode(original_mode)
 
     def test_2_regula_falsi_errors_and_fallback(self):
         page = self.open_page("regula_falsi")
@@ -148,16 +154,18 @@ class QtRootTests(unittest.TestCase):
         page.walk.all_steps.setChecked(True)
         self.assertIn("Paso 16", page.walk.output.value())
 
-        def inspect_popup():
-            popup = self.app.activeModalWidget()
-            if isinstance(popup, QDialog):
-                opened.append(popup.isVisible())
-                popup.reject()
-
-        opened = []
-        QTimer.singleShot(100, inspect_popup)
         self.click(page, "Maximizar")
-        self.assertEqual(opened, [True])
+        overlay = self.window.findChild(PlotOverlay)
+        self.assertTrue(overlay.isVisible())
+        self.assertIs(overlay.window(), self.window)
+        self.assertEqual(overlay.geometry(), self.window.rect())
+        expanded = overlay.findChild(FunctionPlot)
+        expanded.zoom(0.8)
+        expanded_range = expanded._range
+        QTest.keyClick(overlay, Qt.Key.Key_Escape)
+        QTest.qWait(50)
+        self.assertIsNone(self.window.findChild(PlotOverlay))
+        self.assertEqual(page.plot._range, expanded_range)
         page.tolerance.set_value("0.0001")
         self.assertFalse(page.result_card.isVisible())
         self.assertIsNone(page.plot.result)

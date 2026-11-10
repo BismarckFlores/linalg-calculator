@@ -75,5 +75,26 @@ la banda de cada operación, las matrices y la separación de la columna
 aumentada. Las gráficas tienen ejes independientes y el tema puede seguir
 al sistema o fijarse en claro u oscuro.
 
+El fondo de trabajo combina puntos y símbolos matemáticos con una luz
+azul difusa en la esquina superior izquierda en ambos temas. Las tarjetas
+y la barra lateral muestran el patrón desenfocado bajo una capa al 75 %
+de opacidad. El modo claro refuerza el contraste del patrón. MathLive
+mantiene la nitidez de las expresiones.
+
 La rama de migración se integró en `main` y se retiró. El desarrollo
 continúa en `main`.
+
+### Organización posterior
+
+El motor se agrupó en álgebra lineal, sistemas numéricos y métodos
+numéricos. Cada área reúne sus utilidades compartidas en `handlers/`.
+La aritmética exacta y la notación siguen disponibles en la raíz de `core/`
+para todos los grupos. Se conservaron las rutas de importación anteriores.
+
+En Qt, `desktop/core/` contiene los formularios, controles y manejadores
+compartidos. `desktop/tools/` reúne los módulos de las once herramientas
+por área. El menú Apariencia usa iconos para los tres modos y marca la
+opción seleccionada.
+
+En `main` se verificaron `check.py`, las 49 pruebas de la suite y el
+menú de tema con ratón y teclado en Linux.

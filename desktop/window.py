@@ -1,62 +1,26 @@
 """Ventana Qt y catálogo de herramientas."""
 
 from collections.abc import Callable
-from dataclasses import dataclass
 from itertools import groupby
 import os
 import sys
 
-from PySide6.QtCore import QSettings, Qt
-from PySide6.QtGui import QActionGroup
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtQuick import QQuickWindow
 from PySide6.QtWidgets import (
-    QApplication, QButtonGroup, QFrame, QGridLayout, QHBoxLayout, QMainWindow, QMenu,
+    QApplication, QButtonGroup, QFrame, QGridLayout, QHBoxLayout, QMainWindow,
     QPushButton, QScrollArea, QStackedWidget, QVBoxLayout, QWidget,
 )
 
-from .roots import RegulaFalsiPage, RootBracketPage
-from .number_tools import bases_page, roman_page, vectors_page
-from .math_input import MathInput
-from .matrix_tools import determinant_page, echelon_page, factor_page, gauss_page, operations_page
-from .widgets import badge, card, label, link, page_header, stylesheet
+from .core.assets import ASSETS
+from .core.handlers.theme import ThemeSelector
+from .core.math_input import MathInput
+from .core.widgets import GlassFrame, Workspace, badge, card, label, link, page_header, stylesheet
+from .tools.numerical_methods.core.bracket_page import RootBracketPage
+from .tools.registry import TOOLS
 
-THEMES = {"auto": "Automático", "light": "Claro", "dark": "Oscuro"}
-
-
-@dataclass(frozen=True)
-class Tool:
-    key: str
-    section: str
-    glyph: str
-    title: str
-    detail: str
-    create: Callable[[], QWidget]
-
-
-TOOLS = (
-    Tool("gauss", "Sistemas Lineales", "▦", "Eliminación Gaussiana",
-         "Resuelve sistemas por Gauss o Gauss–Jordan y verifica la solución.", gauss_page),
-    Tool("echelon", "Sistemas Lineales", "▧", "Formas Escalonadas",
-         "Comprueba las propiedades de una matriz y localiza sus pivotes.", echelon_page),
-    Tool("operations", "Matrices", "⊞", "Operaciones Matriciales",
-         "Suma, resta, multiplica, escala y transpone matrices.", operations_page),
-    Tool("inverse", "Matrices", "⁻¹", "Matriz Inversa",
-         "Calcula la inversa y resuelve sistemas con ella.", lambda: factor_page(inverse=True)),
-    Tool("lu", "Matrices", "LU", "Factorización LU",
-         "Descompón la matriz y resuelve sistemas por sustitución.", lambda: factor_page(inverse=False)),
-    Tool("determinant", "Matrices", "|A|", "Determinante",
-         "Calcula por cofactores o factorización LU y compara ambos métodos.", determinant_page),
-    Tool("vectors", "Vectores", "↗", "Operaciones Vectoriales",
-         "Opera por componente y estudia combinaciones lineales.", vectors_page),
-    Tool("bases", "Sistemas Numéricos", "⇄", "Conversiones",
-         "Convierte enteros entre decimal, otras bases y romano.", bases_page),
-    Tool("roman", "Sistemas Numéricos", "Ⅻ", "Aritmética Romana",
-         "Suma, resta y multiplica numerales romanos con su procedimiento.", roman_page),
-    Tool("bisection", "Métodos Numéricos", "½", "Método de Bisección",
-         "Escribe con el editor matemático, grafica y aproxima una raíz.", RootBracketPage),
-    Tool("regula_falsi", "Métodos Numéricos", "RF", "Regula Falsi",
-         "Aproxima una raíz por el cruce de la secante con el eje x.", RegulaFalsiPage),
-)
+APP_ICON = ASSETS / "icon.svg"
 
 
 class Catalog(QWidget):
@@ -114,23 +78,18 @@ class Catalog(QWidget):
 class CalculatorWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
+        self.setWindowIcon(QIcon(str(APP_ICON)))
         self.setWindowTitle("Calculadora de Álgebra Lineal")
         self.resize(1180, 800)
         self.setMinimumSize(960, 640)
-        self._settings = QSettings("linalg-calculator", "linalg-calculator")
-        self._theme_mode = self._settings.value("theme", "auto", type=str)
-        if self._theme_mode not in THEMES:
-            self._theme_mode = "auto"
-        self._style_hints = QApplication.styleHints()
-        self._dark = self._is_dark()
         self._tools = {tool.key: tool for tool in TOOLS}
         self.pages: dict[str, QWidget] = {}
         self._scroll: dict[str, QScrollArea] = {}
         self._nav: dict[str, QPushButton] = {}
         self._group = QButtonGroup(self)
 
-        surface = QWidget()
-        surface.setObjectName("workArea")
+        surface = Workspace()
+        self.workspace = surface
         layout = QHBoxLayout(surface)
         layout.setContentsMargins(20, 20, 16, 20)
         layout.setSpacing(26)
@@ -140,11 +99,11 @@ class CalculatorWindow(QMainWindow):
         self.setCentralWidget(surface)
         self._add_page("home", Catalog(self.select))
         self.select("home")
-        self._apply_theme()
-        self._style_hints.colorSchemeChanged.connect(self._system_theme_changed)
+        self._apply_theme(self.theme_button.dark)
+        self.theme_button.theme_changed.connect(self._apply_theme)
 
     def _sidebar(self) -> QFrame:
-        sidebar = QFrame()
+        sidebar = GlassFrame()
         sidebar.setObjectName("sidebar")
         sidebar.setFixedWidth(268)
         layout = QVBoxLayout(sidebar)
@@ -152,25 +111,16 @@ class CalculatorWindow(QMainWindow):
         layout.setSpacing(10)
         brand = QHBoxLayout()
         brand.setSpacing(10)
-        brand.addWidget(badge("∑", 30, "brandGlyph"))
+        icon = label("")
+        icon.setFixedSize(30, 30)
+        icon.setPixmap(self.windowIcon().pixmap(QSize(30, 30), self.devicePixelRatioF()))
+        brand.addWidget(icon)
         identity = QVBoxLayout()
         identity.setSpacing(7)
         identity.addWidget(label("Álgebra Lineal", "brand"))
         identity.addWidget(label("MTM0120 · UAM", "course"))
         brand.addLayout(identity, 1)
-        self.theme_button = QPushButton("◐")
-        self.theme_button.setObjectName("themeSwitch")
-        self.theme_button.setFixedSize(42, 30)
-        menu = QMenu(self.theme_button)
-        choices = QActionGroup(menu)
-        self._theme_actions = {}
-        for mode, title in THEMES.items():
-            action = menu.addAction(title)
-            action.setCheckable(True)
-            choices.addAction(action)
-            action.triggered.connect(lambda checked=False, value=mode: self.set_theme_mode(value))
-            self._theme_actions[mode] = action
-        self.theme_button.setMenu(menu)
+        self.theme_button = ThemeSelector()
         brand.addWidget(self.theme_button)
         layout.addLayout(brand)
         separator = QFrame()
@@ -254,28 +204,10 @@ class CalculatorWindow(QMainWindow):
         self._nav_scroll.ensureWidgetVisible(self._nav[key], 0, 8)
         self.stack.setCurrentWidget(self._scroll[key])
 
-    def _is_dark(self) -> bool:
-        return self._theme_mode == "dark" or (
-            self._theme_mode == "auto" and self._style_hints.colorScheme() == Qt.ColorScheme.Dark
-        )
-
-    def set_theme_mode(self, mode: str) -> None:
-        self._theme_mode = mode
-        self._settings.setValue("theme", mode)
-        self._apply_theme()
-
-    def _system_theme_changed(self) -> None:
-        if self._theme_mode == "auto":
-            self._apply_theme()
-
-    def _apply_theme(self) -> None:
-        self._dark = self._is_dark()
-        mode = THEMES[self._theme_mode]
-        self.theme_button.setText("◑" if self._dark else "◐")
-        self.theme_button.setAccessibleName(f"Tema: {mode}")
-        self.theme_button.setToolTip(f"Tema: {mode}")
-        self._theme_actions[self._theme_mode].setChecked(True)
-        self.setStyleSheet(stylesheet(self._dark))
+    def _apply_theme(self, dark: bool) -> None:
+        self._dark = dark
+        self.workspace.dark = dark
+        self.setStyleSheet(stylesheet(dark))
         for page in self.pages.values():
             self._apply_page_theme(page)
 
@@ -291,6 +223,8 @@ def run() -> None:
     os.environ.setdefault("QTWEBENGINE_CHROMIUM_FLAGS", "--process-per-site")
     app = QApplication(sys.argv)
     app.setApplicationName("Calculadora de Álgebra Lineal")
+    app.setDesktopFileName("linalg-calculator")
+    app.setWindowIcon(QIcon(str(APP_ICON)))
     app.setStyle("Fusion")
     if sys.platform == "linux":
         # WebEngine cambia la superficie de la ventana si se activa OpenGL al abrir Bisección.

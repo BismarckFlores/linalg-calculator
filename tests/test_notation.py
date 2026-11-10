@@ -4,8 +4,8 @@ import math
 import unittest
 from fractions import Fraction
 
-from core.bisection import BisectionError, RealFunction, bisect
-from core.equations import EquationError, parse_equation
+from core.numerical_methods.bisection import BisectionError, RealFunction, bisect
+from core.linear_algebra.handlers.equations import EquationError, parse_equation
 
 
 class ImplicitProductTests(unittest.TestCase):

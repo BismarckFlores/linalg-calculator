@@ -31,44 +31,30 @@ python main.py
 
 ```text
 core/
-  scalar.py          Números racionales exactos y su formato
-  matrix.py          Matrices y operaciones elementales
-  steps.py           Registro de operaciones por filas
-  worksheet.py       Matriz de trabajo con registro de sus operaciones
-  elimination.py     Reducción a forma escalonada y escalonada reducida
-  systems.py         Clasificación y solución de sistemas lineales
-  verification.py    Comprobación de las soluciones
-  equations.py       Lectura de ecuaciones lineales
-  notation.py        Multiplicación implícita compartida
-  echelon.py         Propiedades de las formas escalonadas y pivotes
-  parametric.py      Solución general de sistemas indeterminados
-  inverse.py         Inversa y sistemas resueltos por inversa
-  lu.py              Factorización PA = LU y sustituciones
-  determinant.py     Determinantes por cofactores y por LU
-  vectors.py         Operaciones con vectores de Rⁿ
-  bases.py           Conversiones entre bases
-  roman.py           Lectura, escritura y aritmética romana
-  real_function.py   Lectura y muestreo de funciones reales
-  root_bracket.py    Intervalo, criterios de parada y registro compartido
-  bisection.py       Estimación de la raíz por punto medio
-  regula_falsi.py    Estimación de la raíz por el cruce de la secante
+  scalar.py, notation.py     Aritmética exacta y notación global
+  linear_algebra/           Sistemas, formas escalonadas, inversa, LU, determinante y vectores
+    handlers/               Matrices, ecuaciones, reducción y trazas compartidas
+  number_systems/           Conversiones de bases y aritmética romana
+    handlers/               Normalización de numerales
+  numerical_methods/        Bisección y Regula Falsi
+    handlers/               Lectura de funciones y búsqueda por intervalo
 ui/
-  presentation.py    Formato de ecuaciones, sustituciones y resultados
-  theme_tokens.py    Paleta, radios y familias tipográficas compartidos
+  presentation.py           Formato de resultados independiente de Qt
+  theme_tokens.py           Paleta, radios y tipografía
 desktop/
-  window.py          Inicio, navegación y tema
-  forms.py           Entradas, formularios y procedimiento compartido
-  widgets.py         Estilos, tarjetas y tablas
-  matrix_tools.py    Sistemas lineales y herramientas de matrices
-  number_tools.py    Vectores, conversiones y aritmética romana
-  roots.py           Bisección y Regula Falsi
-  plot.py            Gráfica de funciones y controles de vista
-  math_*.py          Entrada, teclado y notación matemática
-  assets/            Editor MathLive local, fuentes y licencias
-tests/              Pruebas del motor y de la interfaz
-docs/               Guías de uso, diseño y referencia
-main.py             Punto de entrada de la calculadora
-check.py            Comprobaciones del motor
+  window.py                 Ventana, Inicio y navegación
+  core/                     Formularios, tarjetas y MathLive compartidos
+    handlers/               Preferencias de tema y comunicación con MathLive
+  tools/
+    registry.py             Registro de las once herramientas
+    linear_algebra/         Páginas de matrices, sistemas y vectores
+    number_systems/         Páginas de conversión y aritmética romana
+    numerical_methods/      Páginas de Bisección y Regula Falsi
+  assets/                   Editor MathLive local, fuentes, iconos y licencias
+tests/                      Pruebas del motor y de la interfaz
+docs/                       Guías de uso, diseño y referencia
+main.py                     Punto de entrada de la calculadora
+check.py                    Comprobaciones del motor
 ```
 
 ## Cómo calcula

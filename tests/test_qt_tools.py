@@ -15,10 +15,11 @@ try:
 except ImportError as problem:
     raise unittest.SkipTest("Instala las dependencias de la interfaz Qt.") from problem
 
-from desktop.forms import MatrixInput
-from desktop.math_input import MathInput
-from desktop.widgets import SegmentedControl
-from desktop.window import TOOLS, CalculatorWindow
+from desktop.tools.linear_algebra.core.inputs import MatrixInput
+from desktop.core.math_input import MathInput
+from desktop.core.widgets import SegmentedControl
+from desktop.tools.registry import TOOLS
+from desktop.window import CalculatorWindow
 
 
 class QtToolTests(unittest.TestCase):

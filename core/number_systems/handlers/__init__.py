@@ -1,0 +1,1 @@
+"""Lectura compartida de numerales."""

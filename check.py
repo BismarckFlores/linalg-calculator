@@ -9,26 +9,26 @@ conectados entre si.
 
 from fractions import Fraction
 
-from core.bases import BadDigit, from_base, to_base
-from core.echelon import analyse, free_columns, leading_entries, pivot_columns
-from core.elimination import to_ref, to_rref
-from core.equations import parse_equation, to_augmented, unknown_names
-from core.inverse import invert, solve_with_inverse
-from core.lu import factorize, solve_with_lu
-from core.matrix import Matrix, NotSquare, SingularMatrix
-from core.parametric import general_solution
+from core.number_systems.bases import BadDigit, from_base, to_base
+from core.linear_algebra.echelon import analyse, free_columns, leading_entries, pivot_columns
+from core.linear_algebra.handlers.elimination import to_ref, to_rref
+from core.linear_algebra.handlers.equations import parse_equation, to_augmented, unknown_names
+from core.linear_algebra.inverse import invert, solve_with_inverse
+from core.linear_algebra.lu import factorize, solve_with_lu
+from core.linear_algebra.handlers.matrix import Matrix, NotSquare, SingularMatrix
+from core.linear_algebra.handlers.parametric import general_solution
 from core.scalar import format_scalar
-from core.systems import SystemKind, solve
-from core.verification import verify
+from core.linear_algebra.systems import SystemKind, solve
+from core.linear_algebra.handlers.verification import verify
 from ui.presentation import render_despeje, render_substitutions
-from core.determinant import (
+from core.linear_algebra.determinant import (
     best_line,
     by_cofactors,
     by_lu,
     costs,
     determinant,
 )
-from core.roman import (
+from core.number_systems.roman import (
     BadLetter,
     BadOrder,
     NotCanonical,
@@ -39,7 +39,7 @@ from core.roman import (
     to_roman,
     to_value,
 )
-from core.vectors import (
+from core.linear_algebra.vectors import (
     DimensionMismatch,
     UnreadableComponent,
     add,
@@ -49,7 +49,7 @@ from core.vectors import (
     scale,
     subtract,
 )
-from core.worksheet import Worksheet
+from core.linear_algebra.handlers.worksheet import Worksheet
 
 
 def show(value: object) -> str:

@@ -5,8 +5,13 @@ Abre la calculadora con `python main.py` después de instalar
 herramientas. Las tarjetas se muestran en dos columnas cuando hay espacio.
 Cada página se crea al abrirla por primera vez y conserva sus entradas al
 cambiar de herramienta. El botón junto a **Álgebra Lineal** abre el menú
-de tema. **Automático** sigue el modo del sistema. **Claro** y **Oscuro**
-lo fijan para la aplicación. La elección se conserva al volver a abrirla.
+**Apariencia**. El monitor indica **Automático** y sigue el modo del sistema.
+El sol indica **Claro** y la luna, **Oscuro**. El menú marca la opción
+seleccionada y la conserva al volver a abrir la aplicación.
+
+Una luz azul difusa nace en la esquina superior izquierda del fondo de puntos
+y símbolos matemáticos. Las tarjetas y el menú lateral tienen una superficie
+al 75 % de opacidad sobre el patrón desenfocado, con más contraste en modo claro.
 
 ## Entrada y resultados
 
@@ -52,8 +57,8 @@ para usar los símbolos Qt. `^` abre el exponente, `/` crea una fracción y
 la flecha derecha sale del exponente o del denominador. Puedes pegar
 expresiones como `5x^3` o `sqrt(x+1)/2`. **Graficar función** muestra los
 controles de intervalo y tolerancia. El zoom con la rueda y el arrastre
-permiten inspeccionar el intervalo. **Maximizar** abre la gráfica en una
-ventana separada. Consulta [los métodos numéricos](bisection.md) para ver
+permiten inspeccionar el intervalo. **Maximizar** amplía la gráfica sobre
+la misma ventana. Consulta [los métodos numéricos](bisection.md) para ver
 la sintaxis y los criterios.
 
 MathLive 0.111.4, sus fuentes y los avisos de licencia se cargan desde

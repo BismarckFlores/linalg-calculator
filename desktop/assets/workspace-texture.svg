@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="192" height="144" viewBox="0 0 192 144">
+  <defs>
+    <path id="dots" d="M8 0h184" fill="none" stroke="#7298c7" stroke-opacity=".34"
+          stroke-width="1.6" stroke-linecap="round" stroke-dasharray="0.1 15.9"/>
+  </defs>
+  <use xlink:href="#dots" y="8"/>
+  <use xlink:href="#dots" y="24"/>
+  <use xlink:href="#dots" y="40"/>
+  <use xlink:href="#dots" y="56"/>
+  <use xlink:href="#dots" y="72"/>
+  <use xlink:href="#dots" y="88"/>
+  <use xlink:href="#dots" y="104"/>
+  <use xlink:href="#dots" y="120"/>
+  <use xlink:href="#dots" y="136"/>
+  <g fill="none" stroke="#628fc3" stroke-opacity=".42" stroke-width="1.2"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M39 22H27l6 7-6 7h12"/>
+    <path d="M97 55h14m-10 0v5q0 4-3 6m9-11v8q0 3 4 2"/>
+    <path d="M151 26l3 1 3 7 5-14h13m-11 6 7 7m0-7-7 7"/>
+    <path d="M58 103h-4v16h4m11-16h4v16h-4m-9-12h1m5 0h1m-7 8h1m5 0h1"/>
+    <path d="M135 110l8 9m0-9-8 9m10-12q4-4 5-1 0 2-4 4h5"/>
+  </g>
+</svg>

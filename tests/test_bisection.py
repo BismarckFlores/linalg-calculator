@@ -3,7 +3,7 @@
 import math
 import unittest
 
-from core.bisection import (
+from core.numerical_methods.bisection import (
     BisectionCriterion, BisectionError, BisectionStop, RealFunction,
     bisect, bisection_number, sample_bisection,
 )

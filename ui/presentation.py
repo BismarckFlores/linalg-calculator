@@ -13,11 +13,11 @@ en las mayusculas.
 import re
 from collections.abc import Sequence
 
-from core.matrix import Matrix
-from core.parametric import General
+from core.linear_algebra.handlers.matrix import Matrix
+from core.linear_algebra.handlers.parametric import General
 from core.scalar import Scalar, format_factor, format_scalar
-from core.systems import Solution, SystemKind
-from core.verification import RowCheck, Verification
+from core.linear_algebra.systems import Solution, SystemKind
+from core.linear_algebra.handlers.verification import RowCheck, Verification
 
 # Con los nombres del pizarron mientras quepan; a partir de ahi x5, x6...
 UNKNOWN_NAMES = ("x", "y", "z", "w")

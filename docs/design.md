@@ -5,6 +5,13 @@ El proyecto separa el cálculo, la presentación de resultados y la interfaz.
 matemáticos y `desktop/` administra los controles. La entrega se ejecuta desde
 el repositorio con `python main.py`.
 
+`core/scalar.py` y `core/notation.py` sirven a todo el motor. Cada área
+reúne sus algoritmos en un paquete. Dentro de cada paquete, `handlers/`
+contiene la lógica que comparten sus herramientas. Álgebra lineal reutiliza
+matrices, ecuaciones y trazas. Los sistemas numéricos comparten la
+normalización de numerales, y los métodos numéricos comparten el lector de
+funciones y la búsqueda por intervalo.
+
 ## Matriz, registro y hoja de trabajo
 
 | Pieza | Responsabilidad |
@@ -40,7 +47,7 @@ un tercio sigue siendo exacto. Esto permite comprobar la solución con
 igualdades exactas.
 
 La búsqueda de raíces usa `float` para evaluar funciones elementales.
-`core/real_function.py` interpreta la expresión, `core/root_bracket.py`
+`core/numerical_methods/handlers/real_function.py` interpreta la expresión, `core/numerical_methods/handlers/root_bracket.py`
 conserva el intervalo, aplica la parada y registra las iteraciones.
 Bisección aporta el punto medio y Regula Falsi aporta el cruce de la
 secante. El resultado distingue tolerancia, cero, estancamiento y límite.
@@ -80,21 +87,19 @@ Cuando el bloque izquierdo llega a `Iₙ`, el derecho es `A⁻¹`. Se comprueban
 ambos productos con la A original. La misma página permite resolver
 `Ax = b` mediante `x = A⁻¹b`.
 
-La página de inversa comparte `SystemInput`, `MatrixEntryGrid`,
-`MatrixDisplay`, `Expression` y `StepWalker`. Usa `max_size=None` en
-la entrada y `maximum=None` en `Stepper`. El límite práctico es el tiempo
-y la memoria de la aritmética exacta. Las demás entradas conservan sus
-límites propios.
+Las páginas de inversa y LU comparten `MatrixTaskFields` para leer una
+matriz sola o un sistema. La inversa admite hasta 1000 filas y columnas.
+Las demás entradas conservan sus límites propios.
 
-`core/lu.py` se encarga de P, L, U, los pivotes, los casos singulares y
-las sustituciones. `core/determinant.py` utiliza la factorización para
+`core/linear_algebra/lu.py` se encarga de P, L, U, los pivotes, los casos singulares y
+las sustituciones. `core/linear_algebra/determinant.py` utiliza la factorización para
 multiplicar la diagonal de U y ajustar el signo. También puede expandir
 cofactores directamente. Los pivotes se comparan con cero exacto.
 
 ## Combinaciones lineales
 
 Para determinar si b es combinación de v₁, …, vₖ, se buscan escalares
-c₁, …, cₖ que cumplan `c₁v₁ + … + cₖvₖ = b`. `core/vectors.py` forma
+c₁, …, cₖ que cumplan `c₁v₁ + … + cₖvₖ = b`. `core/linear_algebra/vectors.py` forma
 `[v₁ … vₖ | b]` y llama a `solve`. La dimensión sale de las componentes
 y se comprueba que los vectores sean compatibles. El resultado comparte
 los rangos, la reducción, la solución general y la comprobación del
@@ -102,8 +107,9 @@ solucionador de sistemas.
 
 ## Componentes de la interfaz
 
-`ToolPage` comparte formulario, errores y resultado. Las páginas componen
-sus controles y conectan los cálculos existentes del motor.
+`desktop/core/` comparte los formularios, controles y el puente de MathLive.
+Las páginas de `desktop/tools/` componen esos controles y conectan el motor.
+`ToolPage` comparte formulario, errores y resultado.
 `MatrixInput` comparte la entrada de coeficientes y `read_equations`
 conserva los nombres de incógnitas. `StepView` navega las trazas de
 álgebra y raíces. `ResultTable` comparte la presentación tabular de
@@ -125,9 +131,9 @@ Los identificadores siguen la convención en inglés, como `to_rref`,
 escriben en español. El motor devuelve datos y lanza excepciones en español.
 La interfaz indica qué campo o ecuación requiere corrección.
 
-`core/equations.py` distingue `MissingEquals` de `UnreadableTerm`, ambos
+`core/linear_algebra/handlers/equations.py` distingue `MissingEquals` de `UnreadableTerm`, ambos
 derivados de `EquationError`. `UnreadableTerm` conserva el fragmento que
-falló. `desktop/forms.py` agrega el número de línea al aviso. La lista de
+falló. La entrada común de álgebra agrega el número de línea al aviso. La lista de
 incógnitas detectadas ayuda a reconocer, por ejemplo, un `2x + 3x = 5`
 cuando se quería escribir `2x + 3y = 5`.
 

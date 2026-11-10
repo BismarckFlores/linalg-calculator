@@ -1,14 +1,19 @@
 import unittest
 from fractions import Fraction
 
-from core.equations import parse_equation
-from core.matrix import Matrix
-from core.root_bracket import read_root_number
-from core.vectors import parse_vector
-from desktop.math_notation import from_ascii, matrix_rows, to_latex
+from core.linear_algebra.handlers.equations import parse_equation
+from core.linear_algebra.handlers.matrix import Matrix
+from core.numerical_methods.handlers.root_bracket import read_root_number
+from core.linear_algebra.vectors import parse_vector
+from desktop.core.math_notation import from_ascii, matrix_rows, to_latex
 
 
 class MathNotationTests(unittest.TestCase):
+    def test_function_displays_coefficients_by_juxtaposition(self):
+        self.assertEqual(to_latex("x^4 - 5x^3 + 0.5x^2 - 11x + 10", "function"),
+                         "x^{4}-5x^{3}+0.5x^{2}-11x+10")
+        self.assertEqual(to_latex("2*3", "function"), r"2\cdot 3")
+
     def test_linear_coefficients_and_variable_names_survive_export(self):
         equation = from_ascii("((1)/(2))x_(12)+y=(3)/(5)", "equations")
         parsed = parse_equation(equation)

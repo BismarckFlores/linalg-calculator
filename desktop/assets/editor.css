@@ -1,7 +1,6 @@
 :root {
   color-scheme: light;
   color: var(--app-ink);
-  background: var(--app-card);
 }
 
 :root[theme="dark"] {

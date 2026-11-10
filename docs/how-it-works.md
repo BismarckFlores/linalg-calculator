@@ -32,7 +32,7 @@ Las siguientes operaciones conservan el conjunto de soluciones.
 - Multiplicar una fila por un número distinto de cero, `f_i -> k*f_i`.
 - Sumar un múltiplo de una fila a otra, `f_i -> f_i + k*f_j`.
 
-`core/elimination.py` busca un pivote, lo lleva a uno y crea ceros debajo.
+`core/linear_algebra/handlers/elimination.py` busca un pivote, lo lleva a uno y crea ceros debajo.
 Después pasa a la siguiente columna con pivote.
 
 ```text
@@ -70,7 +70,7 @@ ecuación da directamente el valor de `z`.
 
 ## 4. Clasificar el sistema
 
-`core/systems.py` aplica Rouché–Frobenius. `rango(A|b)` cuenta todos los
+`core/linear_algebra/systems.py` aplica Rouché–Frobenius. `rango(A|b)` cuenta todos los
 pivotes y `rango(A)` cuenta los de las columnas de incógnitas.
 
 | Condición | Clasificación |
@@ -84,7 +84,7 @@ En el ejemplo ambos rangos valen 3, igual que el número de incógnitas.
 
 ## 5. Despejar de abajo hacia arriba
 
-`core/systems.py` guarda cada sustitución. Se empieza por la última
+`core/linear_algebra/systems.py` guarda cada sustitución. Se empieza por la última
 incógnita y se usan los valores encontrados al subir de fila.
 
 ```text
@@ -106,7 +106,7 @@ y el resultado. Si dos líneas coinciden, aparece una sola.
 
 ## 6. Comprobar con el sistema original
 
-`core/verification.py` sustituye los valores en A y b originales. La
+`core/linear_algebra/handlers/verification.py` sustituye los valores en A y b originales. La
 comparación es exacta gracias a que las operaciones usaron fracciones.
 
 ```text
@@ -136,16 +136,16 @@ y `rango(A|b) = 2`. La app indica la fila que causa la contradicción.
 | Responsabilidad | Módulo |
 | --- | --- |
 | Números exactos | `core/scalar.py` |
-| Matriz y operaciones por filas | `core/matrix.py` |
-| Registro de operaciones | `core/steps.py` y `core/worksheet.py` |
-| Eliminación | `core/elimination.py` |
-| Clasificación y despeje | `core/systems.py` |
-| Comprobación | `core/verification.py` |
-| Lectura de ecuaciones | `core/equations.py` |
-| Forma escalonada y pivotes | `core/echelon.py` |
-| Familia de soluciones | `core/parametric.py` |
-| Conversión entre bases | `core/bases.py` |
-| Vectores y combinaciones lineales | `core/vectors.py` |
+| Matriz y operaciones por filas | `core/linear_algebra/handlers/matrix.py` |
+| Registro de operaciones | `core/linear_algebra/handlers/steps.py` y `core/linear_algebra/handlers/worksheet.py` |
+| Eliminación | `core/linear_algebra/handlers/elimination.py` |
+| Clasificación y despeje | `core/linear_algebra/systems.py` |
+| Comprobación | `core/linear_algebra/handlers/verification.py` |
+| Lectura de ecuaciones | `core/linear_algebra/handlers/equations.py` |
+| Forma escalonada y pivotes | `core/linear_algebra/echelon.py` |
+| Familia de soluciones | `core/linear_algebra/handlers/parametric.py` |
+| Conversión entre bases | `core/number_systems/bases.py` |
+| Vectores y combinaciones lineales | `core/linear_algebra/vectors.py` |
 | Formato de los resultados | `ui/presentation.py` |
 | Controles y tarjetas | `desktop/` |
 

@@ -7,6 +7,8 @@ cadenas de documentación de cada función explican los detalles de su contrato.
 
 `core/` contiene los algoritmos. `ui/presentation.py` convierte resultados
 en texto y `desktop/` conecta el motor con las entradas, gráficas y tarjetas.
+Las rutas de esta guía apuntan a los módulos de cada área. Las importaciones
+anteriores, como `from core.matrix import Matrix`, siguen disponibles.
 
 ```text
 MatrixInput / read_equations ──> [A | b], incógnitas y nombres
@@ -36,21 +38,21 @@ La [guía de raíces](bisection.md) explica las condiciones y ejemplos.
 
 | Módulo | Nombre | Contrato |
 | --- | --- | --- |
-| `core/real_function.py` | `RealFunction(text)` | Lee una función en x con un AST restringido. Se puede llamar con un valor de x. Eleva `RootInputError` ante una expresión o evaluación inválida. |
-| `core/real_function.py` | `sample_function(function, a, b, count=401)` | Devuelve muestras. Los puntos indefinidos se representan como `(x, None)`. |
-| `core/root_bracket.py` | `read_root_number(value)` | Usa `to_scalar` y convierte a un `float` finito. |
-| `core/root_bracket.py` | `RootCriterion` | `WIDTH`, `RESIDUAL` y `RELATIVE` (porcentaje). |
-| `core/root_bracket.py` | `RootStop` | `ZERO`, `TOLERANCE`, `LIMIT` y `STAGNATION`. |
-| `core/root_bracket.py` | `solve_bracket(function, a, b, tolerance, criterion, max_iterations, estimate)` | Recibe una función de estimación. Comprueba los extremos, conserva el cambio de signo y guarda la traza. |
-| `core/bisection.py` | `bisect(function, a, b, tolerance="0.0001", *, criterion=WIDTH, max_iterations=100)` | Usa el punto medio y devuelve un `BracketResult`. |
-| `core/regula_falsi.py` | `regula_falsi(function, a, b, tolerance="0.01", *, criterion=RELATIVE, max_iterations=100)` | Usa la intersección de la secante y devuelve un `BracketResult`. |
+| `core/numerical_methods/handlers/real_function.py` | `RealFunction(text)` | Lee una función en x con un AST restringido. Se puede llamar con un valor de x. Eleva `RootInputError` ante una expresión o evaluación inválida. |
+| `core/numerical_methods/handlers/real_function.py` | `sample_function(function, a, b, count=401)` | Devuelve muestras. Los puntos indefinidos se representan como `(x, None)`. |
+| `core/numerical_methods/handlers/root_bracket.py` | `read_root_number(value)` | Usa `to_scalar` y convierte a un `float` finito. |
+| `core/numerical_methods/handlers/root_bracket.py` | `RootCriterion` | `WIDTH`, `RESIDUAL` y `RELATIVE` (porcentaje). |
+| `core/numerical_methods/handlers/root_bracket.py` | `RootStop` | `ZERO`, `TOLERANCE`, `LIMIT` y `STAGNATION`. |
+| `core/numerical_methods/handlers/root_bracket.py` | `solve_bracket(function, a, b, tolerance, criterion, max_iterations, estimate)` | Recibe una función de estimación. Comprueba los extremos, conserva el cambio de signo y guarda la traza. |
+| `core/numerical_methods/bisection.py` | `bisect(function, a, b, tolerance="0.0001", *, criterion=WIDTH, max_iterations=100)` | Usa el punto medio y devuelve un `BracketResult`. |
+| `core/numerical_methods/regula_falsi.py` | `regula_falsi(function, a, b, tolerance="0.01", *, criterion=RELATIVE, max_iterations=100)` | Usa la intersección de la secante y devuelve un `BracketResult`. |
 
 `BracketStep` guarda `index`, `a`, `b`, `c`, `fa`, `fb`, `fc` y
 `relative_error`. Expone el ancho, cota, residuo y decisión de signo.
 `BracketResult` guarda la función, extremos iniciales y finales,
 tolerancia, criterio, iteraciones, motivo de parada, aproximación y valor.
 También expone `converged` y `bound`. Ambos registros son inmutables.
-`core/bisection.py` conserva los nombres anteriores `Bisection*`,
+`core/numerical_methods/bisection.py` conserva los nombres anteriores `Bisection*`,
 `bisection_number` y `sample_bisection` como alias.
 
 ## `core/scalar.py`
@@ -63,7 +65,7 @@ También expone `converged` y `bound`. Ambos registros son inmutables.
 | `format_scalar(value) -> str` | Formato como `3`, `-4` o `1/3`. |
 | `format_factor(value) -> str` | Agrega paréntesis cuando es negativo o fraccionario, como `(-1)` o `(1/3)`. |
 
-## `core/matrix.py`
+## `core/linear_algebra/handlers/matrix.py`
 
 `Matrix` representa un rectángulo de escalares exactos. Los índices de
 filas y columnas de su API empiezan en 1. `data` es una lista de listas
@@ -96,7 +98,7 @@ auxiliares son `Matrix.zero(rows, cols)`, `Matrix.identity(n)` y
 `Matrix.column_vector(values)`. `str(m)` alinea las entradas y `repr(m)`
 representa la construcción de la matriz.
 
-## `core/steps.py`
+## `core/linear_algebra/handlers/steps.py`
 
 | Función | Ejemplo de etiqueta |
 | --- | --- |
@@ -116,7 +118,7 @@ representa la construcción de la matriz.
 | `is_empty()`, `len(log)`, `log[i]`, iteración | Consultan el contenido del registro. |
 | `summary()`, `render()`, `str(log)` | Vistas de depuración. |
 
-## `core/worksheet.py`
+## `core/linear_algebra/handlers/worksheet.py`
 
 `sheet.matrix` es el estado actual y `sheet.log` es el recorrido.
 
@@ -126,7 +128,7 @@ representa la construcción de la matriz.
 | `scale(i, k)` | Multiplica por k. Omite el paso si k = 1. |
 | `add_scaled(i, j, k)` | Suma k veces la fila j a la i. Omite el paso si k = 0. |
 
-## `core/elimination.py`
+## `core/linear_algebra/handlers/elimination.py`
 
 | Función | Resultado |
 | --- | --- |
@@ -141,7 +143,7 @@ desde 1 y ordenados por fila. Las consultas son `rank`,
 forma escalonada producida por el algoritmo valen 1 y tienen ceros debajo.
 En la forma reducida también tienen ceros arriba.
 
-## `core/inverse.py`
+## `core/linear_algebra/inverse.py`
 
 | Función | Contrato |
 | --- | --- |
@@ -151,7 +153,7 @@ En la forma reducida también tienen ceros arriba.
 `InverseResult` conserva A, la inversa, el registro y ambos productos.
 `InverseSystem` agrega b, x y la comprobación `Ax`.
 
-## `core/systems.py`
+## `core/linear_algebra/systems.py`
 
 `solve(augmented) -> Solution` recibe una matriz aumentada con al menos
 una ecuación y dos columnas. `SystemKind` distingue `UNIQUE`,
@@ -180,7 +182,7 @@ entre factores adyacentes y conserva nombres completos y llamadas conocidas.
 `scientific=False` mantiene la interpretación lineal de nombres como
 `e3x` después de un coeficiente. Cada lector valida su gramática.
 
-## `core/equations.py`
+## `core/linear_algebra/handlers/equations.py`
 
 | Función | Contrato |
 | --- | --- |
@@ -193,7 +195,7 @@ entre factores adyacentes y conserva nombres completos y llamadas conocidas.
 `UnreadableTerm.text` guarda el fragmento ilegible. Ambos errores
 derivan de `EquationError` y la interfaz agrega el número de línea.
 
-## `core/determinant.py`
+## `core/linear_algebra/determinant.py`
 
 | Función | Contrato |
 | --- | --- |
@@ -210,7 +212,7 @@ Cada `Summand` guarda la entrada, signo, menor, cofactor y contribución.
 `Rule` representa `ad − bc`. `ByLU` contiene la factorización y el valor.
 `Costs` contiene `order`, `cofactor`, `lu`, `advised` y `times`.
 
-## `core/lu.py`
+## `core/linear_algebra/lu.py`
 
 | Función | Contrato |
 | --- | --- |
@@ -230,7 +232,7 @@ e índice, `constant`, `divisor` y `value`. En L el divisor es 1. En U es
 el pivote. Se usa el primer pivote distinto de cero salvo al activar
 pivoteo parcial.
 
-## `core/echelon.py`
+## `core/linear_algebra/echelon.py`
 
 | Función o dato | Significado |
 | --- | --- |
@@ -247,7 +249,7 @@ propiedad 1 corresponde a la fila, así que su columna se marca con 0.
 consulta una propiedad de 1 a 5. `is_echelon` exige las primeras tres
 y `is_reduced` exige las cinco. La matriz nula satisface todas.
 
-## `core/parametric.py`
+## `core/linear_algebra/handlers/parametric.py`
 
 `general_solution(reduction, unknowns) -> General` lee la familia de
 una reducción en forma escalonada reducida. Lanza `ValueError` si
@@ -258,7 +260,7 @@ porque un pivote en la columna de constantes indica contradicción.
 para expresar la variable como constante más términos libres. `General`
 agrupa `basic` y `free` en orden de columna.
 
-## `core/bases.py`
+## `core/number_systems/bases.py`
 
 | Función o dato | Contrato |
 | --- | --- |
@@ -278,7 +280,7 @@ la derecha, `power` y `amount`. `-0` se normaliza a cero.
 `EmptyNumeral` incluye un signo sin cifras. `BadDigit` contiene el
 `digit` inválido y la `base`. Ambos derivan de `NumeralError`.
 
-## `core/roman.py`
+## `core/number_systems/roman.py`
 
 | Función o dato | Contrato |
 | --- | --- |
@@ -297,7 +299,7 @@ valor y `subtractive` para los pares de resta. `Operation` guarda
 el numeral con orden inválido y `BadLetter` su letra inválida.
 Los errores derivan de `RomanError`.
 
-## `core/vectors.py`
+## `core/linear_algebra/vectors.py`
 
 | Función o dato | Contrato |
 | --- | --- |
@@ -316,7 +318,7 @@ es inconsistente, es `None`. `EmptyVector` indica ausencia de componentes.
 `UnreadableComponent.text` guarda el texto inválido y `DimensionMismatch`
 contiene ambas dimensiones. Derivan de `VectorError`.
 
-## `core/verification.py`
+## `core/linear_algebra/handlers/verification.py`
 
 `verify(coefficients, constants, values) -> Verification` evalúa `Ax = b`
 fila por fila. Exige una columna de constantes, igual número de filas y
@@ -355,15 +357,17 @@ describe qué muestra cada herramienta.
 
 | Módulo | Responsabilidad |
 | --- | --- |
-| `desktop/window.py` | Catálogo, menú, páginas bajo demanda y tema. |
-| `desktop/forms.py` | Entrada de matrices, lectura de ecuaciones, formularios, resultados y recorrido de pasos. |
-| `desktop/widgets.py` | Estilos Qt, tarjetas, botones y tablas. |
-| `desktop/math_input.py` | MathLive en Qt WebEngine, canal de edición y respaldo de texto. |
-| `desktop/math_notation.py` | Adaptadores entre texto, MathLive y los lectores del motor. |
-| `desktop/matrix_tools.py` | Gauss, formas escalonadas, operaciones, inversa, LU y determinante. |
-| `desktop/number_tools.py` | Vectores, conversiones y aritmética romana. |
-| `desktop/roots.py` | Flujo compartido y configuración de Bisección y Regula Falsi. |
-| `desktop/plot.py` | Dibujo Qt, zoom, arrastre y gráfica ampliada. |
+| `desktop/window.py` | Ventana, catálogo, navegación y páginas bajo demanda. |
+| `desktop/core/forms.py` | Formularios, resultados y recorrido de pasos compartidos. |
+| `desktop/core/widgets.py` | Estilos Qt, tarjetas, botones y tablas. |
+| `desktop/core/math_input.py` | MathLive en Qt WebEngine y respaldo de texto. |
+| `desktop/core/math_notation.py` | Adaptadores entre texto, MathLive y los lectores del motor. |
+| `desktop/core/handlers/` | Comunicación con MathLive y selección del tema. |
+| `desktop/tools/registry.py` | Datos y fábricas de las once herramientas. |
+| `desktop/tools/linear_algebra/` | Páginas de sistemas, matrices y vectores con entradas y formatos compartidos. |
+| `desktop/tools/number_systems/` | Páginas de conversión y aritmética romana. |
+| `desktop/tools/numerical_methods/` | Páginas de Bisección y Regula Falsi y flujo compartido de búsqueda por intervalo. |
+| `desktop/tools/numerical_methods/core/plot.py` | Dibujo Qt, zoom, arrastre y gráfica ampliada. |
 | `ui/theme_tokens.py` | Paleta claro y oscuro, radios y tipografía. |
 
 `ToolPage` invalida la respuesta al editar. `Result` reúne el texto,

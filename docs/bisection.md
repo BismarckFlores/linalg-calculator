@@ -27,10 +27,14 @@ función** y luego **Calcular raíz** para ejecutarlo.
   fracciones y coma decimal.
 
 La gráfica permite **Acercar**, **Alejar**, **Restablecer**, zoom con la
-rueda y desplazamiento mediante arrastre. **Maximizar** abre una ventana
-con la vista actual. Puedes cerrarla con **Cerrar** o Escape.
+rueda y desplazamiento mediante arrastre. **Maximizar** amplía la vista
+sobre la misma ventana y oscurece los bordes. Pulsa **Cerrar** o Escape
+para volver a la página conservando el zoom y la posición.
 Arrastra para desplazar la vista en ambos ejes conservando la escala.
-La rueda amplía o reduce alrededor del puntero. Las líneas verticales
+La cuadrícula cartesiana está anclada en el origen y usa la misma escala
+por unidad en ambos ejes. El zoom cambia el intervalo entre marcas
+principales en pasos de 1, 2 o 5 por potencia de diez. La rueda amplía o
+reduce alrededor del puntero. Las líneas verticales
 identifican a, b y la aproximación c al resolver. **Restablecer** encuadra
 el intervalo inicial si ya hay un resultado. Las muestras fuera del
 dominio dejan huecos.
@@ -149,19 +153,19 @@ La derivada que se revisa en Newton corresponde a otro método.
 | Archivo | Responsabilidad |
 | --- | --- |
 | `core/notation.py` | Inserta productos implícitos y conserva nombres, llamadas y literales científicos. |
-| `core/real_function.py` | Lee la función con un AST restringido y la evalúa sin `eval`. También toma muestras para la gráfica. |
-| `core/root_bracket.py` | Valida parámetros, conserva el intervalo y registra `BracketStep` y `BracketResult`. |
-| `core/bisection.py` y `core/regula_falsi.py` | Definen la estimación y la tolerancia inicial de cada método. |
-| `desktop/plot.py` | Dibuja con Qt y administra zoom, arrastre y vista ampliada. |
-| `desktop/roots.py` | Organiza la entrada, gráfica, controles, resultado y tabla. Configura ambos métodos. |
-| `desktop/forms.py` y `desktop/widgets.py` | Comparten el recorrido de pasos y la tabla. |
-| `desktop/window.py` | Registra las herramientas en Inicio y el menú. |
+| `core/numerical_methods/handlers/real_function.py` | Lee la función con un AST restringido y la evalúa sin `eval`. También toma muestras para la gráfica. |
+| `core/numerical_methods/handlers/root_bracket.py` | Valida parámetros, conserva el intervalo y registra `BracketStep` y `BracketResult`. |
+| `core/numerical_methods/bisection.py` y `core/numerical_methods/regula_falsi.py` | Definen la estimación y la tolerancia inicial de cada método. |
+| `desktop/tools/numerical_methods/core/plot.py` | Dibuja con Qt y administra zoom, arrastre y vista ampliada. |
+| `desktop/tools/numerical_methods/core/bracket_page.py` | Organiza la entrada, gráfica, controles, resultado y tabla para ambos métodos. |
+| `desktop/core/forms.py` y `desktop/core/widgets.py` | Comparten el recorrido de pasos y la tabla. |
+| `desktop/tools/registry.py` | Registra las herramientas que se muestran en Inicio y el menú. |
 
 El lector limita el tamaño de la expresión y los exponentes. Los problemas
 de dominio, resultados no finitos y pérdidas por subdesbordamiento se
 reportan. `math` se usa para evaluar funciones elementales. Los métodos
 usan un ciclo y condiciones para obtener la aproximación. El gráfico usa
-401 muestras por vista horizontal y las reutiliza al repintar.
+1201 muestras por vista horizontal y las reutiliza al repintar.
 
 ## Verificación
 

@@ -3,9 +3,9 @@
 from fractions import Fraction
 import unittest
 
-from core.real_function import RootInputError
-from core.regula_falsi import regula_falsi
-from core.root_bracket import RootCriterion, RootStop
+from core.numerical_methods.handlers.real_function import RootInputError
+from core.numerical_methods.regula_falsi import regula_falsi
+from core.numerical_methods.handlers.root_bracket import RootCriterion, RootStop
 
 
 class RegulaFalsiTests(unittest.TestCase):
