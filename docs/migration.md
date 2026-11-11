@@ -1,10 +1,18 @@
 # Migración a PySide6 y MathLive
 
-PySide6 es la interfaz de las once herramientas. El punto de entrada es
+PySide6 es la interfaz de escritorio. El punto de entrada es
 `main.py` y las dependencias están en `requirements.txt`.
 Consulta [la guía de la interfaz](gui.md) para ejecutar y usar la versión actual.
 
 ## Estado de la migración
+
+- Se agregó **Derivadas e integrales** al catálogo Qt con derivación
+  simbólica, evaluación opcional, antiderivada e integral definida. El
+  motor compartido queda disponible para Newton–Raphson, pendiente de
+  implementación. Se verificaron los tres modos, la navegación, la
+  invalidación al editar, los errores, la limpieza y ambos temas.
+  Pasaron `python check.py` y las 62 pruebas. Los cambios de esta etapa
+  están locales en `main`, pendientes de publicación.
 
 - Fase 1. Regula Falsi reutiliza la página de Bisección y el motor de
   intervalos. Las pruebas de Qt están en `tests/test_qt_roots.py`.
@@ -158,3 +166,12 @@ Los once accesos de Inicio reutilizan la ilustración de su herramienta.
 Se comprobó la distribución en una y dos columnas, ambos temas y la
 apertura con clic en la tarjeta o con el botón Abrir mediante el teclado.
 Pasaron `check.py` y las 56 pruebas de la suite.
+
+### Ilustraciones de Cálculo
+
+El banner de Derivadas e integrales combina una tangente y un área
+sombreada bajo la curva. El icono del menú reúne un signo de integral y
+una tangente. Qt reconoce ambos SVG en sus tamaños previstos.
+
+Cálculo aparece como sección propia justo antes de Métodos Numéricos
+en Inicio y en el menú lateral. Ambas vistas siguen el orden del catálogo.

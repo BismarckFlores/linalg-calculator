@@ -56,7 +56,7 @@ class QtToolTests(unittest.TestCase):
         self.assertIn(expected, "\n".join((*visible_results, page.result_title.text(), page.result_badge.text())))
 
     def test_catalog_and_matrix_operations(self):
-        self.assertEqual(len(TOOLS), 11)
+        self.assertEqual(len(TOOLS), 12)
         page = self.open_page("operations")
         select = page.findChild(SegmentedControl)
         for index, expected in enumerate(("[ 6; 8 ]", "[ -4; -4 ]", "[ 19; 22 ]", "[ 1/2; 1 ]", "[ 1; 3 ]")):
@@ -80,6 +80,59 @@ class QtToolTests(unittest.TestCase):
         shortcut.click()
         self.assertTrue(self.window._nav["regula_falsi"].isChecked())
         self.assertTrue(self.window.pages["regula_falsi"].isVisible())
+
+    def test_calculus_modes_and_navigation(self):
+        self.window.resize(960, 640)
+        self.window.select("home")
+        home = self.window.pages["home"]
+        shortcut = next(button for button in home.findChildren(QPushButton)
+                        if button.accessibleName() == "Abrir Derivadas e integrales")
+        shortcut.click()
+        page = self.open_page("calculus")
+        self.assertTrue(self.window._nav["calculus"].isChecked())
+        self.assertEqual(self.window._scroll["calculus"].horizontalScrollBar().maximum(), 0)
+        mode = page.findChild(SegmentedControl)
+        fields = {field.name: field for field in page.findChildren(MathInput)}
+        point = fields["Evaluar en x (opcional)"]
+        point.set_value("1.5")
+        self.calculate(page, "23/4")
+        rendered = []
+        page.output.web.page().runJavaScript(
+            "[...document.querySelectorAll('.result-formula math-field')]"
+            ".filter(field => field.readOnly && field.value).length", rendered.append)
+        for _ in range(30):
+            if rendered:
+                break
+            QTest.qWait(20)
+        self.assertEqual(rendered, [2.0])
+        mode.setCurrentIndex(1)
+        self.assertFalse(page.result.isVisible())
+        self.assertFalse(point.isVisible())
+        self.calculate(page, "+ C")
+        mode.setCurrentIndex(2)
+        fields["Función f(x)"].set_value("x^2")
+        self.assertTrue(fields["Límite inferior"].isVisible())
+        self.calculate(page, "1/3")
+        fields["Función f(x)"].set_value("1/x")
+        self.assertFalse(page.result.isVisible())
+        submit = next(button for button in page.findChildren(QPushButton) if button.objectName() == "action")
+        submit.click()
+        self.assertTrue(page.error.isVisible())
+        clear = next(button for button in page.findChildren(QPushButton)
+                     if button.text() == "Limpiar" and button.isVisible())
+        clear.click()
+        self.assertFalse(page.error.isVisible())
+        self.assertEqual(fields["Función f(x)"].value(), "")
+        dark = self.window._dark
+        try:
+            for theme in (True, False):
+                self.window._apply_theme(theme)
+                self.window.select("home")
+                self.window._nav["calculus"].click()
+                self.assertTrue(page.isVisible())
+                self.assertEqual(page.output._dark, theme)
+        finally:
+            self.window._apply_theme(dark)
 
     def test_systems_and_echelon(self):
         page = self.open_page("gauss")

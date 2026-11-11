@@ -6,7 +6,7 @@ Calculadora de escritorio para MTM0120, Álgebra Lineal y Métodos Numéricos, U
 
 - `core/` es el motor Python compartido. Mantén allí el cálculo, la validación matemática y los registros de operaciones. Usa fracciones exactas para álgebra lineal y punto flotante para búsqueda de raíces.
 - `main.py` ejecuta la interfaz PySide6 de `desktop/`. MathLive y sus recursos locales se cargan mediante Qt WebEngine. Conserva el funcionamiento sin conexión, las licencias, los temas y la entrada de texto alternativa.
-- Las once herramientas se ofrecen en Qt. La [guía heredada](docs/legacy-gui.md) registra la versión de CustomTkinter para consulta histórica.
+- Las herramientas se ofrecen en Qt. La [guía heredada](docs/legacy-gui.md) registra la versión de CustomTkinter para consulta histórica.
 - Mantén nombres de módulos y funciones en `snake_case`, clases en `PascalCase` y textos visibles en español. Conserva las APIs compartidas y las convenciones del módulo que modifiques.
 - Compón páginas con los widgets existentes. Centraliza formularios, gráficas, tablas y pasos cuando los comparta más de una herramienta. Agrupa responsabilidades cohesionadas y extrae módulos cuando simplifiquen el mantenimiento.
 - Al agregar una página, registra su navegación y tema, conecta el algoritmo de `core/` y presenta sus errores, resultados y procedimientos. Comprueba los estados al editar entradas o cambiar de herramienta.

@@ -1,7 +1,7 @@
 # Interfaz de escritorio con PySide6 y MathLive
 
 Abre la calculadora con `python main.py` después de instalar
-`requirements.txt`. **Inicio** y el menú lateral agrupan las once
+`requirements.txt`. **Inicio** y el menú lateral agrupan las doce
 herramientas. El menú lateral usa un icono vectorial por herramienta y
 resalta la selección. En Inicio, cada acceso reutiliza el banner de su
 herramienta. Haz clic en la tarjeta o usa **Abrir**. Los accesos se muestran
@@ -58,6 +58,20 @@ del teclado matemático borra el campo que estás editando.
 | Aritmética Romana | Suma, resta y producto, lectura por piezas y suma repetida opcional. |
 | Método de Bisección | Punto medio, criterios configurables, gráfica, tabla y procedimiento. |
 | Regula Falsi | Cruce de la secante, cambio relativo o residuo, gráfica, tabla y procedimiento. |
+| Derivadas e integrales | Derivada simbólica con evaluación opcional, antiderivada con constante e integral definida exacta. |
+
+### Derivadas e integrales
+
+Abre **Cálculo → Derivadas e integrales** y escribe una función de `x`.
+Con **Derivada**, deja el punto vacío para obtener la fórmula o ingrésalo
+para ver también el valor. Por ejemplo, para `x^3 - x - 2` en `1.5` se
+obtiene `3x² − 1` y `23/4`.
+
+Con **Integral indefinida**, la antiderivada incluye `+ C`. Con
+**Integral definida**, indica dos límites reales finitos. La función
+debe ser real y continua en el intervalo. Por ejemplo, `x^2` de `0` a
+`1` da `1/3`. Si el motor no puede verificar el dominio u obtener
+un resultado simbólico, la página muestra un mensaje.
 
 ## Editor de funciones
 

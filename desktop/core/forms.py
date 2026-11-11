@@ -74,6 +74,7 @@ class Result:
     sections: tuple[str, ...] = ()
     title: str = ""
     badge: str = ""
+    latex: tuple[str, ...] = ()
 
 
 class StepView(QWidget):
@@ -274,7 +275,7 @@ class ToolPage(QWidget):
             self.error.setText(str(problem))
             self.error.show()
             return
-        self.output.set_value(result.text)
+        self.output.set_value(result.text, latex=result.latex)
         self.result_title.setText(result.title or self.answer_title)
         self.result_badge.setText(result.badge)
         self.result_badge.setVisible(bool(result.badge))

@@ -25,6 +25,7 @@ class MathInput(QWidget):
     def __init__(self, text: str, name: str, kind: str = "function", *, inline: bool = False) -> None:
         super().__init__()
         self._value = text
+        self._latex: tuple[str, ...] = ()
         self.kind = kind
         self.name = name
         self._ready = False
@@ -119,8 +120,9 @@ class MathInput(QWidget):
     def clear(self) -> None:
         self.set_value("")
 
-    def set_value(self, text: str) -> None:
+    def set_value(self, text: str, *, latex: tuple[str, ...] = ()) -> None:
         self._value = text
+        self._latex = latex
         if self.stack.currentWidget() is self.text:
             self._set_fallback_value()
             if self.kind == "output":
@@ -179,7 +181,8 @@ class MathInput(QWidget):
 
     def _send_value(self) -> None:
         if self.kind == "output":
-            self._js(f"setResult({json.dumps(result_blocks(self._value))})")
+            blocks = [("latex", formula) for formula in self._latex] if self._latex else result_blocks(self._value)
+            self._js(f"setResult({json.dumps(blocks)})")
         else:
             self._js(f"setFormula({json.dumps(to_latex(self._value, self.kind))})")
 

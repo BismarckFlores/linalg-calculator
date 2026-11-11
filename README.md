@@ -45,6 +45,7 @@
 - **Sistemas lineales.** Ingresa coeficientes o ecuaciones, aplica Gauss o Gauss–Jordan y revisa las operaciones por filas, los pivotes y la clasificación de la solución.
 - **Matrices y vectores.** Calcula inversas, factorizaciones LU, determinantes y combinaciones lineales. Las operaciones de álgebra lineal conservan las fracciones exactas.
 - **Búsqueda de raíces.** Usa Bisección o Regula Falsi, explora la gráfica con zoom y arrastre, y revisa la tabla de iteraciones.
+- **Cálculo.** Obtén derivadas, antiderivadas e integrales definidas con resultados simbólicos.
 - **Conversiones.** Convierte entre decimal, bases de 2 a 36 y números romanos. La aritmética romana incluye suma, resta y multiplicación.
 - **Escritorio en español.** Once herramientas con temas claro, oscuro y automático. El editor y sus fuentes se cargan localmente, por lo que puedes usar la app sin conexión después de instalarla.
 

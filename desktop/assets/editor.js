@@ -93,7 +93,13 @@ function renderResult(host, blocks) {
   for (let index = 0; index < blocks.length; index++) {
     const [kind, value] = blocks[index];
     const row = document.createElement("div");
-    if (kind === "matrix") {
+    if (kind === "latex") {
+      row.className = "result-formula";
+      const formula = document.createElement("math-field");
+      formula.readOnly = true;
+      formula.value = value;
+      row.append(formula);
+    } else if (kind === "matrix") {
       row.className = "result-math";
       row.append(matrix(value));
     } else if (kind === "product") {

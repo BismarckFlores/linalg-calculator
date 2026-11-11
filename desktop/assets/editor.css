@@ -81,6 +81,14 @@ math-field:focus-within {
 }
 
 .result-math { margin: 6px 0; }
+.result-formula { margin: 6px 0; }
+.result-formula math-field {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.result-formula math-field::part(content) { padding: 0; }
 .result-product {
   display: flex;
   width: max-content;

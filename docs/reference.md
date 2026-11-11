@@ -55,6 +55,21 @@ También expone `converged` y `bound`. Ambos registros son inmutables.
 `core/numerical_methods/bisection.py` conserva los nombres anteriores `Bisection*`,
 `bisection_number` y `sample_bisection` como alias.
 
+## Cálculo simbólico
+
+`core/calculus.py` traduce el árbol validado de `RealFunction` a SymPy.
+Conserva los números escritos como valores exactos. `differentiate(function)`
+devuelve una `Derivative` con la expresión y el método `at(point)` para
+evaluación exacta. La instancia también acepta un flotante mediante
+`derivative(x)` para uso numérico.
+
+`read_calculus_point(text)` lee puntos y límites reales finitos.
+`integrate(function, bounds=None)` devuelve la antiderivada o, con
+`bounds=(a, b)`, el valor exacto de una integral definida. La interfaz
+añade la constante de integración. Para límites finitos, el motor
+verifica continuidad en todo el intervalo y conserva las restricciones
+de denominadores que se cancelan en la expresión simplificada.
+
 ## `core/scalar.py`
 
 | Nombre | Significado |
@@ -363,7 +378,7 @@ describe qué muestra cada herramienta.
 | `desktop/core/math_input.py` | MathLive en Qt WebEngine y respaldo de texto. |
 | `desktop/core/math_notation.py` | Adaptadores entre texto, MathLive y los lectores del motor. |
 | `desktop/core/handlers/` | Comunicación con MathLive y selección del tema. |
-| `desktop/tools/registry.py` | Datos y fábricas de las once herramientas. |
+| `desktop/tools/registry.py` | Datos y fábricas de las herramientas. |
 | `desktop/tools/linear_algebra/` | Páginas de sistemas, matrices y vectores con entradas y formatos compartidos. |
 | `desktop/tools/number_systems/` | Páginas de conversión y aritmética romana. |
 | `desktop/tools/numerical_methods/` | Páginas de Bisección y Regula Falsi y flujo compartido de búsqueda por intervalo. |

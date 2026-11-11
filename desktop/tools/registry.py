@@ -5,6 +5,8 @@ from dataclasses import dataclass
 
 from PySide6.QtWidgets import QWidget
 
+from .calculus import calculus_page
+
 from .linear_algebra.determinant import determinant_page
 from .linear_algebra.echelon import echelon_page
 from .linear_algebra.gauss import gauss_page
@@ -47,6 +49,8 @@ TOOLS = (
          "Convierte enteros entre decimal, otras bases y romano.", bases_page),
     Tool("roman", "Sistemas Numéricos", "Ⅻ", "Aritmética Romana",
          "Suma, resta y multiplica numerales romanos con su procedimiento.", roman_page),
+    Tool("calculus", "Cálculo", "∫", "Derivadas e integrales",
+         "Obtén la derivada, la antiderivada o la integral definida de f(x).", calculus_page),
     Tool("bisection", "Métodos Numéricos", "½", "Método de Bisección",
          "Escribe con el editor matemático, grafica y aproxima una raíz.", BisectionPage),
     Tool("regula_falsi", "Métodos Numéricos", "RF", "Regula Falsi",

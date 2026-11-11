@@ -120,6 +120,12 @@ cada método mediante su fórmula, criterios y ejemplos. El motor toma las
 muestras que `FunctionPlot` dibuja con Qt. La gráfica conserva zoom,
 arrastre, restablecimiento y vista ampliada.
 
+`calculus_page` reutiliza `ToolPage` y presenta tres operaciones con el
+mismo editor de funciones. Muestra el punto opcional en Derivada y el
+par de límites en Integral definida. `core/calculus.py` conserva el
+cálculo fuera de Qt. Los resultados llevan fórmulas LaTeX para MathLive
+y texto para la vista de respaldo.
+
 `MathInput` carga el editor local y conecta Qt con MathLive mediante
 QWebChannel. Los adaptadores traducen el formato visual a texto para el
 motor. Los campos de respaldo conservan la última entrada del usuario.

@@ -21,7 +21,7 @@ WORKSPACE_TEXTURE = ASSETS / "workspace-texture.svg"
 PAGE_ILLUSTRATIONS = {
     "⌂": "home", "▦": "gauss", "▧": "echelon", "⊞": "operations", "⁻¹": "inverse",
     "LU": "lu", "|A|": "determinant", "↗": "vectors", "⇄": "bases", "Ⅻ": "roman",
-    "½": "bisection", "RF": "regula-falsi",
+    "½": "bisection", "RF": "regula-falsi", "∫": "calculus",
 }
 
 
