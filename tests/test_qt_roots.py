@@ -49,7 +49,8 @@ class QtRootTests(unittest.TestCase):
         return page
 
     def click(self, page, text):
-        button = next(button for button in page.findChildren(QPushButton) if button.text().removesuffix("  →") == text)
+        button = next(button for button in page.findChildren(QPushButton)
+                      if text in (button.text().removesuffix("  →"), button.accessibleName()))
         self.assertTrue(button.isVisible())
         button.click()
         QTest.qWait(40)
@@ -85,7 +86,9 @@ class QtRootTests(unittest.TestCase):
         QTest.mouseClick(expanded, Qt.MouseButton.LeftButton,
                          pos=expanded._plot_rect().center().toPoint() + QPoint(50, 0))
         self.assertNotEqual(page.plot.markers, marker)
-        self.assertEqual(expanded.markers, page.plot.markers)
+        self.assertIs(expanded, page.plot)
+        self.assertTrue(page.initial.web.isVisible())
+        self.assertEqual(expanded.markers, ((float(page.initial.value()), "x₀"),))
         self.click(overlay, "Cerrar")
 
         self.click(page, "Cargar ejemplo de Semana 13")
@@ -151,7 +154,7 @@ class QtRootTests(unittest.TestCase):
         self.assertEqual([tick for tick, major in _grid_ticks(-10, 10, 700) if major and -8 < tick < 8],
                          [tick for tick, major in _grid_ticks(-9.7, 10.3, 700) if major and -8 < tick < 8])
         original = page.plot._range
-        self.click(page, "+  Acercar")
+        self.click(page, "Acercar")
         self.assertLess(page.plot._range[1] - page.plot._range[0], original[1] - original[0])
         original = page.plot._range
         point = page.plot.rect().center()
@@ -239,7 +242,11 @@ class QtRootTests(unittest.TestCase):
         self.click(page, "Maximizar")
         overlay = self.window.findChild(PlotOverlay)
         self.assertTrue(overlay.isVisible())
-        self.assertTrue(all(not editor.web.isVisible() for editor in visible_editors))
+        self.assertFalse(page.editor.web.isVisible())
+        self.assertTrue(overlay.isAncestorOf(page.controls))
+        self.assertTrue(page.tolerance.web.isVisible())
+        self.assertTrue(all(not editor.web.isVisible() for editor in visible_editors
+                            if not page.controls.isAncestorOf(editor)))
         self.assertIs(overlay.window(), self.window)
         self.assertEqual(overlay.geometry(), self.window.rect())
         expanded = overlay.findChild(FunctionPlot)

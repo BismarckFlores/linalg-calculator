@@ -123,7 +123,11 @@ menú lateral comparten el SVG de identificación de cada herramienta.
 `RootBracketPage` organiza la gráfica antes de los controles y configura
 cada método mediante su fórmula, criterios y ejemplos. El motor toma las
 muestras que `FunctionPlot` dibuja con Qt. La gráfica conserva zoom,
-arrastre, restablecimiento y vista ampliada.
+arrastre, restablecimiento y vista ampliada. `PlotPanel` reúne el lienzo
+y los parámetros de resolución. Al maximizar, `PlotOverlay` aloja el
+mismo panel y lo devuelve a la página al cerrar. El lienzo ocupa toda
+el área de la ventana y el formulario pasa a una capa flotante que se
+puede plegar.
 
 `NewtonRaphsonPage` usa `FunctionPlot` en modo de selección de x.
 Un clic actualiza x₀ y su marca en ambas vistas. El arrastre sigue

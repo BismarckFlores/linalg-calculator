@@ -218,3 +218,23 @@ de un divisor continuo. Los banners y los accesos de Inicio usan el
 mismo SVG que el menú lateral para identificar cada herramienta.
 Se revisó Gauss en claro y oscuro y el encabezado de Newton–Raphson
 en los dos modos del paso a paso.
+
+### Escala de la gráfica
+
+La gráfica de raíces muestra el zoom respecto a la vista de referencia.
+Al restablecer vuelve a 1:1. La regla se ajusta al rango visible.
+Se comprobó en la vista pequeña y la ampliada,
+incluida la restauración de la vista al cerrar. Pasaron `check.py`
+y las 69 pruebas.
+
+### Controles integrados en la gráfica
+
+Bisección, Regula Falsi y Newton–Raphson alojan la gráfica y los
+parámetros de resolución en el mismo panel. La vista ampliada usa
+los mismos campos y conserva sus valores. Los botones de icono
+controlan el zoom, el restablecimiento y el cambio de vista.
+En la vista ampliada, el lienzo ocupa toda el área de la ventana y
+los parámetros flotan en un formulario plegable. Se corrigió el icono
+de restablecer el zoom. Se comprobó el cálculo desde la vista ampliada
+en los tres métodos y la navegación al resultado. Pasaron `check.py`
+y las 69 pruebas.

@@ -2,29 +2,79 @@
 
 import math
 
-from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, Signal
-from PySide6.QtGui import QColor, QPainter, QPen
+from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, QTimer, Signal
+from PySide6.QtGui import QColor, QKeySequence, QPainter, QPalette, QPen, QShortcut
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import QApplication, QFrame, QHBoxLayout, QSizePolicy, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QApplication, QFrame, QGridLayout, QPushButton, QScrollArea, QSizePolicy, QVBoxLayout, QWidget,
+)
 
 from core.numerical_methods.handlers.real_function import RealFunction, sample_function
 from core.numerical_methods.handlers.root_bracket import BracketResult
 from ui import theme_tokens as theme
 
 from desktop.core.number_display import scientific_notation
-from desktop.core.widgets import card, label, link
+from desktop.core.widgets import card, label
+
+
+def _major_step(span: float, pixels: float) -> float:
+    """Elige una distancia de la serie 1, 2, 5 según el zoom."""
+    target = max(math.ulp(0.0) * 10, span * min(1, 60 / pixels))
+    unit = 10.0 ** math.floor(math.log10(target))
+    return next((unit * factor for factor in (1, 2, 5) if unit * factor >= target), unit * 10)
 
 
 def _grid_ticks(low: float, high: float, pixels: float):
     """Marcas cartesianas ancladas en cero, con cinco divisiones por marca mayor."""
-    target = max(math.ulp(0.0) * 10, (high - low) * min(1, 60 / pixels))
-    unit = 10.0 ** math.floor(math.log10(target))
-    major = next((unit * factor for factor in (1, 2, 5) if unit * factor >= target), unit * 10)
+    major = _major_step(high - low, pixels)
     step = major / 5
     if not math.isfinite(step):
         return
     for index in range(math.ceil(low / step), math.floor(high / step) + 1):
         yield index * step, index % 5 == 0
+
+
+class PlotButton(QPushButton):
+    """Botón de icono con el color de texto del tema activo."""
+
+    def __init__(self, icon: str, name: str) -> None:
+        super().__init__()
+        self.setObjectName("plotButton")
+        self.setFixedSize(36, 36)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.set_symbol(icon, name)
+
+    def set_symbol(self, icon: str, name: str) -> None:
+        self._icon = icon
+        self.setAccessibleName(name)
+        self.setToolTip(name)
+        self.update()
+
+    def paintEvent(self, event) -> None:
+        super().paintEvent(event)
+        with QPainter(self) as painter:
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            painter.translate(self.width() / 2, self.height() / 2)
+            pen = QPen(self.palette().color(QPalette.ColorRole.ButtonText), 1.8)
+            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+            painter.setPen(pen)
+            if self._icon in ("plus", "minus"):
+                painter.drawLine(QPointF(-6, 0), QPointF(6, 0))
+                if self._icon == "plus":
+                    painter.drawLine(QPointF(0, -6), QPointF(0, 6))
+            elif self._icon == "reset":
+                painter.drawArc(QRectF(-6, -6, 12, 12), -120 * 16, 300 * 16)
+                painter.drawLine(QPointF(-6, 0), QPointF(-6, -5))
+                painter.drawLine(QPointF(-6, 0), QPointF(-1, 0))
+            elif self._icon == "close":
+                painter.drawLine(QPointF(-5, -5), QPointF(5, 5))
+                painter.drawLine(QPointF(-5, 5), QPointF(5, -5))
+            else:
+                for x in (-1, 1):
+                    for y in (-1, 1):
+                        corner = QPointF(6 * x, 6 * y)
+                        painter.drawLine(corner, QPointF(2 * x, 6 * y))
+                        painter.drawLine(corner, QPointF(6 * x, 2 * y))
 
 
 class FunctionPlot(QWidget):
@@ -40,9 +90,25 @@ class FunctionPlot(QWidget):
         self.markers: tuple[tuple[float, str], ...] = ()
         self.dark = False
         self._view = (-10.0, 10.0, -1.0, 1.0)
+        self._reference_span = self._view[1] - self._view[0]
         self._drag: tuple[QPointF, tuple[float, float, float, float]] | None = None
         self._panning = False
         self._samples: tuple[tuple[float, float | None], ...] = ()
+
+        buttons = QVBoxLayout(self)
+        buttons.setContentsMargins(0, 0, 8, 32)
+        buttons.setSpacing(4)
+        buttons.addStretch()
+        for icon, name, callback in (
+            ("plus", "Acercar", lambda: self.zoom(0.8)),
+            ("minus", "Alejar", lambda: self.zoom(1.25)),
+            ("reset", "Restablecer", self.reset),
+        ):
+            button = PlotButton(icon, name)
+            button.clicked.connect(callback)
+            buttons.addWidget(button, alignment=Qt.AlignmentFlag.AlignRight)
+        self.expand_button = PlotButton("expand", "Maximizar")
+        buttons.addWidget(self.expand_button, alignment=Qt.AlignmentFlag.AlignRight)
 
     def set_function(self, function: RealFunction | None) -> None:
         self.function = function
@@ -64,6 +130,8 @@ class FunctionPlot(QWidget):
         a, b = (self.result.initial_a, self.result.initial_b) if self.result else (-10.0, 10.0)
         self._samples = ()
         self._fit_view(a, b, 0.0)
+        left, right = self._range
+        self._reference_span = right - left
 
     def _fit_view(self, left: float, right: float, center_y: float) -> None:
         rect = self._plot_rect()
@@ -88,53 +156,8 @@ class FunctionPlot(QWidget):
         self.markers = markers
         self.update()
 
-    def controls(self, text: str, callback) -> QHBoxLayout:
-        controls = QHBoxLayout()
-        for name, action in (
-            ("+  Acercar", lambda: self.zoom(0.8)),
-            ("−  Alejar", lambda: self.zoom(1.25)),
-            ("Restablecer", self.reset),
-        ):
-            button = link(name)
-            button.clicked.connect(action)
-            controls.addWidget(button)
-        controls.addStretch()
-        button = link(text)
-        button.clicked.connect(callback)
-        controls.addWidget(button)
-        return controls
-
-    def expand(self) -> None:
-        if self.function is None:
-            return
-        overlay = PlotOverlay(self.window())
-        expanded = FunctionPlot(select_x=self.select_x)
-        expanded.dark = self.dark
-        expanded.function = self.function
-        expanded.result = self.result
-        expanded.markers = self.markers
-        expanded._view = self._view
-        expanded._samples = self._samples
-
-        def select(x: float) -> None:
-            self.x_selected.emit(x)
-            expanded.set_markers(self.markers)
-
-        expanded.x_selected.connect(select)
-
-        def restore_view() -> None:
-            left, right, bottom, top = expanded._view
-            self._fit_view(left, right, bottom + (top - bottom) / 2)
-
-        overlay.closing.connect(restore_view)
-        overlay.panel_layout.addLayout(expanded.controls("Cerrar", overlay.close))
-        overlay.panel_layout.addWidget(expanded, 1)
-        overlay.show()
-        overlay.raise_()
-        overlay.setFocus()
-
     def _plot_rect(self) -> QRectF:
-        return QRectF(64, 18, self.width() - 84, self.height() - 52)
+        return QRectF(64, 48, self.width() - 116, self.height() - 82)
 
     def zoom(self, factor: float, anchor: QPointF | None = None) -> None:
         rect = self._plot_rect()
@@ -195,6 +218,29 @@ class FunctionPlot(QWidget):
                 low, high = self._range
                 self.x_selected.emit(low + (event.position().x() - rect.left()) / rect.width() * (high - low))
 
+    def _draw_scale(self, painter: QPainter, rect: QRectF, ink: QColor) -> None:
+        """Dibuja en la cabecera una distancia medida en unidades de la gráfica."""
+        painter.setPen(ink)
+        low, high = self._range
+        span = high - low
+        ratio = scientific_notation(f"{self._reference_span / span:.4g}")
+        painter.drawText(QPointF(12, 23), f"Escala {ratio}:1")
+        units = _major_step(span, rect.width())
+        pixels = units / span * rect.width()
+        if not math.isfinite(pixels) or pixels > rect.width():
+            return
+        right = rect.right() - 2
+        left = right - pixels
+        y = 27
+        painter.drawLine(QPointF(left, y), QPointF(right, y))
+        for index in range(6):
+            x = left + pixels * index / 5
+            tick = 5 if index in (0, 5) else 3
+            painter.drawLine(QPointF(x, y - tick), QPointF(x, y + tick))
+        caption = scientific_notation(f"{units:.6g}") + " u"
+        width = max(pixels, painter.fontMetrics().horizontalAdvance(caption) + 4)
+        painter.drawText(QRectF(right - width, 2, width, 18), Qt.AlignmentFlag.AlignCenter, caption)
+
     def paintEvent(self, event) -> None:
         if not self._samples:
             return
@@ -233,8 +279,9 @@ class FunctionPlot(QWidget):
                 painter.drawText(QRectF(0, py - 9, rect.left() - 7, 18),
                                  Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, scientific_notation(f"{y:.6g}"))
 
+        self._draw_scale(painter, rect, ink)
         painter.setPen(ink)
-        painter.drawText(QPointF(rect.left(), 13), "f(x)")
+        painter.drawText(QPointF(rect.left(), rect.top() - 5), "f(x)")
         painter.drawText(QPointF(rect.right(), self.height() - 4), "x")
         if bottom <= 0 <= top:
             painter.drawLine(position(low, 0), position(high, 0))
@@ -279,13 +326,115 @@ class FunctionPlot(QWidget):
         return math.isclose(value, expected, abs_tol=span, rel_tol=1e-5)
 
 
+class PlotPanel(QWidget):
+    """La misma gráfica y sus campos se alojan en las dos vistas."""
+
+    def __init__(self, plot: FunctionPlot, hint: str) -> None:
+        super().__init__()
+        self.plot = plot
+        self._overlay: PlotOverlay | None = None
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        panel, self._content = card()
+        panel.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        self._heading = label("Gráfica de la función", "heading")
+        self._hint = label(hint, "muted")
+        self._content.addWidget(self._heading)
+        surface = QWidget()
+        self._layers = QGridLayout(surface)
+        self._layers.setContentsMargins(0, 0, 0, 0)
+        self._layers.addWidget(plot, 0, 0)
+        self._content.addWidget(surface, 1)
+        self._content.addWidget(self._hint)
+
+        self._floating = QWidget()
+        self._floating.setMaximumWidth(560)
+        self._floating_layout = QVBoxLayout(self._floating)
+        self._floating_layout.setContentsMargins(14, 52, 0, 0)
+        self._floating_layout.setSpacing(6)
+        self._toggle_fields = QPushButton(checkable=True)
+        self._toggle_fields.setObjectName("plotParametersToggle")
+        self._toggle_fields.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._toggle_fields.toggled.connect(self._show_floating_fields)
+        self._floating_layout.addWidget(self._toggle_fields, alignment=Qt.AlignmentFlag.AlignLeft)
+        self._layers.addWidget(self._floating, 0, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        self._floating.hide()
+        layout.addWidget(panel)
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
+        self.plot.expand_button.clicked.connect(self._toggle_expanded)
+
+    def parameters(self, title: str) -> tuple[QFrame, QVBoxLayout]:
+        self._parameters = QFrame()
+        self._parameters.setObjectName("plotParameters")
+        self._parameters_title = title
+        self._parameters_heading = label(title, "heading")
+        layout = QVBoxLayout(self._parameters)
+        layout.setContentsMargins(14, 10, 14, 10)
+        layout.setSpacing(6)
+        layout.addWidget(self._parameters_heading)
+        self._content.addWidget(self._parameters)
+        return self._parameters, layout
+
+    def _show_floating_fields(self, shown: bool) -> None:
+        self._toggle_fields.setText(f"{self._parameters_title}  {'▴' if shown else '▾'}")
+        self._parameters.setVisible(shown)
+
+    def _set_expanded(self, expanded: bool) -> None:
+        policy = QSizePolicy.Policy.Expanding if expanded else QSizePolicy.Policy.Maximum
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, policy)
+        margins = (0, 0, 0, 0) if expanded else (24, 22, 24, 22)
+        self._content.setContentsMargins(*margins)
+        self._heading.setVisible(not expanded)
+        self._hint.setVisible(not expanded)
+        self._parameters_heading.setVisible(not expanded)
+        if expanded:
+            self._floating_layout.addWidget(self._parameters)
+            self._floating.show()
+            self._floating.raise_()
+            self._toggle_fields.setChecked(True)
+            self._show_floating_fields(True)
+        else:
+            self._content.addWidget(self._parameters)
+            self._parameters.show()
+            self._floating.hide()
+        self.plot.expand_button.set_symbol(
+            "close" if expanded else "expand", "Cerrar" if expanded else "Maximizar",
+        )
+
+    def _toggle_expanded(self) -> None:
+        if self._overlay is not None:
+            self._overlay.close()
+        elif self.plot.function is not None:
+            self._overlay = PlotOverlay(self.window(), self)
+            self._set_expanded(True)
+            self._overlay.show()
+            self._overlay.raise_()
+            self._overlay.setFocus()
+
+    def finish(self, result: QWidget) -> None:
+        """Muestra el resultado debajo del panel al calcular desde la vista ampliada."""
+        if self._overlay is None:
+            return
+        self._overlay.close()
+        parent = self.parentWidget()
+        while parent is not None and not isinstance(parent, QScrollArea):
+            parent = parent.parentWidget()
+        if parent is not None:
+            QTimer.singleShot(0, result, lambda: parent.ensureWidgetVisible(result, 0, 12))
+
+    def restore(self) -> None:
+        self._overlay = None
+        self._set_expanded(False)
+
+
 class PlotOverlay(QFrame):
-    """Panel ampliado sobre el área cliente de la ventana."""
+    """Amplía el panel sobre la ventana y devuelve los mismos controles al cerrar."""
 
-    closing = Signal()
-
-    def __init__(self, host: QWidget) -> None:
+    def __init__(self, host: QWidget, panel: PlotPanel) -> None:
         super().__init__(host)
+        self._panel = panel
+        self._original_layout = panel.parentWidget().layout()
+        self._original_index = self._original_layout.indexOf(panel)
         self._previous_focus = QApplication.focusWidget()
         self.setObjectName("plotOverlay")
         self.setStyleSheet("QFrame#plotOverlay { background: rgba(0, 0, 0, 155); }")
@@ -293,17 +442,21 @@ class PlotOverlay(QFrame):
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setGeometry(host.rect())
         host.installEventFilter(self)
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(30, 26, 30, 26)
-        panel, self.panel_layout = card()
-        panel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.panel_layout.addWidget(label("Gráfica de la función", "heading"))
-        layout.addWidget(panel)
+        escape = QShortcut(QKeySequence(Qt.Key.Key_Escape), self)
+        escape.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+        escape.activated.connect(self.close)
+
         self._visible_web_views = [
-            view for view in host.findChildren(QWebEngineView) if view.isVisible()
+            view for view in host.findChildren(QWebEngineView)
+            if view.isVisible() and not panel.isAncestorOf(view)
         ]
         for view in self._visible_web_views:
             view.hide()
+
+        self._layout = QVBoxLayout(self)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+        self._layout.addWidget(panel, 1)
+        panel.show()
 
     def eventFilter(self, watched, event) -> bool:
         if watched is self.parentWidget() and event.type() == QEvent.Type.Resize:
@@ -319,7 +472,9 @@ class PlotOverlay(QFrame):
 
     def closeEvent(self, event) -> None:
         self.parentWidget().removeEventFilter(self)
-        self.closing.emit()
+        self._original_layout.insertWidget(self._original_index, self._panel)
+        self._panel.restore()
+        self._panel.show()
         super().closeEvent(event)
         for view in self._visible_web_views:
             view.show()

@@ -12,7 +12,7 @@ from desktop.core.number_display import scientific_notation
 from desktop.core.widgets import SegmentedControl, Stepper, action, card, label, page_header
 
 from .core.iteration_table import IterationTable
-from .core.plot import FunctionPlot
+from .core.plot import FunctionPlot, PlotPanel
 
 
 TITLE = "Newton–Raphson"
@@ -54,21 +54,15 @@ class NewtonRaphsonPage(QWidget):
         fields.addWidget(self.graph_error)
         layout.addWidget(inputs)
 
-        self.graph_card, graph_layout = card()
-        graph_layout.addWidget(label("Gráfica de la función", "heading"))
         self.plot = FunctionPlot(select_x=True)
         self.plot.x_selected.connect(self._select_initial)
-        graph_layout.addLayout(self.plot.controls("Maximizar", self.plot.expand))
-        graph_layout.addWidget(self.plot)
-        graph_layout.addWidget(label(
-            "Haz clic en la gráfica para elegir x₀. Arrastra para mover la vista y usa la rueda para ajustar el zoom.",
-            "muted",
-        ))
+        self.graph_card = PlotPanel(
+            self.plot, "Haz clic en la gráfica para elegir x₀. Arrastra para mover la vista.",
+        )
         layout.addWidget(self.graph_card)
         self.graph_card.hide()
 
-        self.controls, control_layout = card()
-        control_layout.addWidget(label("Aproximación inicial", "heading"))
+        self.controls, control_layout = self.graph_card.parameters("Aproximación inicial")
         self.initial = MathInput("", "Aproximación inicial x₀", "number")
         self.tolerance = MathInput(TOLERANCE, "Tolerancia E", "number")
         self.limit = Stepper("Máximo de iteraciones", 1, 1000, 100, editable=True)
@@ -95,8 +89,6 @@ class NewtonRaphsonPage(QWidget):
         self.solve_error = label("", "inputError")
         self.solve_error.hide()
         control_layout.addWidget(self.solve_error)
-        layout.addWidget(self.controls)
-        self.controls.hide()
 
         self.result_card = QWidget()
         results = QVBoxLayout(self.result_card)
@@ -129,7 +121,6 @@ class NewtonRaphsonPage(QWidget):
         self.plot.set_function(None)
         self.graph_error.hide()
         self.graph_card.hide()
-        self.controls.hide()
         self._clear_result()
 
     def _clear_inputs(self) -> None:
@@ -156,7 +147,6 @@ class NewtonRaphsonPage(QWidget):
         self.plot.set_function(function)
         self._mark_initial()
         self.graph_card.show()
-        self.controls.show()
 
     def _select_initial(self, x: float) -> None:
         self.initial.set_value(f"{x:.12g}")
@@ -199,6 +189,7 @@ class NewtonRaphsonPage(QWidget):
         self.procedure_card.setVisible(bool(result.steps))
         self.table_card.setVisible(bool(result.steps))
         self.result_card.show()
+        self.graph_card.finish(self.result_card)
 
     @staticmethod
     def _step_text(step: NewtonStep) -> str:

@@ -201,8 +201,7 @@ class CalculatorWindow(QMainWindow):
         self._dark = dark
         self.workspace.dark = dark
         self.setStyleSheet(stylesheet(dark))
-        for page in self.pages.values():
-            self._apply_page_theme(page)
+        self._apply_page_theme(self)
 
     def _apply_page_theme(self, page: QWidget) -> None:
         for field in page.findChildren(MathInput):

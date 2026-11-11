@@ -3,7 +3,7 @@
 from collections.abc import Callable
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QGridLayout, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QVBoxLayout, QWidget
 
 from core.numerical_methods.handlers.real_function import RealFunction
 from core.numerical_methods.handlers.root_bracket import BracketResult, BracketStep, RootCriterion, RootStop
@@ -14,7 +14,7 @@ from desktop.core.number_display import scientific_notation
 from desktop.core.widgets import SegmentedControl, Stepper, action, card, label, page_header
 
 from .iteration_table import IterationTable
-from .plot import FunctionPlot
+from .plot import FunctionPlot, PlotPanel
 
 
 CRITERIA = {
@@ -65,51 +65,49 @@ class RootBracketPage(QWidget):
         fields.addWidget(self.graph_error)
         layout.addWidget(input_card)
 
-        self.graph_card, graph_layout = card()
-        graph_layout.addWidget(label("Gráfica de la función", "heading"))
         self.plot = FunctionPlot()
-        graph_layout.addLayout(self.plot.controls("Maximizar", self.plot.expand))
-        graph_layout.addWidget(self.plot)
-        graph_layout.addWidget(label("Usa la rueda para acercar o alejar. Arrastra para mover la vista.", "muted"))
+        self.graph_card = PlotPanel(self.plot, "Usa la rueda para cambiar el zoom y arrastra para mover la vista.")
         layout.addWidget(self.graph_card)
         self.graph_card.hide()
 
-        self.controls, control_layout = card()
-        control_layout.addWidget(label("Intervalo de resolución", "heading"))
+        self.controls, control_layout = self.graph_card.parameters("Intervalo de resolución")
         self.a = MathInput(a, "Extremo inferior a", "number")
         self.b = MathInput(b, "Extremo superior b", "number")
         self.tolerance = MathInput(tolerance, "Tolerancia E", "number")
         self.limit = Stepper("Máximo de iteraciones", 1, 1000, 100, editable=True)
         form = QGridLayout()
-        form.setHorizontalSpacing(16)
-        for index, field in enumerate((self.a, self.b, self.tolerance)):
-            row, column = divmod(index, 2)
-            form.addWidget(field, row, column)
+        form.setHorizontalSpacing(12)
+        for column, field in enumerate((self.a, self.b, self.tolerance)):
+            form.addWidget(field, 0, column)
             field.changed.connect(self._clear_result)
-        limit_field = QVBoxLayout()
-        limit_field.setSpacing(6)
-        limit_field.addWidget(label("Máximo de iteraciones", "caption"))
-        limit_field.addWidget(self.limit, alignment=Qt.AlignmentFlag.AlignLeft)
-        form.addLayout(limit_field, 1, 1)
         control_layout.addLayout(form)
+
         self.criterion = SegmentedControl(*(CRITERIA[value] for value in self.criteria))
         self.criterion.setAccessibleName("Criterio de parada")
         self.criterion.currentIndexChanged.connect(self._clear_result)
         self.limit.valueChanged.connect(self._clear_result)
-        control_layout.addWidget(label("Criterio de parada", "caption"))
-        control_layout.addWidget(self.criterion)
-        control_layout.addWidget(label(
-            "Elige un intervalo donde la función sea continua y cambie de signo. "
-            "Para el error relativo, 1 representa 1 %.", "muted",
-        ))
+        options = QHBoxLayout()
+        for title, widget in (("Criterio de parada", self.criterion), ("Máximo de iteraciones", self.limit)):
+            column = QVBoxLayout()
+            column.setSpacing(4)
+            column.addWidget(label(title, "caption"))
+            column.addWidget(widget, alignment=Qt.AlignmentFlag.AlignLeft)
+            options.addLayout(column)
+        options.addStretch()
+        control_layout.addLayout(options)
+
+        footer = QHBoxLayout()
+        footer.addWidget(label(
+            "Elige un intervalo donde f(x) sea continua y cambie de signo. Para el error relativo, 1 representa 1 %.",
+            "muted",
+        ), 1)
         calculate = action("Calcular raíz")
         calculate.clicked.connect(self._calculate)
-        control_layout.addWidget(calculate, alignment=Qt.AlignmentFlag.AlignRight)
+        footer.addWidget(calculate)
+        control_layout.addLayout(footer)
         self.solve_error = label("", "inputError")
         self.solve_error.hide()
         control_layout.addWidget(self.solve_error)
-        layout.addWidget(self.controls)
-        self.controls.hide()
 
         self.result_card = QWidget()
         results = QVBoxLayout(self.result_card)
@@ -152,7 +150,6 @@ class RootBracketPage(QWidget):
         self.plot.set_function(None)
         self.graph_error.hide()
         self.graph_card.hide()
-        self.controls.hide()
         self._clear_result()
 
     def _clear_inputs(self) -> None:
@@ -179,7 +176,6 @@ class RootBracketPage(QWidget):
         self.editor.hide_keyboard()
         self.plot.set_function(self._function)
         self.graph_card.show()
-        self.controls.show()
 
     def _calculate(self) -> None:
         if self._function is None:
@@ -222,6 +218,7 @@ class RootBracketPage(QWidget):
         self.walk.set_steps(steps)
         self.iterations.select_iteration(1)
         self.result_card.show()
+        self.graph_card.finish(self.result_card)
 
     def _step_text(self, step: BracketStep, count: int) -> str:
         detail = (

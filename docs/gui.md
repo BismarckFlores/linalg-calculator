@@ -105,10 +105,18 @@ la base del logaritmo. Pulsa **Tab** para pasar al argumento. El botón
 **|x|** inserta las barras de valor absoluto. El teclado también incluye
 las seis funciones trigonométricas y sus inversas. El editor acepta el
 exponente sobre el nombre de la función, como en `cos^2(2x)`.
-**Graficar función** muestra los
-controles de intervalo y tolerancia. El zoom con la rueda y el arrastre
-permiten inspeccionar el intervalo. **Maximizar** amplía la gráfica sobre
-la misma ventana. Consulta [los métodos numéricos](bisection.md) para ver
+**Graficar función** integra los parámetros de resolución debajo de la
+gráfica. En el borde derecho del lienzo están los iconos para acercar,
+alejar, restablecer y maximizar. También puedes usar la rueda para hacer
+zoom y arrastrar para mover la vista. La escala de zoom parte de **1:1**
+y cambia al acercar o alejar. **Restablecer** vuelve a **1:1**.
+La regla superior muestra cuántas unidades representa su longitud.
+**Maximizar** extiende el lienzo hasta los bordes de la ventana. Los
+parámetros flotan arriba a la izquierda y conservan sus valores. Pulsa
+el encabezado del formulario para plegarlo o mostrarlo. Pulsa **Esc**
+o el icono de cierre para volver. Si calculas
+desde la vista ampliada, esta se cierra al obtener el resultado y la
+página se desplaza hasta él. Consulta [los métodos numéricos](bisection.md) para ver
 la sintaxis y los criterios.
 
 MathLive 0.111.4, sus fuentes y los avisos de licencia se cargan desde

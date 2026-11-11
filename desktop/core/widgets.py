@@ -498,6 +498,22 @@ def stylesheet(dark: bool) -> str:
     QFrame#mathKeyboard QPushButton[mathRole="symbol"]:hover { background: %(hover)s; }
     QFrame#mathKeyboard QPushButton:pressed { border: 1px solid %(blue)s; }
     QPushButton:disabled { color: %(muted)s; }
+    QFrame#plotParameters {
+        border: 1px solid %(line)s; border-radius: 18px; background: %(card)s;
+    }
+    QPushButton#plotParametersToggle {
+        background: %(card)s; color: %(text)s; border: 1px solid %(line)s;
+        border-radius: 18px; padding: 8px 16px;
+    }
+    QPushButton#plotParametersToggle:hover { background: %(hover)s; }
+    QPushButton#plotParametersToggle:focus { border-color: %(blue)s; }
+    QPushButton#plotButton {
+        padding: 0; min-width: 34px; min-height: 34px;
+        border: 1px solid %(line)s; border-radius: 18px;
+        background: %(field)s; color: %(text)s;
+    }
+    QPushButton#plotButton:hover { background: %(hover)s; }
+    QPushButton#plotButton:focus { border-color: %(blue)s; }
     QPushButton#link { background: transparent; color: %(blue)s; }
     QPushButton#link:hover { background: %(field)s; }
     QPushButton#link:disabled { color: %(faint)s; }
