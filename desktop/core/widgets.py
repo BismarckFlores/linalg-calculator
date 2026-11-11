@@ -15,13 +15,15 @@ from PySide6.QtWidgets import (
 
 from ui import theme_tokens as theme
 
+from .number_display import scientific_notation
+
 from .assets import ASSETS
 
 WORKSPACE_TEXTURE = ASSETS / "workspace-texture.svg"
 PAGE_ILLUSTRATIONS = {
     "⌂": "home", "▦": "gauss", "▧": "echelon", "⊞": "operations", "⁻¹": "inverse",
     "LU": "lu", "|A|": "determinant", "↗": "vectors", "⇄": "bases", "Ⅻ": "roman",
-    "½": "bisection", "RF": "regula-falsi", "∫": "calculus",
+    "½": "bisection", "RF": "regula-falsi", "∫": "calculus", "NR": "newton-raphson",
 }
 
 
@@ -117,9 +119,9 @@ class ResultTable(QTableWidget):
                 display = "—" if value is None else str(value)
                 if isinstance(value, float):
                     display = f"{value:.10g}" if decimals is None else f"{value:.{decimals}f}"
-                item = QTableWidgetItem(display)
+                item = QTableWidgetItem(scientific_notation(display) if isinstance(value, float) else display)
                 if value is not None:
-                    item.setToolTip(str(value))
+                    item.setToolTip(scientific_notation(str(value)) if isinstance(value, float) else str(value))
                 self.setItem(i, j, item)
 
 
@@ -141,13 +143,6 @@ def link(text: str) -> QPushButton:
     button = QPushButton(text)
     button.setObjectName("link")
     return button
-
-
-def badge(glyph: str, size: int = 32, style: str = "glyph") -> QLabel:
-    icon = label(glyph, style)
-    icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    icon.setFixedSize(size, size)
-    return icon
 
 
 @cache
@@ -245,14 +240,13 @@ def page_header(glyph: str, title: str, subtitle: str, *, shortcut: QPushButton 
     if glyph == "⌂":
         copy.addWidget(label("MTM0120 · UNIVERSIDAD AMERICANA", "bannerKicker"))
     heading = label(title, "title")
-    if shortcut is None:
-        row = QHBoxLayout()
-        row.setSpacing(12)
-        row.addWidget(badge(glyph, 36))
-        row.addWidget(heading, 1)
-        copy.addLayout(row)
-    else:
-        copy.addWidget(heading)
+    row = QHBoxLayout()
+    row.setSpacing(10)
+    icon = NavigationIcon(PAGE_ILLUSTRATIONS.get(glyph, "home").replace("-", "_"))
+    icon.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+    row.addWidget(icon)
+    row.addWidget(heading, 1)
+    copy.addLayout(row)
     copy.addWidget(label(subtitle, "muted"))
     if shortcut is not None:
         copy.addWidget(shortcut, alignment=Qt.AlignmentFlag.AlignLeft)
@@ -447,10 +441,6 @@ def stylesheet(dark: bool) -> str:
     QLabel#group, QLabel#course { color: %(faint)s; }
     QLabel#group, QLabel#count { font-size: 11px; font-weight: 700; }
     QLabel#count { color: %(muted)s; background: %(field)s; border-radius: 10px; padding: 6px 16px; }
-    QLabel#glyph {
-        background: %(soft)s; color: %(blue)s; border-radius: 10px;
-        font-size: 15px; font-weight: 700;
-    }
     QLabel#navigationIcon, QLabel#activeNavigationIcon { border-radius: 10px; }
     QLabel#navigationIcon { background: %(navIconSurface)s; color: %(navIcon)s; }
     QLabel#activeNavigationIcon { background: #eaf2ff; color: #164eab; }
@@ -458,7 +448,6 @@ def stylesheet(dark: bool) -> str:
     QLabel#inputError { color: %(danger)s; }
     QLabel#advice { background: %(field)s; border-radius: 14px; padding: 12px 16px; }
     QLabel#resultFallback { font-family: "%(mono)s"; }
-    QLabel#stepTitle { font-family: "%(mono)s"; background: %(field)s; border-radius: 12px; padding: 13px 16px; }
     QLineEdit, QPlainTextEdit, QTableWidget {
         background: %(field)s; border: 1px solid %(line)s;
         border-radius: %(fieldRadius)dpx; padding: 9px;

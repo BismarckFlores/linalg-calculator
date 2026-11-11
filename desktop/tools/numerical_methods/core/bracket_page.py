@@ -3,15 +3,17 @@
 from collections.abc import Callable
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QGridLayout, QVBoxLayout, QWidget
 
 from core.numerical_methods.handlers.real_function import RealFunction
 from core.numerical_methods.handlers.root_bracket import BracketResult, BracketStep, RootCriterion, RootStop
 
 from desktop.core.forms import StepView, input_actions
 from desktop.core.math_input import MathInput
-from desktop.core.widgets import ResultTable, SegmentedControl, Stepper, action, card, label, page_header
+from desktop.core.number_display import scientific_notation
+from desktop.core.widgets import SegmentedControl, Stepper, action, card, label, page_header
 
+from .iteration_table import IterationTable
 from .plot import FunctionPlot
 
 
@@ -21,7 +23,6 @@ CRITERIA = {
     RootCriterion.RESIDUAL: "Residuo |f(c)|",
 }
 TABLE_HEADERS = ("i", "a", "b", "c", "f(a)", "f(b)", "f(c)", "Ancho", "Error %")
-TABLE_PAGE_SIZE = 15
 
 
 class RootBracketPage(QWidget):
@@ -119,33 +120,19 @@ class RootBracketPage(QWidget):
         result_layout.addWidget(label("Resultado", "heading"))
         self.answer = MathInput("", "", "output")
         result_layout.addWidget(self.answer)
-        self.summary = label("", "muted")
-        result_layout.addWidget(self.summary)
-        self.bounds = label("", "muted")
-        result_layout.addWidget(self.bounds)
         self.walk = StepView("Iteración")
-        self.walk.index.valueChanged.connect(self._select_iteration)
         procedure_card, procedure_layout = card()
         procedure_layout.addWidget(self.walk)
         results.addWidget(procedure_card)
         table_card, table_layout = card()
         results.addWidget(table_card)
-        table_layout.addWidget(label("Tabla de iteraciones", "heading"))
-        table_controls = QHBoxLayout()
-        self.format = SegmentedControl("Automático", "Decimal")
-        self.format.setAccessibleName("Formato numérico")
-        self.decimals = Stepper("Decimales", 0, 17, 5)
-        self.table_page = Stepper("Página de la tabla", 1, 1, 1)
-        for widget in (self.format, self.decimals, label("Página", "caption"), self.table_page):
-            table_controls.addWidget(widget)
-        table_controls.addStretch()
-        self.decimals.hide()
-        self.format.currentIndexChanged.connect(self._fill_table)
-        self.decimals.valueChanged.connect(self._fill_table)
-        self.table_page.valueChanged.connect(self._fill_table)
-        table_layout.addLayout(table_controls)
-        self.table = ResultTable()
-        table_layout.addWidget(self.table)
+        self.iterations = IterationTable(TABLE_HEADERS)
+        self.table = self.iterations.table
+        self.format = self.iterations.format
+        self.decimals = self.iterations.decimals
+        self.table_page = self.iterations.page
+        self.walk.index.valueChanged.connect(self.iterations.select_iteration)
+        table_layout.addWidget(self.iterations)
         layout.addWidget(self.result_card)
         self.result_card.hide()
         layout.addStretch()
@@ -186,7 +173,7 @@ class RootBracketPage(QWidget):
         try:
             self._function = RealFunction(self.editor.value())
         except ValueError as problem:
-            self.graph_error.setText(str(problem))
+            self.graph_error.setText(scientific_notation(str(problem)))
             self.graph_error.show()
             return
         self.editor.hide_keyboard()
@@ -205,7 +192,7 @@ class RootBracketPage(QWidget):
                 max_iterations=self.limit.value(),
             )
         except ValueError as problem:
-            self.solve_error.setText(str(problem))
+            self.solve_error.setText(scientific_notation(str(problem)))
             self.solve_error.show()
             return
         reason = {
@@ -214,27 +201,26 @@ class RootBracketPage(QWidget):
             RootStop.LIMIT: "Sin convergencia: se alcanzó el máximo de iteraciones.",
             RootStop.STAGNATION: "Sin convergencia: la aproximación coincide con un extremo por redondeo.",
         }[result.stop]
-        self.answer.set_value(f"x ≈ {result.root:.12g}\nf({result.root:.12g}) ≈ {result.value:.8g}")
-        self.summary.setText(
-            f"Iteraciones: {len(result.steps)} · {CRITERIA[result.criterion]} < {result.tolerance:g}\n"
-            f"|f(c)| = {abs(result.value):.8g}\n{reason}"
-        )
         relative = result.steps[-1].relative_error if result.steps else None
         relative_text = "—" if relative is None else f"{relative:.10g} %"
-        self.bounds.setText(
-            f"Intervalo final: [{result.a:.12g}, {result.b:.12g}] · "
+        self.answer.set_value(
+            f"x ≈ {result.root:.12g}\nf({result.root:.12g}) ≈ {result.value:.8g}\n"
+            f"Iteraciones: {len(result.steps)} · {CRITERIA[result.criterion]} < {result.tolerance:g}\n"
+            f"|f(c)| = {abs(result.value):.8g}\n{reason}\n"
+            f"Intervalo final: [{result.a:.12g}, {result.b:.12g}]\n"
             f"Cota en x si hay continuidad: {result.bound:.10g}\n"
             f"Cambio relativo: {relative_text}"
         )
         self.plot.show_result(result)
-        self.table_page.setRange(1, max(1, (len(result.steps) + TABLE_PAGE_SIZE - 1) // TABLE_PAGE_SIZE))
-        self.table_page.setValue(1)
-        self._fill_table()
+        self.iterations.set_rows([
+            (step.index, step.a, step.b, step.c, step.fa, step.fb, step.fc, step.width, step.relative_error)
+            for step in result.steps
+        ])
         steps = tuple(self._step_text(step, len(result.steps)) for step in result.steps)
         if not steps:
-            steps = (f"Un extremo inicial satisface f({result.root:.9g}) = 0.",)
+            steps = (f"Un extremo inicial es raíz.\nf({result.root:.9g}) = 0",)
         self.walk.set_steps(steps)
-        self._select_iteration(1)
+        self.iterations.select_iteration(1)
         self.result_card.show()
 
     def _step_text(self, step: BracketStep, count: int) -> str:
@@ -250,22 +236,3 @@ class RootBracketPage(QWidget):
         else:
             detail += "\nEl método se detiene en esta iteración."
         return detail
-
-    def _select_iteration(self, index: int) -> None:
-        result = self.plot.result
-        if result is not None and result.steps:
-            self.table_page.setValue((index - 1) // TABLE_PAGE_SIZE + 1)
-            self.table.selectRow((index - 1) % TABLE_PAGE_SIZE)
-
-    def _fill_table(self) -> None:
-        decimal = self.format.currentIndex() == 1
-        self.decimals.setVisible(decimal)
-        result = self.plot.result
-        if result is None:
-            return
-        offset = (self.table_page.value() - 1) * TABLE_PAGE_SIZE
-        rows = [
-            (step.index, step.a, step.b, step.c, step.fa, step.fb, step.fc, step.width, step.relative_error)
-            for step in result.steps[offset:offset + TABLE_PAGE_SIZE]
-        ]
-        self.table.fill(TABLE_HEADERS, rows, decimals=self.decimals.value() if decimal else None)

@@ -24,6 +24,9 @@ class RootStop(Enum):
     TOLERANCE = "tolerance"
     LIMIT = "limit"
     STAGNATION = "stagnation"
+    ZERO_DERIVATIVE = "zero_derivative"
+    EVALUATION_ERROR = "evaluation_error"
+    NONFINITE_STEP = "nonfinite_step"
 
 
 def read_root_number(value: NumberLike) -> float:

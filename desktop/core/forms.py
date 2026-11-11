@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QBoxLayout, QCheckBox, QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit, QPushButton, QVBoxLayout, QWidget,
 )
 
+from .number_display import scientific_notation
 from .math_input import MathInput
 from .widgets import ResultTable, SegmentedControl, Stepper, action, card, label, link, page_header
 
@@ -83,6 +84,7 @@ class StepView(QWidget):
     def __init__(self, caption: str = "Paso", *, title: str = "Paso a paso") -> None:
         super().__init__()
         self.steps: tuple[str, ...] = ()
+        self.caption = caption
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         heading = QHBoxLayout()
@@ -90,8 +92,6 @@ class StepView(QWidget):
         self.total = label("", "count")
         heading.addWidget(self.total)
         layout.addLayout(heading)
-        self.step_title = label("", "stepTitle")
-        layout.addWidget(self.step_title)
         self.output = MathInput("", "", "output")
         layout.addWidget(self.output)
         self.dots = QWidget()
@@ -148,18 +148,9 @@ class StepView(QWidget):
             dot.setVisible(index <= count)
             dot.setText("◉" if index == current else "○")
         self.all_steps.setText("Ver un paso ▴" if show_all else "Ver todos los pasos ▾")
-        if show_all:
-            self.step_title.hide()
-            self.output.set_value("\n\n".join(
-                f"Paso {i}\n{step}" for i, step in enumerate(self.steps, 1)
-            ))
-        else:
-            step = self.steps[current - 1]
-            title, separator, body = step.partition("\n")
-            has_heading = body.startswith("[ ") and bool(separator)
-            self.step_title.setVisible(has_heading)
-            self.step_title.setText(title if has_heading else "")
-            self.output.set_value(body if has_heading else step)
+        visible = enumerate(self.steps, 1) if show_all else ((current, self.steps[current - 1]),)
+        self.output.set_value("\n\n".join(f"{self.caption} {index}\n{step}" for index, step in visible))
+
 
 
 class ToolPage(QWidget):
@@ -272,7 +263,7 @@ class ToolPage(QWidget):
         try:
             result = self._solve()
         except (TypeError, ValueError, ArithmeticError) as problem:
-            self.error.setText(str(problem))
+            self.error.setText(scientific_notation(str(problem)))
             self.error.show()
             return
         self.output.set_value(result.text, latex=result.latex)

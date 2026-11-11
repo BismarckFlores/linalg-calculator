@@ -11,6 +11,7 @@ from core.numerical_methods.handlers.real_function import RealFunction, sample_f
 from core.numerical_methods.handlers.root_bracket import BracketResult
 from ui import theme_tokens as theme
 
+from desktop.core.number_display import scientific_notation
 from desktop.core.widgets import card, label, link
 
 
@@ -27,20 +28,26 @@ def _grid_ticks(low: float, high: float, pixels: float):
 
 
 class FunctionPlot(QWidget):
-    def __init__(self) -> None:
+    x_selected = Signal(float)
+
+    def __init__(self, *, select_x: bool = False) -> None:
         super().__init__()
         self.setMinimumHeight(300)
         self.setCursor(Qt.CursorShape.OpenHandCursor)
         self.function: RealFunction | None = None
         self.result: BracketResult | None = None
+        self.select_x = select_x
+        self.markers: tuple[tuple[float, str], ...] = ()
         self.dark = False
         self._view = (-10.0, 10.0, -1.0, 1.0)
         self._drag: tuple[QPointF, tuple[float, float, float, float]] | None = None
+        self._panning = False
         self._samples: tuple[tuple[float, float | None], ...] = ()
 
     def set_function(self, function: RealFunction | None) -> None:
         self.function = function
         self.result = None
+        self.markers = ()
         if function is None:
             self._samples = ()
             self.update()
@@ -77,6 +84,10 @@ class FunctionPlot(QWidget):
         self.result = result
         self.update()
 
+    def set_markers(self, markers: tuple[tuple[float, str], ...]) -> None:
+        self.markers = markers
+        self.update()
+
     def controls(self, text: str, callback) -> QHBoxLayout:
         controls = QHBoxLayout()
         for name, action in (
@@ -97,12 +108,19 @@ class FunctionPlot(QWidget):
         if self.function is None:
             return
         overlay = PlotOverlay(self.window())
-        expanded = FunctionPlot()
+        expanded = FunctionPlot(select_x=self.select_x)
         expanded.dark = self.dark
         expanded.function = self.function
         expanded.result = self.result
+        expanded.markers = self.markers
         expanded._view = self._view
         expanded._samples = self._samples
+
+        def select(x: float) -> None:
+            self.x_selected.emit(x)
+            expanded.set_markers(self.markers)
+
+        expanded.x_selected.connect(select)
 
         def restore_view() -> None:
             left, right, bottom, top = expanded._view
@@ -151,6 +169,7 @@ class FunctionPlot(QWidget):
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton and self._plot_rect().contains(event.position()):
             self._drag = event.position(), self._view
+            self._panning = False
             self.setCursor(Qt.CursorShape.ClosedHandCursor)
 
     def mouseMoveEvent(self, event) -> None:
@@ -159,14 +178,22 @@ class FunctionPlot(QWidget):
             rect = self._plot_rect()
             if not rect.isEmpty():
                 delta = event.position() - origin
+                if self.select_x and not self._panning and delta.manhattanLength() < QApplication.startDragDistance():
+                    return
+                self._panning = True
                 dx = delta.x() / rect.width() * (x1 - x0)
                 dy = delta.y() / rect.height() * (y1 - y0)
                 self._set_view(x0 - dx, x1 - dx, y0 + dy, y1 + dy)
 
     def mouseReleaseEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
-            self._drag = None
+            drag, self._drag = self._drag, None
             self.setCursor(Qt.CursorShape.OpenHandCursor)
+            rect = self._plot_rect()
+            if (self.select_x and drag is not None and not self._panning and rect.contains(event.position())
+                    and (event.position() - drag[0]).manhattanLength() < QApplication.startDragDistance()):
+                low, high = self._range
+                self.x_selected.emit(low + (event.position().x() - rect.left()) / rect.width() * (high - low))
 
     def paintEvent(self, event) -> None:
         if not self._samples:
@@ -196,7 +223,7 @@ class FunctionPlot(QWidget):
             painter.drawLine(QPointF(px, rect.top()), QPointF(px, rect.bottom()))
             if major:
                 painter.setPen(ink)
-                painter.drawText(QRectF(px - 34, rect.bottom(), 68, 24), Qt.AlignmentFlag.AlignCenter, f"{x:.10g}")
+                painter.drawText(QRectF(px - 34, rect.bottom(), 68, 24), Qt.AlignmentFlag.AlignCenter, scientific_notation(f"{x:.6g}"))
         for y, major in _grid_ticks(bottom, top, rect.height()):
             py = position(low, y).y()
             painter.setPen(grid if major else minor)
@@ -204,7 +231,7 @@ class FunctionPlot(QWidget):
             if major:
                 painter.setPen(ink)
                 painter.drawText(QRectF(0, py - 9, rect.left() - 7, 18),
-                                 Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, f"{y:.10g}")
+                                 Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, scientific_notation(f"{y:.6g}"))
 
         painter.setPen(ink)
         painter.drawText(QPointF(rect.left(), 13), "f(x)")
@@ -230,15 +257,17 @@ class FunctionPlot(QWidget):
                 if not crosses_view or self._continuous_crossing(last_x, x, last_y / 2 + value / 2, top - bottom):
                     painter.drawLine(last_point, point)
             previous = x, value, point
+        markers = self.markers
         if self.result is not None:
-            for x, name in ((self.result.initial_a, "a"), (self.result.initial_b, "b"), (self.result.root, "c")):
-                if low <= x <= high:
-                    painter.setPen(QPen(QColor(theme.ORANGE), 1, Qt.PenStyle.DashLine))
-                    painter.drawLine(position(x, bottom), position(x, top))
-                    point = position(x, top)
-                    label_width = painter.fontMetrics().horizontalAdvance(name)
-                    text_x = min(point.x() + 4, rect.right() - label_width - 4)
-                    painter.drawText(QPointF(text_x, point.y() + 14), name)
+            markers = ((self.result.initial_a, "a"), (self.result.initial_b, "b"), (self.result.root, "c"))
+        for x, name in markers:
+            if low <= x <= high:
+                painter.setPen(QPen(QColor(theme.ORANGE), 1, Qt.PenStyle.DashLine))
+                painter.drawLine(position(x, bottom), position(x, top))
+                point = position(x, top)
+                label_width = painter.fontMetrics().horizontalAdvance(name)
+                text_x = min(point.x() + 4, rect.right() - label_width - 4)
+                painter.drawText(QPointF(text_x, point.y() + 14), name)
 
     def _continuous_crossing(self, left: float, right: float, expected: float, span: float) -> bool:
         if self.function is None:

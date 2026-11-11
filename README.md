@@ -26,17 +26,17 @@
 ---
 
 <p align="center">
-  <a href="docs/images/inicio-oscuro.png"><img src="docs/images/inicio-oscuro.png" width="900" alt="Inicio en tema oscuro, con accesos ilustrados a las herramientas y sus iconos en el menú lateral"></a>
+  <a href="docs/images/inicio-catalogo-oscuro.png"><img src="docs/images/inicio-catalogo-oscuro.png" width="900" alt="Inicio en tema oscuro, con accesos ilustrados a las herramientas y sus iconos en el menú lateral"></a>
 </p>
 
 <table>
   <tr>
     <th>Eliminación gaussiana · Tema claro</th>
-    <th>Regula Falsi · Tema oscuro</th>
+    <th>Newton–Raphson · Tema oscuro</th>
   </tr>
   <tr>
-    <td><a href="docs/images/eliminacion-gaussiana.png"><img src="docs/images/eliminacion-gaussiana.png" width="450" alt="Banner de Eliminación Gaussiana, entrada de coeficientes y ecuación matricial"></a></td>
-    <td><a href="docs/images/regula-falsi.png"><img src="docs/images/regula-falsi.png" width="450" alt="Editor MathLive y gráfica de cos(x) menos x con el intervalo y la aproximación"></a></td>
+    <td><a href="docs/images/gauss-paso-a-paso.png"><img src="docs/images/gauss-paso-a-paso.png" width="450" alt="Ecuación matricial y primer paso de Gauss con la matriz aumentada en LaTeX"></a></td>
+    <td><a href="docs/images/newton-raphson.png"><img src="docs/images/newton-raphson.png" width="450" alt="Newton–Raphson con el editor MathLive y la aproximación inicial marcada en la gráfica"></a></td>
   </tr>
 </table>
 
@@ -44,10 +44,10 @@
 
 - **Sistemas lineales.** Ingresa coeficientes o ecuaciones, aplica Gauss o Gauss–Jordan y revisa las operaciones por filas, los pivotes y la clasificación de la solución.
 - **Matrices y vectores.** Calcula inversas, factorizaciones LU, determinantes y combinaciones lineales. Las operaciones de álgebra lineal conservan las fracciones exactas.
-- **Búsqueda de raíces.** Usa Bisección o Regula Falsi, explora la gráfica con zoom y arrastre, y revisa la tabla de iteraciones.
+- **Búsqueda de raíces.** Usa Bisección, Regula Falsi o Newton–Raphson, explora la gráfica y revisa la tabla de iteraciones.
 - **Cálculo.** Obtén derivadas, antiderivadas e integrales definidas con resultados simbólicos.
 - **Conversiones.** Convierte entre decimal, bases de 2 a 36 y números romanos. La aritmética romana incluye suma, resta y multiplicación.
-- **Escritorio en español.** Once herramientas con temas claro, oscuro y automático. El editor y sus fuentes se cargan localmente, por lo que puedes usar la app sin conexión después de instalarla.
+- **Escritorio en español.** Trece herramientas con temas claro, oscuro y automático. El editor y sus fuentes se cargan localmente, por lo que puedes usar la app sin conexión después de instalarla.
 
 ## Inicio rápido
 
@@ -83,6 +83,7 @@ La interfaz oficial usa **PySide6** y ejecuta el editor **MathLive** en
 **Qt WebEngine**. El motor de **Python** valida las entradas, calcula con
 `Fraction` en álgebra lineal y usa punto flotante para aproximar raíces.
 El registro de operaciones e iteraciones alimenta el paso a paso y las tablas.
+MathLive presenta las matrices, las ecuaciones y las operaciones en LaTeX.
 La versión **CustomTkinter** se conserva como referencia histórica en la
 [guía de la interfaz heredada](docs/legacy-gui.md).
 
@@ -91,6 +92,7 @@ La versión **CustomTkinter** se conserva como referencia histórica en la
 - [Índice de documentación](docs/README.md) · Guías, ejercicios y referencia.
 - [Guía de uso](docs/usage.md) · Primeros ejercicios e instalación.
 - [Un sistema resuelto de principio a fin](docs/how-it-works.md) · Eliminación, despeje y comprobación.
+- [Newton–Raphson](docs/gui.md#newtonraphson) · Selección de la aproximación inicial en la gráfica.
 - [Bisección y Regula Falsi](docs/bisection.md) · Criterios de parada y ejemplos.
 - [Diseño y arquitectura](docs/design.md) · Motor, interfaz y registro de operaciones.
 

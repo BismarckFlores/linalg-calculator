@@ -17,6 +17,7 @@ except ImportError as problem:
 
 from core.numerical_methods.handlers.root_bracket import RootCriterion, RootStop
 from core.numerical_methods.handlers.real_function import RealFunction
+from desktop.core.number_display import scientific_notation
 from desktop.core.math_input import MathInput
 from desktop.tools.numerical_methods.core.plot import FunctionPlot, PlotOverlay, _grid_ticks
 from desktop.window import CalculatorWindow
@@ -53,6 +54,83 @@ class QtRootTests(unittest.TestCase):
         button.click()
         QTest.qWait(40)
 
+    def test_newton_raphson_graph_selection_and_stopping(self):
+        self.window.resize(960, 640)
+        self.window.select("home")
+        shortcut = next(button for button in self.window.pages["home"].findChildren(QPushButton)
+                        if button.accessibleName() == "Abrir Newton–Raphson")
+        shortcut.click()
+        page = self.open_page("newton_raphson")
+        self.assertFalse(page.controls.isVisible())
+        self.click(page, "Graficar función")
+        self.assertTrue(page.controls.isVisible())
+        self.click(page, "Calcular raíz")
+        self.assertTrue(page.solve_error.isVisible())
+        rect = page.plot._plot_rect()
+        QTest.mouseClick(page.plot, Qt.MouseButton.LeftButton, pos=rect.center().toPoint())
+        self.assertAlmostEqual(float(page.initial.value()), 0, delta=0.05)
+        self.assertEqual(page.plot.markers, ((float(page.initial.value()), "x₀"),))
+        self.assertFalse(page.solve_error.isVisible())
+        marker = page.plot.markers
+        center = rect.center().toPoint()
+        QTest.mousePress(page.plot, Qt.MouseButton.LeftButton, pos=center)
+        QTest.mouseMove(page.plot, center + QPoint(35, 0))
+        QTest.mouseRelease(page.plot, Qt.MouseButton.LeftButton, pos=center + QPoint(35, 0))
+        self.assertEqual(page.plot.markers, marker)
+
+        self.click(page, "Maximizar")
+        overlay = self.window.findChild(PlotOverlay)
+        expanded = overlay.findChild(FunctionPlot)
+        self.assertEqual(expanded.markers, marker)
+        QTest.mouseClick(expanded, Qt.MouseButton.LeftButton,
+                         pos=expanded._plot_rect().center().toPoint() + QPoint(50, 0))
+        self.assertNotEqual(page.plot.markers, marker)
+        self.assertEqual(expanded.markers, page.plot.markers)
+        self.click(overlay, "Cerrar")
+
+        self.click(page, "Cargar ejemplo de Semana 13")
+        self.click(page, "Graficar función")
+        self.assertEqual(page.plot.markers, ((1.5, "x₀"),))
+        self.click(page, "Calcular raíz")
+        self.assertIn("1.5213797068", page.answer.value())
+        self.assertIn("Iteraciones: 3", page.answer.value())
+        self.assertIn("Se alcanzó la tolerancia", page.answer.value())
+        self.assertEqual(page.table.rowCount(), 3)
+        self.assertIn("− (-0.125) / (5.75)", page.walk.output.value())
+        self.assertEqual(self.window._scroll["newton_raphson"].horizontalScrollBar().maximum(), 0)
+        page.limit.setValue(1)
+        self.assertFalse(page.result_card.isVisible())
+        self.click(page, "Calcular raíz")
+        self.assertIn("Se alcanzó el máximo", page.answer.value())
+        self.assertEqual(page.table.rowCount(), 1)
+
+        page.editor.set_value("x^2+1")
+        self.assertFalse(page.graph_card.isVisible())
+        self.assertFalse(page.result_card.isVisible())
+        page.initial.set_value("0")
+        self.click(page, "Graficar función")
+        self.click(page, "Calcular raíz")
+        self.assertIn("La derivada vale cero", page.answer.value())
+        self.assertFalse(page.table_card.isVisible())
+        dark = self.window._dark
+        try:
+            for theme in (True, False):
+                self.window._apply_theme(theme)
+                self.window.select("home")
+                self.window._nav["newton_raphson"].click()
+                self.assertTrue(page.result_card.isVisible())
+                self.assertEqual(page.plot.dark, theme)
+        finally:
+            self.window._apply_theme(dark)
+        clear = next(button for button in page.findChildren(QPushButton)
+                     if button.text() == "Limpiar" and button.isVisible())
+        clear.click()
+        self.assertEqual(page.editor.value(), "")
+        self.assertEqual(page.plot.markers, ())
+        self.assertFalse(page.graph_card.isVisible())
+        self.click(page, "Graficar función")
+        self.assertTrue(page.graph_error.isVisible())
+
     def test_1_regula_falsi_flow_and_plot(self):
         page = self.open_page("regula_falsi")
         self.click(page, "Graficar función")
@@ -63,7 +141,7 @@ class QtRootTests(unittest.TestCase):
         self.assertAlmostEqual(result.root, 5.236050508, places=9)
         self.assertEqual(page.table.rowCount(), len(result.steps))
         self.assertEqual(page.table.item(3, 3).toolTip(), str(result.root))
-        self.assertEqual(page.table.item(3, 6).toolTip(), str(result.value))
+        self.assertEqual(page.table.item(3, 6).toolTip(), scientific_notation(str(result.value)))
         page.walk.index.setValue(4)
         self.assertIn("se detiene", page.walk.output.value())
         self.assertFalse(page.plot.grab().isNull())
@@ -123,7 +201,7 @@ class QtRootTests(unittest.TestCase):
         page.limit.setValue(2)
         self.click(page, "Calcular raíz")
         self.assertIs(page.plot.result.stop, RootStop.LIMIT)
-        self.assertIn("Sin convergencia", page.summary.text())
+        self.assertIn("Sin convergencia", page.answer.value())
         self.click(page, "Raíz de 2")
         self.click(page, "Graficar función")
         self.click(page, "Calcular raíz")
@@ -153,7 +231,7 @@ class QtRootTests(unittest.TestCase):
         self.assertEqual(page.table.item(0, 3).toolTip(), original_value)
         self.assertEqual(page.table.item(0, 3).text(), f"{original.steps[15].c:.3f}")
         page.walk.all_steps.setChecked(True)
-        self.assertIn("Paso 16", page.walk.output.value())
+        self.assertIn("Iteración 16", page.walk.output.value())
 
         visible_editors = [editor for editor in page.findChildren(MathInput) if editor.web.isVisible()]
         self.assertIn(page.editor, visible_editors)

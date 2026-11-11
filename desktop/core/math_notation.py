@@ -10,16 +10,18 @@ from core.numerical_methods.handlers.real_function import TRIG_FUNCTIONS, RealFu
 from core.scalar import format_scalar, to_scalar
 from core.linear_algebra.vectors import parse_vector
 
+from .number_display import parse_scientific_display
+
 
 _SLASH_FRACTION = re.compile(r"(?<![\w.])(\d+)\s*/\s*(\d+)(?![\d.])")
 _EXPORTED_FRACTION = re.compile(r"\(([+-]?\d+)\)\s*/\s*\(([+-]?\d+)\)")
-_SUBSCRIPTS = "₀₁₂₃₄₅₆₇₈₉"
+_SUBSCRIPTS = "₀₁₂₃₄₅₆₇₈₉ₙ₊₋"
 
 
 def _notation(text: str) -> str:
     text = text.replace("−", "-").replace("·", r"\cdot ").replace("≈", r"\approx ")
     text = re.sub(rf"[{_SUBSCRIPTS}]+", lambda m: "_{" + m[0].translate(
-        str.maketrans(_SUBSCRIPTS, "0123456789")
+        str.maketrans(_SUBSCRIPTS, "0123456789n+-")
     ) + "}", text.replace("_", r"\_"))
     return _SLASH_FRACTION.sub(lambda m: rf"\frac{{{m[1]}}}{{{m[2]}}}", text)
 
@@ -36,6 +38,7 @@ def matrix_rows(text: str) -> list[list[str]]:
 
 def to_latex(text: str, kind: str, *, paste: bool = False) -> str:
     """Compone la notación del campo sin sustituir los lectores del motor."""
+    text = parse_scientific_display(text)
     if not text.strip():
         return ""
     if kind == "function":
@@ -78,7 +81,9 @@ def _number_latex(text: str) -> str:
     number = to_scalar(text)
     if "/" in text:
         return _notation(format_scalar(number))
-    return normalized.lower().replace("e", r"\mathrm{e}")
+    if exponent:
+        return rf"{normalized[:exponent.start()]}\times 10^{{{int(exponent[1])}}}"
+    return normalized
 
 
 def from_ascii(text: str, kind: str) -> str:
@@ -101,23 +106,167 @@ def from_ascii(text: str, kind: str) -> str:
     return text
 
 
-def result_blocks(text: str) -> list:
-    """Conserva las filas y las matrices como bloques separados para la vista."""
+_RESULT_SUPERSCRIPTS = "⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺"
+_RESULT_CAPTIONS = re.compile(
+    r"^(?:f_\d+|Ecuación\s+\d+|Componente \d+|Comprobación(?: por (?:cofactores|LU))?"
+    r"|Desarrollo|Total|Posiciones pivote|Columnas (?:libres|pivote)"
+    r"|Entradas principales de la matriz original|Error absoluto|Sustitución|Extremos|Evaluación"
+    r"|Iteraciones|Criterio de parada|Intervalo final|Cota en x si hay continuidad|Cambio relativo|Orden de las filas):"
+)
+_RESULT_OPERATORS = re.compile(r"[=≈→↔<>]|\s[+−×·]\s|^\+ |^[−-]\(")
+
+
+def _result_latex(text: str) -> str:
+    """Traduce la notación de los resultados heredados, sin evaluar la expresión."""
+    text = re.sub(r"(?<=[A-Za-z])_(\d+)", lambda m: m[1].translate(
+        str.maketrans("0123456789", _SUBSCRIPTS[:10])
+    ), text)
+    text = _notation(text)
+    text = re.sub(rf"[{_RESULT_SUPERSCRIPTS}]+", lambda m: "^{" + m[0].translate(
+        str.maketrans(_RESULT_SUPERSCRIPTS, "0123456789-+")
+    ) + "}", text)
+    text = re.sub(r"\^([+-]?\d+)", r"^{\1}", text)
+    # Las fórmulas de intervalo contienen productos y evaluaciones entre paréntesis.
+    text = text.replace("(b - a) / 2", r"\frac{b-a}{2}")
+    text = text.replace("f(b)(a - b) / (f(a) - f(b))", r"\frac{f(b)(a-b)}{f(a)-f(b)}")
+    text = re.sub(r"(?<![\w.])\(([^()]+)\) / \(([^()]+)\)", r"\\frac{\1}{\2}", text)
+    text = re.sub(r"(f\([^()]+\)) / (f′\([^()]+\))", r"\\frac{\1}{\2}", text)
+    text = re.sub(r"\b(det|rango)(?=\b)", r"\\operatorname{\1}", text)
+    text = re.sub(r"\b[A-Z]{2,}(?=_(?:\{|\d)|\s*[=+]|$)", r"\\mathrm{\g<0>}", text)
+    return (text.replace("×", r"\times ").replace("→", r"\to ")
+            .replace("↔", r"\leftrightarrow ").replace("′", "'")
+            .replace("…", r"\dots ").replace("<", r"\lt ")
+            .replace("%", r"\%"))
+
+
+_FACT_CAPTIONS = {
+    "Total", "Posiciones pivote", "Columnas libres", "Columnas pivote",
+    "Entradas principales de la matriz original", "Error absoluto", "Extremos",
+    "Evaluación", "Iteraciones", "Criterio de parada", "Intervalo final",
+    "Cota en x si hay continuidad", "Cambio relativo", "Orden de las filas",
+}
+_SECTION_TITLES = {
+    "Forma reducida", "Solución general", "Familia de escalares", "Matriz A",
+    "Vector b", "Vector y", "Solución x", "Comprobación", "Comprobación A · x",
+    "Comprobación con los escalares libres en cero",
+}
+_MATRIX_LABELS = {"A", "L", "U", "P", "A⁻¹", "A · A⁻¹", "A⁻¹ · A", "P · b"}
+_STEP_NUMBER = re.compile(r"(?:^|\n\n)((?:Paso|Iteración) \d+)\n")
+
+
+def _result_line(line: str) -> list[tuple[str, object]]:
+    raw = line
+    line = line.strip()
+    if line.startswith("rango(A) = "):
+        facts = []
+        for part in line.split(" · "):
+            name, _, value = part.partition(" = ")
+            latex = _result_latex(name.replace("A|b", r"A\mid b"))
+            facts.append(("fact", (name.capitalize(), _result_latex(value), latex if name.startswith("rango") else "", True)))
+        return facts
+    if line.startswith("Matriz aumentada  "):
+        return [("line", "Matriz aumentada"), ("latex", r"\left[A\mid b\right]")]
+    if line.startswith("Iteraciones: ") and " · " in line:
+        count, threshold = line.split(" · ", 1)
+        criterion, separator, tolerance = threshold.partition(" < ")
+        if separator:
+            return _result_line(count) + [("fact", (criterion, _result_latex(f"E < {tolerance}"), "", True))]
+    if line.startswith(("Sistema Consistente", "Sistema Inconsistente")):
+        return [("status", line)]
+    if line in _SECTION_TITLES:
+        return [("heading", line)]
+    if line in _MATRIX_LABELS:
+        return [("math-heading", _result_latex(line))]
+    caption = _RESULT_CAPTIONS.match(line)
+    if caption:
+        body = line[caption.end():].strip()
+        heading = caption[0][:-1]
+        if heading.startswith("Ecuación ") or heading.startswith("Componente "):
+            return [("heading", heading), ("latex", _result_latex(body))]
+        if body and (body[0].isdigit() or body.startswith(("(", "[", "-", "−")) or _RESULT_OPERATORS.search(body)):
+            if heading.startswith("f_"):
+                return [("latex", _result_latex(f"{heading}: {body}"))]
+            if heading in _FACT_CAPTIONS:
+                return [("fact", (heading, _result_latex(body), "", True))]
+            return [("heading", heading), ("latex", _result_latex(body))]
+        if heading in _FACT_CAPTIONS:
+            return [("fact", (heading, body, "", False))]
+    summands = re.search(r" (\(\d+ sumandos en total\))$", line)
+    if summands:
+        return [("latex", _result_latex(line[:summands.start()])), ("line", summands[1])]
+    for suffix in ("   correcto", "   NO SE CUMPLE"):
+        if line.endswith(suffix):
+            return [("latex", _result_latex(line[:-len(suffix)])), ("verdict", suffix.strip())]
+    if (
+        _RESULT_OPERATORS.search(line)
+        and not re.search(r"[a-záéíóúñ]{2,}\s+[a-záéíóúñ]{2,}", line)
+        and not line.endswith(".")
+    ):
+        kind = "solution" if raw.startswith("  ") and re.fullmatch(
+            r"[a-z][\w₀-₉]* = [+-]?\d+(?:/\d+)?", line
+        ) else "latex"
+        return [(kind, _result_latex(line))]
+    return [("line", line)]
+
+
+def _result_matrix(rows: list[list[str]], environment: str = "bmatrix") -> str:
+    body = r"\\".join("&".join(row) for row in rows)
+    return rf"\begin{{{environment}}}{body}\end{{{environment}}}"
+
+
+def _matrix_block(rows: list[list[str]]) -> tuple[str, object]:
+    divider = rows[0].index("|") if "|" in rows[0] else None
+    if divider is None:
+        return "latex", _result_matrix([list(map(_result_latex, row)) for row in rows])
+
+    left, right = [], []
+    for row in rows:
+        # Los dos lados reservan la misma altura si una fila contiene fracciones.
+        phantom = r"\vphantom{\frac{1}{1}}" if any("/" in cell for cell in row) else ""
+        for block, values in ((left, row[:divider]), (right, row[divider + 1:])):
+            cells = list(map(_result_latex, values))
+            cells[0] += phantom
+            block.append(cells)
+    return "augmented", (_result_matrix(left, "matrix"), _result_matrix(right, "matrix"))
+
+
+def result_blocks(text: str) -> list[tuple[str, object]]:
+    """Entrega fórmulas LaTeX y conserva los rótulos y explicaciones como texto."""
+    if _STEP_NUMBER.match(text):
+        steps = _STEP_NUMBER.split(text)
+        blocks = []
+        for number, content in zip(steps[1::2], steps[2::2]):
+            title, separator, body = content.strip().partition("\n")
+            heading = _result_line(title) if separator else []
+            blocks.append(("step", (number, heading, _result_content(body if separator else title))))
+        return blocks
+    return _result_content(text)
+
+
+def _result_content(text: str) -> list[tuple[str, object]]:
     blocks = []
     for is_matrix, group in groupby(
         text.splitlines(), lambda line: line.startswith("[ ") and line.endswith(" ]")
     ):
         if not is_matrix:
-            blocks.extend(("line", line.rstrip()) for line in group)
+            for line in group:
+                blocks.extend(_result_line(line))
             continue
+
         rows = [line[2:-2].split(" ] · [ ") for line in group]
+
         def cells(lines):
             return [[value.strip() for value in line.split(";")] for line in lines]
+
         if all(len(row) == 2 and " ] = [ " in row[1] for row in rows):
             variables, constants = zip(*(row[1].split(" ] = [ ", 1) for row in rows))
-            blocks.append(("product", [cells(row[0] for row in rows), cells(variables), cells(constants)]))
+            a, x, b = (
+                _result_matrix([list(map(_result_latex, row)) for row in matrix])
+                for matrix in (cells(row[0] for row in rows), cells(variables), cells(constants))
+            )
+            blocks.append(("latex", rf"{a}\cdot{x}={b}"))
         else:
-            blocks.append(("matrix", cells(row[0] for row in rows)))
+            blocks.append(_matrix_block(cells(row[0] for row in rows)))
     return blocks
 
 

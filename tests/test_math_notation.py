@@ -5,10 +5,24 @@ from core.linear_algebra.handlers.equations import parse_equation
 from core.linear_algebra.handlers.matrix import Matrix
 from core.numerical_methods.handlers.root_bracket import read_root_number
 from core.linear_algebra.vectors import parse_vector
-from desktop.core.math_notation import from_ascii, matrix_rows, to_latex
+from desktop.core.math_notation import from_ascii, matrix_rows, result_blocks, to_latex
 
 
 class MathNotationTests(unittest.TestCase):
+    def test_results_keep_matrix_dividers_and_math_in_steps(self):
+        blocks = result_blocks(
+            "f₂ → f₂ + 1/3 · f₁\n[ 1; -2/3; |; 4 ]\n[ 0; 1; |; 5 ]\n"
+            "xₙ₊₁ = xₙ − f(xₙ) / f′(xₙ)\n"
+            "f(x) ≈ 2.5 × 10⁻⁶\nTodas las ecuaciones se cumplen."
+        )
+        self.assertEqual([kind for kind, _ in blocks], ["latex", "augmented", "latex", "latex", "line"])
+        self.assertIn(r"\frac{1}{3}", blocks[0][1])
+        left, right = blocks[1][1]
+        self.assertIn(r"\frac{2}{3}", left)
+        self.assertIn(r"\vphantom{\frac{1}{1}}", right)
+        self.assertIn(r"\frac{f(x_{n})}{f'(x_{n})}", blocks[2][1])
+        self.assertIn(r"10^{-6}", blocks[3][1])
+
     def test_trigonometric_powers_render_without_confusing_inverse_and_reciprocal(self):
         self.assertEqual(
             to_latex("sin^(-1)(x)+cos^2(2x)", "function"),
@@ -54,4 +68,4 @@ class MathNotationTests(unittest.TestCase):
         vector = from_ascii("1, -2, -(1)/(2)", "vector")
         self.assertEqual(parse_vector(vector), (Fraction(1), Fraction(-2), Fraction(-1, 2)))
         self.assertEqual(read_root_number(from_ascii("(4)/(2)", "number")), 2.0)
-        self.assertEqual(to_latex("1e-5", "number"), r"1\mathrm{e}-5")
+        self.assertEqual(to_latex("1e-5", "number"), r"1\times 10^{-5}")

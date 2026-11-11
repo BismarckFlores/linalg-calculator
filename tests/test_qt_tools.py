@@ -56,7 +56,7 @@ class QtToolTests(unittest.TestCase):
         self.assertIn(expected, "\n".join((*visible_results, page.result_title.text(), page.result_badge.text())))
 
     def test_catalog_and_matrix_operations(self):
-        self.assertEqual(len(TOOLS), 12)
+        self.assertEqual(len(TOOLS), 13)
         page = self.open_page("operations")
         select = page.findChild(SegmentedControl)
         for index, expected in enumerate(("[ 6; 8 ]", "[ -4; -4 ]", "[ 19; 22 ]", "[ 1/2; 1 ]", "[ 1; 3 ]")):
@@ -153,7 +153,7 @@ class QtToolTests(unittest.TestCase):
             QTest.qWait(30)
         self.assertLess(page.walk.output.web.height(), expanded_height)
         page.walk.index.stepUp()
-        self.assertIn("f", page.walk.step_title.text())
+        self.assertIn("→", page.walk.output.value())
         method.setCurrentIndex(1)
         entry.setCurrentIndex(1)
         editor = next(field for field in page.findChildren(MathInput) if field.kind == "equations")

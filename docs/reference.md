@@ -46,6 +46,7 @@ La [guía de raíces](bisection.md) explica las condiciones y ejemplos.
 | `core/numerical_methods/handlers/root_bracket.py` | `solve_bracket(function, a, b, tolerance, criterion, max_iterations, estimate)` | Recibe una función de estimación. Comprueba los extremos, conserva el cambio de signo y guarda la traza. |
 | `core/numerical_methods/bisection.py` | `bisect(function, a, b, tolerance="0.0001", *, criterion=WIDTH, max_iterations=100)` | Usa el punto medio y devuelve un `BracketResult`. |
 | `core/numerical_methods/regula_falsi.py` | `regula_falsi(function, a, b, tolerance="0.01", *, criterion=RELATIVE, max_iterations=100)` | Usa la intersección de la secante y devuelve un `BracketResult`. |
+| `core/numerical_methods/newton_raphson.py` | `newton_raphson(function, x0, tolerance="0.000001", *, max_iterations=100)` | Reutiliza la derivación simbólica, parte de un solo valor y devuelve un `NewtonResult`. |
 
 `BracketStep` guarda `index`, `a`, `b`, `c`, `fa`, `fb`, `fc` y
 `relative_error`. Expone el ancho, cota, residuo y decisión de signo.
@@ -54,6 +55,28 @@ tolerancia, criterio, iteraciones, motivo de parada, aproximación y valor.
 También expone `converged` y `bound`. Ambos registros son inmutables.
 `core/numerical_methods/bisection.py` conserva los nombres anteriores `Bisection*`,
 `bisection_number` y `sample_bisection` como alias.
+
+En Newton–Raphson, cada `NewtonStep` guarda el índice desde 1, el valor
+actual, la función y la derivada evaluadas, la nueva aproximación y el valor
+de la función en ella. `absolute_error` mide el cambio
+`abs(next_x - x)`. El método se detiene al alcanzar la tolerancia o el
+máximo de iteraciones. También reconoce un cero evaluado y conserva la
+última aproximación válida si un paso falla. `NewtonResult.iterations`
+cuenta los pasos completados y `detail` explica las interrupciones
+por derivada nula, error de evaluación, paso no finito o estancamiento.
+
+Para el ejemplo de Semana 13, usa `f(x) = x^3 - x - 2`, `x0 = 1.5`
+y tolerancia `0.000001`. La primera sustitución es
+`1.5 - (-0.125 / 5.75)`. Los valores de la tabla están redondeados.
+
+| Iteración | Nueva aproximación | Cambio absoluto |
+| --- | --- | --- |
+| 1 | 1.521739130435 | 0.0217391304348 |
+| 2 | 1.521379805965 | 0.000359324469996 |
+| 3 | 1.521379706805 | 0.000000099160211 |
+
+Con un máximo de una iteración y la misma tolerancia, termina en la
+primera fila por límite de iteraciones.
 
 ## Cálculo simbólico
 

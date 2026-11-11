@@ -115,10 +115,21 @@ conserva los nombres de incógnitas. `StepView` navega las trazas de
 álgebra y raíces. `ResultTable` comparte la presentación tabular de
 conversiones e iteraciones.
 
+El visor de resultados de MathLive agrupa fórmulas y explicaciones por
+sección. `StepView` usa el mismo encabezado numerado en el recorrido
+individual y en la vista completa. El banner, el acceso de Inicio y el
+menú lateral comparten el SVG de identificación de cada herramienta.
+
 `RootBracketPage` organiza la gráfica antes de los controles y configura
 cada método mediante su fórmula, criterios y ejemplos. El motor toma las
 muestras que `FunctionPlot` dibuja con Qt. La gráfica conserva zoom,
 arrastre, restablecimiento y vista ampliada.
+
+`NewtonRaphsonPage` usa `FunctionPlot` en modo de selección de x.
+Un clic actualiza x₀ y su marca en ambas vistas. El arrastre sigue
+moviendo la vista. La página conecta el motor de Newton con `StepView`
+y la tabla paginada `IterationTable`, que comparte con Bisección y Regula
+Falsi. La página invalida los resultados al editar los parámetros.
 
 `calculus_page` reutiliza `ToolPage` y presenta tres operaciones con el
 mismo editor de funciones. Muestra el punto opcional en Derivada y el

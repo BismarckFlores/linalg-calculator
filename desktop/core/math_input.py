@@ -16,6 +16,7 @@ from .assets import ASSETS
 from .handlers.editor import EditorBridge
 from .math_keyboard import MathKeyboard
 from .math_notation import from_ascii, result_blocks, to_latex
+from .number_display import parse_scientific_display, scientific_notation
 from .widgets import interface_fonts, label
 
 
@@ -111,7 +112,8 @@ class MathInput(QWidget):
             raise ValueError("Activa la entrada de texto para continuar.")
         if self.stack.currentWidget() is self.web:
             return self._value
-        return self.text.toPlainText() if isinstance(self.text, QPlainTextEdit) else self.text.text()
+        text = self.text.toPlainText() if isinstance(self.text, QPlainTextEdit) else self.text.text()
+        return text if self.kind == "output" else parse_scientific_display(text)
 
     def hide_keyboard(self) -> None:
         if self.keyboard_button is not None:
@@ -121,7 +123,7 @@ class MathInput(QWidget):
         self.set_value("")
 
     def set_value(self, text: str, *, latex: tuple[str, ...] = ()) -> None:
-        self._value = text
+        self._value = scientific_notation(text) if self.kind == "output" else text
         self._latex = latex
         if self.stack.currentWidget() is self.text:
             self._set_fallback_value()
@@ -132,11 +134,12 @@ class MathInput(QWidget):
         self.changed.emit()
 
     def _set_fallback_value(self) -> None:
+        text = scientific_notation(self._value)
         with QSignalBlocker(self.text):
             if isinstance(self.text, QPlainTextEdit):
-                self.text.setPlainText(self._value)
+                self.text.setPlainText(text)
             else:
-                self.text.setText(self._value)
+                self.text.setText(text)
 
     def set_dark(self, dark: bool) -> None:
         self._dark = dark
@@ -158,6 +161,9 @@ class MathInput(QWidget):
 
     def _edit_formula(self, command: tuple) -> None:
         self._focus_formula()
+        if command == ("deleteAll",):
+            self.clear()
+            return
         self._js(f"editFormula({json.dumps(command)})")
 
     def _focus_formula(self) -> None:

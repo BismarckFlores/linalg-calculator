@@ -17,7 +17,7 @@ from .core.assets import ASSETS
 from .core.handlers.theme import ThemeSelector
 from .core.math_input import MathInput
 from .core.widgets import GlassFrame, NavigationIcon, Workspace, label, link, page_header, stylesheet
-from .tools.numerical_methods.core.bracket_page import RootBracketPage
+from .tools.numerical_methods.core.plot import FunctionPlot
 from .tools.registry import TOOLS
 
 APP_ICON = ASSETS / "icon.svg"
@@ -207,8 +207,9 @@ class CalculatorWindow(QMainWindow):
     def _apply_page_theme(self, page: QWidget) -> None:
         for field in page.findChildren(MathInput):
             field.set_dark(self._dark)
-        if isinstance(page, RootBracketPage):
-            page.set_dark(self._dark)
+        for plot in page.findChildren(FunctionPlot):
+            plot.dark = self._dark
+            plot.update()
 
 
 def run() -> None:

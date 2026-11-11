@@ -1,7 +1,7 @@
 # Interfaz de escritorio con PySide6 y MathLive
 
 Abre la calculadora con `python main.py` después de instalar
-`requirements.txt`. **Inicio** y el menú lateral agrupan las doce
+`requirements.txt`. **Inicio** y el menú lateral agrupan las
 herramientas. El menú lateral usa un icono vectorial por herramienta y
 resalta la selección. En Inicio, cada acceso reutiliza el banner de su
 herramienta. Haz clic en la tarjeta o usa **Abrir**. Los accesos se muestran
@@ -35,14 +35,17 @@ ajustan juntas.
 Cuando la operación tiene una traza, usa **Anterior**, **Siguiente** o
 los puntos bajo el procedimiento para navegar. En recorridos largos,
 los puntos se sustituyen por un contador. **Ver todos los pasos** despliega
-la traza completa y la rueda desplaza la página. Los resultados usan la
-tipografía de la interfaz y las operaciones y matrices usan monoespaciado.
+la traza completa y la rueda desplaza la página. Cada paso conserva su
+encabezado numerado en ambas vistas. MathLive muestra las operaciones y las
+matrices en LaTeX, con un divisor continuo en las matrices aumentadas. Los
+resúmenes agrupan los valores y las comprobaciones se separan por ecuación.
 Las tablas permiten desplazarse para inspeccionar todas las
-columnas. Editar una entrada invalida el cálculo anterior.
+columnas. La notación científica se muestra como `2.5 × 10⁻⁶`. Editar una
+entrada invalida el cálculo anterior.
 
 En cada herramienta, **Limpiar** o **Ctrl+Mayús+Supr** borra las entradas y
 quita los resultados. Las matrices quedan en cero y conservan sus dimensiones.
-En Bisección y Regula Falsi también se quita la gráfica. El botón **Limpiar**
+En las herramientas de búsqueda de raíces también se quita la gráfica. El botón **Limpiar**
 del teclado matemático borra el campo que estás editando.
 
 | Herramienta | Controles y resultados |
@@ -58,6 +61,7 @@ del teclado matemático borra el campo que estás editando.
 | Aritmética Romana | Suma, resta y producto, lectura por piezas y suma repetida opcional. |
 | Método de Bisección | Punto medio, criterios configurables, gráfica, tabla y procedimiento. |
 | Regula Falsi | Cruce de la secante, cambio relativo o residuo, gráfica, tabla y procedimiento. |
+| Newton–Raphson | Derivación automática, selección de x₀ en la gráfica, cambio absoluto, tabla y sustitución por iteración. |
 | Derivadas e integrales | Derivada simbólica con evaluación opcional, antiderivada con constante e integral definida exacta. |
 
 ### Derivadas e integrales
@@ -72,6 +76,24 @@ Con **Integral indefinida**, la antiderivada incluye `+ C`. Con
 debe ser real y continua en el intervalo. Por ejemplo, `x^2` de `0` a
 `1` da `1/3`. Si el motor no puede verificar el dominio u obtener
 un resultado simbólico, la página muestra un mensaje.
+
+### Newton–Raphson
+
+1. En **Métodos Numéricos → Newton–Raphson**, escribe `f(x)` y pulsa
+   **Graficar función** para localizar visualmente un cruce con el eje x.
+2. Haz clic en la gráfica para seleccionar y marcar **x₀**, o escribe
+   su valor en **Aproximación inicial x₀**. La vista ampliada también
+   permite seleccionarlo.
+3. Ajusta la tolerancia y el máximo de iteraciones. Pulsa **Calcular
+   raíz** y consulta el motivo de parada, la sustitución en cada paso
+   y la tabla con el cambio absoluto `|xₙ₊₁ − xₙ|`. Al avanzar en el
+   paso a paso, la tabla selecciona la fila de esa iteración. Puedes
+   cambiar el formato numérico y la cantidad de decimales.
+
+**Cargar ejemplo de Semana 13** prepara `x^3 - x - 2`, `x₀ = 1.5`
+y tolerancia `0.000001`. Grafica y calcula para obtener
+`x ≈ 1.5213797068` en tres iteraciones. Cambia el máximo a uno
+para comprobar la otra condición de parada.
 
 ## Editor de funciones
 

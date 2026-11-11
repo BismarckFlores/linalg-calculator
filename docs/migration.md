@@ -6,13 +6,17 @@ Consulta [la guía de la interfaz](gui.md) para ejecutar y usar la versión actu
 
 ## Estado de la migración
 
+- Newton–Raphson está disponible en Qt desde Inicio y el menú lateral.
+  Se verificaron la selección de x₀ en la gráfica normal y ampliada,
+  la tabla, la sustitución por iteración y ambas condiciones de parada
+  con el ejemplo de Semana 13. También se comprobó el caso de derivada
+  nula, la edición, la limpieza y ambos temas. La versión en `main` incluye
+  la presentación unificada y las capturas actualizadas del README.
+
 - Se agregó **Derivadas e integrales** al catálogo Qt con derivación
-  simbólica, evaluación opcional, antiderivada e integral definida. El
-  motor compartido queda disponible para Newton–Raphson, pendiente de
-  implementación. Se verificaron los tres modos, la navegación, la
-  invalidación al editar, los errores, la limpieza y ambos temas.
-  Pasaron `python check.py` y las 62 pruebas. Los cambios de esta etapa
-  están locales en `main`, pendientes de publicación.
+  simbólica, evaluación opcional, antiderivada e integral definida.
+  Se verificaron los tres modos, la navegación, la invalidación al
+  editar, los errores, la limpieza y ambos temas.
 
 - Fase 1. Regula Falsi reutiliza la página de Bisección y el motor de
   intervalos. Las pruebas de Qt están en `tests/test_qt_roots.py`.
@@ -175,3 +179,42 @@ una tangente. Qt reconoce ambos SVG en sus tamaños previstos.
 
 Cálculo aparece como sección propia justo antes de Métodos Numéricos
 en Inicio y en el menú lateral. Ambas vistas siguen el orden del catálogo.
+
+### Presentación de Newton–Raphson
+
+Newton–Raphson sigue la presentación de Bisección y Regula Falsi para
+el selector de ejemplos, el formulario y el resumen. Los tres métodos
+comparten una tabla paginada con formato numérico y selección de la fila
+desde el paso a paso. Se comprobó el flujo de Newton con una ventana de
+960 píxeles, la selección de x₀ en ambas vistas de la gráfica y la tabla.
+Pasaron `check.py` y las 68 pruebas.
+
+### Ilustraciones y notación científica
+
+Bisección destaca el punto medio del intervalo, Regula Falsi la secante,
+Newton–Raphson la iteración y Cálculo el área bajo la curva. La interfaz
+presenta la notación científica con potencias de diez en el editor,
+los resultados, las tablas, las etiquetas de la gráfica y los errores.
+Se comprobó el intercambio de un valor en notación científica entre
+MathLive y el lector de números.
+
+### LaTeX en resultados y procedimientos
+
+MathLive renderiza las matrices, los sistemas, las fracciones, los
+subíndices y las operaciones de los pasos. Las matrices aumentadas
+conservan el separador y el planteamiento conserva el producto matricial.
+Las instrucciones y los mensajes de estado se muestran como texto.
+La vista de respaldo conserva la transcripción si MathLive no carga.
+Se verificó el renderizado de los ejemplos de álgebra, conversiones,
+romanos y cálculo, incluidos los pasos desplegados de Gauss.
+
+### Separadores de resultados e iconos compartidos
+
+Los resultados agrupan datos y soluciones en fichas y separan las
+comprobaciones por ecuación. El paso a paso usa el mismo encabezado
+numerado al recorrer un paso y al desplegar el procedimiento. Las
+matrices aumentadas muestran ambos lados en LaTeX, alineados alrededor
+de un divisor continuo. Los banners y los accesos de Inicio usan el
+mismo SVG que el menú lateral para identificar cada herramienta.
+Se revisó Gauss en claro y oscuro y el encabezado de Newton–Raphson
+en los dos modos del paso a paso.
