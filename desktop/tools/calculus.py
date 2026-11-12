@@ -12,9 +12,9 @@ def calculus_page() -> ToolPage:
     mode = SegmentedControl("Derivada", "Integral indefinida", "Integral definida")
     mode.setAccessibleName("Operación de cálculo")
     function = MathInput("x^3 - x - 2", "Función f(x)")
-    point = MathInput("", "Evaluar en x (opcional)", "number")
-    lower = MathInput("0", "Límite inferior", "number")
-    upper = MathInput("1", "Límite superior", "number")
+    point = MathInput("", "Evaluar en x (opcional)", "constant")
+    lower = MathInput("0", "Límite inferior", "constant")
+    upper = MathInput("1", "Límite superior", "constant")
 
     def show_fields() -> None:
         index = mode.currentIndex()

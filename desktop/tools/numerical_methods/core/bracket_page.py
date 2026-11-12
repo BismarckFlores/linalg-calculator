@@ -71,9 +71,9 @@ class RootBracketPage(QWidget):
         self.graph_card.hide()
 
         self.controls, control_layout = self.graph_card.parameters("Intervalo de resolución")
-        self.a = MathInput(a, "Extremo inferior a", "number")
-        self.b = MathInput(b, "Extremo superior b", "number")
-        self.tolerance = MathInput(tolerance, "Tolerancia E", "number")
+        self.a = MathInput(a, "Extremo inferior a", "constant")
+        self.b = MathInput(b, "Extremo superior b", "constant")
+        self.tolerance = MathInput(tolerance, "Tolerancia E", "constant")
         self.limit = Stepper("Máximo de iteraciones", 1, 1000, 100, editable=True)
         form = QGridLayout()
         form.setHorizontalSpacing(12)
@@ -173,7 +173,6 @@ class RootBracketPage(QWidget):
             self.graph_error.setText(scientific_notation(str(problem)))
             self.graph_error.show()
             return
-        self.editor.hide_keyboard()
         self.plot.set_function(self._function)
         self.graph_card.show()
 

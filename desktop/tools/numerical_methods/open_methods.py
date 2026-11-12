@@ -73,12 +73,12 @@ class OpenMethodsPage(QWidget):
         self.graph_card.hide()
 
         self.controls, control_layout = self.graph_card.parameters("Aproximación inicial")
-        self.initial = MathInput("", "Aproximación inicial x₀", "number")
-        self.second = MathInput("", "Aproximación inicial x₁", "number")
+        self.initial = MathInput("", "Aproximación inicial x₀", "constant")
+        self.second = MathInput("", "Aproximación inicial x₁", "constant")
         self.point = SegmentedControl("x₀", "x₁")
         self.point.setAccessibleName("Punto para seleccionar en la gráfica")
         control_layout.addWidget(self.point, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.tolerance = MathInput(TOLERANCE, "Tolerancia E", "number")
+        self.tolerance = MathInput(TOLERANCE, "Tolerancia E", "constant")
         self.limit = Stepper("Máximo de iteraciones", 1, 1000, 100, editable=True)
         control_layout.addWidget(FieldRow((self.initial, self.second, self.tolerance)))
         limit_field = QWidget()
@@ -179,7 +179,6 @@ class OpenMethodsPage(QWidget):
             self.graph_error.setText(scientific_notation(str(problem)))
             self.graph_error.show()
             return
-        self.editor.hide_keyboard()
         self.plot.set_function(function)
         self.point.setCurrentIndex(0)
         self._mark_initial()

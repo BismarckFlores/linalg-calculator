@@ -19,6 +19,7 @@ from .number_display import scientific_notation
 
 from .assets import ASSETS
 
+THEME_MENU_RADIUS = 15
 WORKSPACE_TEXTURE = ASSETS / "workspace-texture.svg"
 PAGE_ILLUSTRATIONS = {
     "⌂": "home", "▦": "gauss", "▧": "echelon", "⊞": "operations", "⁻¹": "inverse",
@@ -404,7 +405,7 @@ def stylesheet(dark: bool) -> str:
         "onAccent": theme.ON_ACCENT, "rule": theme.RULE[mode],
         "pillRadius": min(theme.PILL_RADIUS, 16),
         "fieldRadius": theme.FIELD_RADIUS, "navRadius": theme.NAV_RADIUS,
-        "assets": ASSETS.as_posix(),
+        "themeMenuRadius": THEME_MENU_RADIUS, "assets": ASSETS.as_posix(),
         "sans": sans,
         "mono": mono,
     }
@@ -490,15 +491,13 @@ def stylesheet(dark: bool) -> str:
     }
     QPushButton#keyboardToggle:checked:hover,
     QFrame#mathKeyboard QPushButton[mathRole="template"]:hover { background: %(blueHover)s; }
-    QFrame#mathKeyboard {
-        background: %(card)s; border: 1px solid %(line)s; border-radius: %(fieldRadius)dpx;
-    }
-    QFrame#mathKeyboard QPushButton { padding: 8px 4px; }
+    QFrame#mathKeyboard { background: transparent; border: none; }
+    QFrame#mathKeyboard QPushButton { min-width: 26px; padding: 8px 4px; }
     QFrame#mathKeyboard QPushButton[mathRole="symbol"] { background: %(soft)s; }
     QFrame#mathKeyboard QPushButton[mathRole="symbol"]:hover { background: %(hover)s; }
     QFrame#mathKeyboard QPushButton:pressed { border: 1px solid %(blue)s; }
     QPushButton:disabled { color: %(muted)s; }
-    QFrame#plotParameters {
+    QFrame#plotParameters, QFrame#universalKeyboard[plotMode="true"] {
         border: 1px solid %(line)s; border-radius: 18px; background: %(card)s;
     }
     QPushButton#plotParametersToggle {
@@ -530,7 +529,7 @@ def stylesheet(dark: bool) -> str:
         right: 7px; width: 12px; height: 12px;
     }
     QMenu#themeMenu {
-        background: %(card)s; border: 1px solid %(line)s; border-radius: 15px; padding: 6px;
+        background: %(card)s; border: 1px solid %(line)s; border-radius: %(themeMenuRadius)dpx; padding: 6px;
     }
     QLabel#themeMenuTitle { color: %(muted)s; font-size: 11px; font-weight: 700; padding: 7px 9px; }
     QMenu#themeMenu::item { padding: 8px 14px 8px 8px; border-radius: 8px; }

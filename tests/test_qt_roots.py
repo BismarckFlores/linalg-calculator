@@ -302,8 +302,10 @@ class QtRootTests(unittest.TestCase):
 
     def test_5_math_keyboard_exports_log_base_and_absolute_value(self):
         editor = self.open_page("bisection").editor
-        editor.keyboard_button.setChecked(True)
-        keys = {button.text(): button for button in editor.keyboard.findChildren(QPushButton)}
+        editor.web.setFocus()
+        keyboard = self.window.math_keyboard
+        keyboard.toggle.setChecked(True)
+        keys = {button.text(): button for button in keyboard.keys.findChildren(QPushButton)}
         editor.set_value("")
         keys["log"].click()
         editor.web.page().runJavaScript('''
@@ -324,6 +326,7 @@ class QtRootTests(unittest.TestCase):
         ''')
         QTest.qWait(150)
         self.assertEqual(RealFunction(editor.value())(1), 3)
+        keyboard.toggle.setChecked(False)
 
     def test_6_graph_accepts_trigonometric_superscripts_from_mathlive(self):
         page = self.open_page("bisection")
@@ -358,7 +361,10 @@ class QtRootTests(unittest.TestCase):
 
         page.examples.findChildren(QPushButton)[0].click()
         self.assertTrue(page.a.value())
-        page.editor.keyboard_button.setChecked(True)
-        self.click(page.editor.keyboard, "Limpiar")
+        page.editor.web.setFocus()
+        keyboard = self.window.math_keyboard
+        keyboard.toggle.setChecked(True)
+        self.click(keyboard.keys, "Limpiar")
+        keyboard.toggle.setChecked(False)
         self.assertEqual(page.editor.value(), "")
         self.assertTrue(page.a.value())

@@ -5,7 +5,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 
-from .real_function import RealFunction, RootInputError
+from .real_function import RealFunction, RootInputError, read_constant_expression
 from ...scalar import NumberLike, to_scalar
 
 
@@ -31,7 +31,7 @@ class RootStop(Enum):
 
 
 def read_root_number(value: NumberLike) -> float:
-    """Lee tambien comas decimales y fracciones, usando el lector existente."""
+    """Lee literales y expresiones reales constantes como pi/2 o sqrt(2)."""
     if isinstance(value, str):
         if len(value) > 128:
             raise RootInputError("El número escrito es demasiado largo.")
@@ -46,12 +46,15 @@ def read_root_number(value: NumberLike) -> float:
                 if abs(exponent) > 10000:
                     raise RootInputError("El exponente excede la representación numérica disponible.")
     try:
-        result = float(to_scalar(value))
+        exact = to_scalar(value)
+        result = float(exact)
     except (ValueError, TypeError, OverflowError) as problem:
+        if isinstance(value, str):
+            return read_constant_expression(value)(0.0)
         raise RootInputError(f"Se necesita un número real finito: {value!r}.") from problem
     if not math.isfinite(result):
         raise RootInputError("Los parámetros deben ser números reales finitos.")
-    if result == 0 and to_scalar(value) != 0:
+    if result == 0 and exact != 0:
         raise RootInputError("El número es demasiado pequeño para representarlo (underflow).")
     return result
 

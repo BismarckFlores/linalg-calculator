@@ -6,7 +6,7 @@ import re
 from itertools import groupby
 
 from core.linear_algebra.handlers.equations import parse_equation
-from core.numerical_methods.handlers.real_function import TRIG_FUNCTIONS, RealFunction
+from core.numerical_methods.handlers.real_function import TRIG_FUNCTIONS, RealFunction, read_constant_expression
 from core.scalar import format_scalar, to_scalar
 from core.linear_algebra.vectors import parse_vector
 
@@ -68,6 +68,11 @@ def to_latex(text: str, kind: str, *, paste: bool = False) -> str:
         return str(int(text))
     if kind == "number":
         return _number_latex(text)
+    if kind == "constant":
+        try:
+            return _number_latex(text)
+        except ValueError:
+            return formula_latex(text, constant=True)
     return _notation(text)
 
 
@@ -87,7 +92,7 @@ def _number_latex(text: str) -> str:
 
 
 def from_ascii(text: str, kind: str) -> str:
-    if kind == "function":
+    if kind in ("function", "constant"):
         for name in ("abs", "arcsec", "arccsc", "arccot"):
             text = text.replace(f"{' '.join(name)} (", f"{name}(")
         return text.replace("l o g10 (", "log10(")
@@ -275,11 +280,11 @@ def _result_content(text: str) -> list[tuple[str, object]]:
     return blocks
 
 
-def formula_latex(text: str) -> str:
+def formula_latex(text: str, *, constant: bool = False) -> str:
     """Convierte una expresión ya validada en LaTeX para el modo visual."""
     if not text.strip():
         return ""
-    function = RealFunction(text)
+    function = read_constant_expression(text) if constant else RealFunction(text)
 
     def render(node: ast.expr, minimum: int = 0) -> str:
         if isinstance(node, ast.Constant):

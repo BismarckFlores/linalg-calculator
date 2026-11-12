@@ -247,3 +247,42 @@ cálculo desde la gráfica ampliada. Pasaron `check.py` y las 73 pruebas.
 
 En Inicio, Métodos Abiertos ocupa las dos columnas cuando el catálogo
 usa una cuadrícula de dos columnas.
+
+### Esquinas del menú Apariencia en Windows
+
+En Windows, el menú usa un recorte con el mismo radio que su borde
+para evitar el fondo negro de las esquinas. Se comprobó la geometría
+del recorte y la selección de tema en Linux activando la ruta de
+Windows. Pasaron `check.py` y las 73 pruebas. Queda comprobar el
+renderizado en Windows.
+
+### Teclado matemático universal experimental
+
+El menú lateral y Alt+Mayús+Espacio abren el teclado debajo del área
+de trabajo. El modo flotante permite moverlo desde el encabezado sin
+salir de la ventana. El teclado sigue el campo MathLive seleccionado y adapta
+sus teclas al tipo de entrada. Cálculo y los métodos de raíces aceptan
+constantes como π y raíces cuadradas en sus campos numéricos.
+Se comprobó la entrada en un límite de integración y en la gráfica
+ampliada, además del cambio de herramienta con el teclado abierto.
+Pasaron `check.py` y las 74 pruebas.
+
+Se comprobó el ancho del teclado acoplado, el arrastre del panel
+flotante y el retorno al acople al cerrar la gráfica maximizada.
+
+El teclado flotante conserva las dimensiones y la distribución del
+teclado acoplado al cambiar de modo o ajustar la ventana.
+
+El teclado acoplado se alinea al borde inferior del área de trabajo.
+El contenido ocupa el espacio vertical restante al cambiar el tamaño
+de la ventana.
+
+La posición de arrastre se conserva solo para el modo flotante. Al
+acoplar, el teclado vuelve al borde inferior y reserva su espacio en
+el área de trabajo. Se verificó la secuencia de arrastrar, acoplar,
+ocultar, volver a abrir y cambiar el tamaño de la ventana.
+
+En la gráfica maximizada, el teclado se abre y se pliega desde un
+botón fijo y usa el estilo del panel de parámetros. El arrastre queda
+reservado al modo flotante de la ventana normal. Se verificaron el
+plegado, la escritura de π y el regreso al acople. Pasaron las 75 pruebas.

@@ -204,6 +204,18 @@ class RealFunction:
         return float(value)
 
 
+def read_constant_expression(text: str) -> RealFunction:
+    """Analiza una expresión real sin la variable x para usarla como parámetro."""
+    text = text.strip().replace("π", " pi ").strip()
+    text = re.sub(r"√\s*(?=\()", "sqrt", text)
+    if not re.search(r"\blog\s*\(", text):
+        text = text.replace(",", ".")
+    expression = RealFunction(text)
+    if any(isinstance(node, ast.Name) and node.id == "x" for node in ast.walk(expression._tree)):
+        raise RootInputError("Escribe un número sin la variable x.")
+    return expression
+
+
 def sample_function(
     function: RealFunction, a: float, b: float, count: int = 401,
 ) -> tuple[tuple[float, float | None], ...]:

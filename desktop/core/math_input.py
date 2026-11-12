@@ -3,7 +3,7 @@
 import json
 
 from PySide6.QtCore import QSignalBlocker, Qt, QTimer, QUrl, Signal
-from PySide6.QtGui import QColor, QKeySequence, QShortcut
+from PySide6.QtGui import QColor
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import (
@@ -14,7 +14,6 @@ from ui import theme_tokens as theme
 
 from .assets import ASSETS
 from .handlers.editor import EditorBridge
-from .math_keyboard import MathKeyboard
 from .math_notation import from_ascii, result_blocks, to_latex
 from .number_display import parse_scientific_display, scientific_notation
 from .widgets import interface_fonts, label
@@ -34,19 +33,7 @@ class MathInput(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(6)
-        self.keyboard_button = None
-        if kind == "function":
-            header = QHBoxLayout()
-            header.addWidget(label(name, "caption"), 1)
-            self.keyboard_button = QPushButton("⌨  Teclado", checkable=True)
-            self.keyboard_button.setObjectName("keyboardToggle")
-            self.keyboard_button.setEnabled(False)
-            shortcut = QShortcut(QKeySequence("Alt+Shift+Space"), self)
-            shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
-            shortcut.activated.connect(self.keyboard_button.click)
-            header.addWidget(self.keyboard_button)
-            layout.addLayout(header)
-        elif name and not inline:
+        if name and not inline:
             layout.addWidget(label(name, "caption"))
 
         self.stack = QStackedWidget()
@@ -75,13 +62,6 @@ class MathInput(QWidget):
             layout.addLayout(row)
         else:
             layout.addWidget(self.stack)
-        if self.keyboard_button is not None:
-            self.keyboard = MathKeyboard()
-            self.keyboard.hide()
-            self.keyboard.command.connect(self._edit_formula)
-            self.keyboard_button.toggled.connect(self.keyboard.setVisible)
-            self.keyboard_button.clicked.connect(self._focus_formula)
-            layout.addWidget(self.keyboard)
         self.message = QLabel()
         self.message.setObjectName("inputError")
         self.message.setWordWrap(True)
@@ -114,10 +94,6 @@ class MathInput(QWidget):
             return self._value
         text = self.text.toPlainText() if isinstance(self.text, QPlainTextEdit) else self.text.text()
         return text if self.kind == "output" else parse_scientific_display(text)
-
-    def hide_keyboard(self) -> None:
-        if self.keyboard_button is not None:
-            self.keyboard_button.setChecked(False)
 
     def clear(self) -> None:
         self.set_value("")
@@ -159,16 +135,18 @@ class MathInput(QWidget):
         if self._ready:
             self.web.page().runJavaScript(command)
 
-    def _edit_formula(self, command: tuple) -> None:
-        self._focus_formula()
-        if command == ("deleteAll",):
-            self.clear()
-            return
-        self._js(f"editFormula({json.dumps(command)})")
+    def accepts_math_keys(self) -> bool:
+        return self.kind != "output" and self._ready and self.isVisible() and self.web.isVisible()
 
-    def _focus_formula(self) -> None:
+    def apply_math_key(self, command: tuple) -> None:
+        if not self.accepts_math_keys():
+            return
         self.web.setFocus()
         self._js("focusFormula()")
+        if command == ("deleteAll",):
+            self.clear()
+        else:
+            self._js(f"editFormula({json.dumps(command)})")
 
     def _initialized(self) -> None:
         self._startup_timer.stop()
@@ -178,9 +156,6 @@ class MathInput(QWidget):
         self.text_button.hide()
         self.message.hide()
         self.stack.show()
-        if self.keyboard_button is not None:
-            self.keyboard_button.setEnabled(True)
-            self.keyboard_button.show()
         self.set_dark(self._dark)
         self._js(f"configureEditor({json.dumps(self.kind)}, {json.dumps(self.name)})")
         self._send_value()
@@ -201,10 +176,6 @@ class MathInput(QWidget):
         if self.stack.currentWidget() is self.text:
             return
         self._ready = False
-        self.hide_keyboard()
-        if self.keyboard_button is not None:
-            self.keyboard_button.setEnabled(False)
-            self.keyboard_button.hide()
         self.stack.hide()
         self.message.setText("El editor matemático no está disponible.")
         self.message.show()

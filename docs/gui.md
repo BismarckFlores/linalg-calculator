@@ -103,8 +103,21 @@ Cambia el máximo a uno para comprobar la otra condición de parada.
 
 ## Editor de funciones
 
-En **Métodos Numéricos** escribe con el teclado físico o pulsa **Teclado**
-para usar los símbolos Qt. `^` abre el exponente, `/` crea una fracción y
+Pulsa **Teclado matemático** en el menú lateral o **Alt+Mayús+Espacio**
+para abrir el teclado debajo del área de trabajo. Pulsa **Flotar** y
+arrastra el encabezado para moverlo dentro de la ventana. El teclado
+mantiene el mismo ancho y la misma distribución de teclas. Pulsa
+**Acoplar** para devolverlo abajo. En la gráfica maximizada, el botón
+**Teclado matemático** de la esquina inferior izquierda abre un panel
+fijo que se puede plegar. Al salir se recupera el modo anterior.
+Selecciona un campo MathLive. El panel
+muestra su nombre y envía ahí los símbolos. Puedes cambiar de campo o
+de herramienta con el teclado abierto. Las matrices, las ecuaciones
+lineales y los escalares exactos habilitan las fracciones y las teclas de
+edición. Los límites y puntos de Cálculo y los parámetros de raíces
+también admiten expresiones constantes como `pi/2` y `sqrt(2)`.
+
+Con el teclado físico, `^` abre el exponente, `/` crea una fracción y
 la flecha derecha sale del exponente o del denominador. Puedes pegar
 expresiones como `5x^3` o `sqrt(x+1)/2`. El botón **log** coloca el cursor en
 la base del logaritmo. Pulsa **Tab** para pasar al argumento. El botón

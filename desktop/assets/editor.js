@@ -178,18 +178,21 @@ customElements.whenDefined("math-field").then(() => {
     let lastLatex = field.value;
     const ascii = MathLive.convertLatexToAsciiMath;
 
-    function asNumber(latex) {
+    function asNumber(latex, convert = ascii) {
       const scientific = /^([+-]?(?:\d+(?:\.\d*)?|\.\d+))\s*\\times\s*10\^\{([+-]?\d+)\}$/.exec(latex.trim());
-      return scientific ? scientific[1] + "e" + scientific[2] : ascii(latex);
+      return scientific ? scientific[1] + "e" + scientific[2] : convert(latex);
     }
 
     function asInput(latex) {
       if (kind === "matrix") {
         const matrix = /^\\begin\{([pbBvV]?matrix)\}([\s\S]*)\\end\{\1\}$/.exec(latex);
         if (!matrix) return "";
-        return matrix[2].split("\\\\").map(row => row.split("&").map(asNumber).join(";")).join("\n");
+        return matrix[2].split("\\\\").map(row => row.split("&").map(cell => asNumber(cell)).join(";")).join("\n");
       }
       if (kind === "number") return asNumber(latex);
+      if (kind === "constant") {
+        return asNumber(latex, expression => ascii(groupFractions(exportFunction(expression))));
+      }
       return ascii(kind === "function" ? groupFractions(exportFunction(latex)) : latex);
     }
 

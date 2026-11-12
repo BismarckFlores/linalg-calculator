@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import sympy as sp
 from sympy.calculus.util import continuous_domain
 
-from .numerical_methods.handlers.real_function import RealFunction, RootInputError
+from .numerical_methods.handlers.real_function import RealFunction, RootInputError, read_constant_expression
 
 
 X = sp.Symbol("x", real=True)
@@ -76,10 +76,7 @@ def _expression(function: RealFunction, domain_terms: list[sp.Expr] | None = Non
 
 def read_calculus_point(text: str) -> sp.Expr:
     """Lee un punto o límite exacto, por ejemplo 1/3 o pi/2."""
-    text = text.strip().replace(",", ".")
-    value = _expression(RealFunction(text))
-    if value.free_symbols:
-        raise RootInputError("Escribe un número sin la variable x.")
+    value = _expression(read_constant_expression(text))
     return _require_real(value, "El valor debe ser real y finito.")
 
 

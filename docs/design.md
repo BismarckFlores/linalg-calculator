@@ -109,6 +109,9 @@ solucionador de sistemas.
 
 `desktop/core/` comparte los formularios, controles y el puente de MathLive.
 Las páginas de `desktop/tools/` componen esos controles y conectan el motor.
+`UniversalMathKeyboard` mantiene un teclado por ventana, acoplable al área de trabajo, y dirige
+cada comando al campo MathLive seleccionado. Los campos indican si están
+disponibles y cada tipo habilita las teclas que admite su lector.
 `ToolPage` comparte formulario, errores y resultado.
 `MatrixInput` comparte la entrada de coeficientes y `read_equations`
 conserva los nombres de incógnitas. `StepView` navega las trazas de

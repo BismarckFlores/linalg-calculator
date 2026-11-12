@@ -413,6 +413,7 @@ class PlotPanel(QWidget):
             self._overlay.show()
             self._overlay.raise_()
             self._overlay.setFocus()
+            self._overlay.notify_keyboard(True)
 
     def finish(self, result: QWidget) -> None:
         """Muestra el resultado debajo del panel al calcular desde la vista ampliada."""
@@ -473,6 +474,11 @@ class PlotOverlay(QFrame):
             return
         super().keyPressEvent(event)
 
+    def notify_keyboard(self, expanded: bool) -> None:
+        callback = getattr(self.parentWidget(), "set_plot_overlay", None)
+        if callback is not None:
+            callback(self if expanded else None)
+
     def closeEvent(self, event) -> None:
         self.parentWidget().removeEventFilter(self)
         self._original_layout.insertWidget(self._original_index, self._panel)
@@ -481,5 +487,6 @@ class PlotOverlay(QFrame):
         super().closeEvent(event)
         for view in self._visible_web_views:
             view.show()
+        self.notify_keyboard(False)
         if self._previous_focus is not None:
             self._previous_focus.setFocus()

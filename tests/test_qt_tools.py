@@ -8,7 +8,7 @@ if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY") or sys.pl
     raise unittest.SkipTest("Qt WebEngine requiere una sesión gráfica.")
 
 try:
-    from PySide6.QtCore import QPoint
+    from PySide6.QtCore import QPoint, Qt
     from PySide6.QtQuick import QQuickWindow
     from PySide6.QtTest import QTest
     from PySide6.QtWidgets import QApplication, QLineEdit, QPushButton
@@ -136,6 +136,70 @@ class QtToolTests(unittest.TestCase):
                 self.assertEqual(page.output._dark, theme)
         finally:
             self.window._apply_theme(dark)
+
+    def test_universal_keyboard_routes_to_the_current_field(self):
+        page = self.open_page("calculus")
+        page.findChild(SegmentedControl).setCurrentIndex(2)
+        fields = {field.name: field for field in page.findChildren(MathInput)}
+        function = fields["Función f(x)"]
+        function.set_value("sin(x)")
+        fields["Límite inferior"].set_value("0")
+        upper = fields["Límite superior"]
+        upper.clear()
+        upper.web.setFocus()
+        keyboard = self.window.math_keyboard
+        keyboard.toggle.setChecked(True)
+        self.assertTrue(keyboard.isVisible())
+        pi = next(button for button in keyboard.keys.findChildren(QPushButton) if button.text() == "π")
+        pi.click()
+        QTest.qWait(150)
+        self.assertEqual(upper.value().strip(), "pi")
+        self.assertEqual(function.value(), "sin(x)")
+        self.calculate(page, "Integral de 0 a pi = 2")
+
+        self.window.select("home")
+        self.assertTrue(keyboard.isVisible())
+        self.assertFalse(pi.isEnabled())
+        self.assertTrue(all(not field.accepts_math_keys() for field in fields.values()))
+        keyboard.toggle.setChecked(False)
+
+    def test_docked_keyboard_stays_at_bottom_when_resized(self):
+        self.window.select("open_methods")
+        keyboard = self.window.math_keyboard
+        original_size = self.window.size()
+        keyboard.toggle.setChecked(True)
+        try:
+            area = self.window.stack.parentWidget()
+
+            def assert_docked():
+                QTest.qWait(80)
+                bottom = area.mapTo(self.window, area.contentsRect().bottomLeft())
+                self.assertEqual(keyboard.geometry().bottomLeft(), bottom)
+                self.assertEqual(keyboard.width(), area.width())
+                stack_bottom = self.window.stack.mapTo(self.window, self.window.stack.rect().bottomLeft()).y()
+                self.assertLess(stack_bottom, keyboard.geometry().top())
+
+            self.window.resize(1440, 990)
+            assert_docked()
+            keyboard.mode_button.click()
+            QTest.qWait(80)
+            before = keyboard.pos()
+            handle = keyboard._handle
+            QTest.mousePress(handle, Qt.MouseButton.LeftButton, pos=QPoint(30, 10))
+            QTest.mouseMove(handle, QPoint(-10, -70))
+            QTest.mouseRelease(handle, Qt.MouseButton.LeftButton, pos=QPoint(30, 10))
+            self.assertEqual(keyboard.pos(), before - QPoint(40, 80))
+            keyboard.mode_button.click()
+            assert_docked()
+            keyboard.toggle.click()
+            keyboard.toggle.click()
+            assert_docked()
+            for width, height in ((960, 640), (1918, 1015), (1160, 780)):
+                self.window.resize(width, height)
+                assert_docked()
+        finally:
+            keyboard.toggle.setChecked(False)
+            self.window.resize(original_size)
 
     def test_systems_and_echelon(self):
         page = self.open_page("gauss")

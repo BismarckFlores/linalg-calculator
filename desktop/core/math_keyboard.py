@@ -48,6 +48,7 @@ class MathKeyboard(QFrame):
         super().__init__()
         self.setObjectName("mathKeyboard")
         self.setAccessibleName("Teclado matemático")
+        self._buttons: list[tuple[QPushButton, str, object]] = []
         grid = QGridLayout(self)
         grid.setContentsMargins(12, 12, 12, 12)
         grid.setSpacing(6)
@@ -71,3 +72,11 @@ class MathKeyboard(QFrame):
                     command = ("insert", value, {"format": "latex", "selectionMode": "placeholder"})
                 button.clicked.connect(lambda checked=False, cmd=command: self.command.emit(cmd))
                 grid.addWidget(button, row, column)
+                self._buttons.append((button, role, value))
+
+    def set_input_kind(self, kind: str | None) -> None:
+        for button, role, value in self._buttons:
+            allowed = kind in ("function", "constant") or role == "edit" or (
+                kind in ("number", "matrix", "vector", "equations") and value == r"\frac{#@}{#?}"
+            )
+            button.setEnabled(kind is not None and allowed)

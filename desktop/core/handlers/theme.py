@@ -1,14 +1,37 @@
 """Preferencia de apariencia y seguimiento del esquema del sistema."""
 
-from PySide6.QtCore import QSettings, QSize, Qt, Signal
-from PySide6.QtGui import QActionGroup, QIcon
+import sys
+
+from PySide6.QtCore import QRectF, QSettings, QSize, Qt, Signal
+from PySide6.QtGui import QActionGroup, QIcon, QPainterPath, QRegion
 from PySide6.QtWidgets import QApplication, QMenu, QPushButton, QWidgetAction
 
 from ..assets import ASSETS
-from ..widgets import label
+from ..widgets import THEME_MENU_RADIUS, label
 
 
 THEMES = {"auto": "Automático", "light": "Claro", "dark": "Oscuro"}
+
+
+class AppearanceMenu(QMenu):
+    def __init__(self, parent: QPushButton) -> None:
+        super().__init__(parent)
+        self._clip_window = sys.platform == "win32"
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, not self._clip_window)
+
+    def _clip_corners(self) -> None:
+        if self._clip_window:
+            path = QPainterPath()
+            path.addRoundedRect(QRectF(self.rect()), THEME_MENU_RADIUS, THEME_MENU_RADIUS)
+            self.setMask(QRegion(path.toFillPolygon().toPolygon()))
+
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        self._clip_corners()
+
+    def showEvent(self, event) -> None:
+        self._clip_corners()
+        super().showEvent(event)
 
 
 class ThemeSelector(QPushButton):
@@ -25,10 +48,9 @@ class ThemeSelector(QPushButton):
         self.mode = saved if saved in THEMES else "auto"
         self._style_hints = QApplication.styleHints()
 
-        menu = QMenu(self)
+        menu = AppearanceMenu(self)
         menu.setObjectName("themeMenu")
         menu.setMinimumWidth(178)
-        menu.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         heading = QWidgetAction(menu)
         heading.setDefaultWidget(label("Apariencia", "themeMenuTitle"))
         heading.setEnabled(False)

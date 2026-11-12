@@ -10,10 +10,11 @@ from PySide6.QtGui import QIcon
 from PySide6.QtQuick import QQuickWindow
 from PySide6.QtWidgets import (
     QApplication, QButtonGroup, QFrame, QGridLayout, QHBoxLayout, QMainWindow,
-    QPushButton, QScrollArea, QStackedWidget, QVBoxLayout, QWidget,
+    QPushButton, QScrollArea, QSizePolicy, QStackedWidget, QVBoxLayout, QWidget,
 )
 
 from .core.assets import ASSETS
+from .core.handlers.keyboard import UniversalMathKeyboard
 from .core.handlers.theme import ThemeSelector
 from .core.math_input import MathInput
 from .core.widgets import GlassFrame, NavigationIcon, Workspace, label, link, page_header, stylesheet
@@ -87,9 +88,17 @@ class CalculatorWindow(QMainWindow):
         layout = QHBoxLayout(surface)
         layout.setContentsMargins(20, 20, 16, 20)
         layout.setSpacing(26)
-        layout.addWidget(self._sidebar())
+        content = QWidget()
+        content.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        content_layout = QVBoxLayout(content)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(12)
         self.stack = QStackedWidget()
-        layout.addWidget(self.stack, 1)
+        self.stack.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        content_layout.addWidget(self.stack, 1)
+        self.math_keyboard = UniversalMathKeyboard(self, content_layout)
+        layout.addWidget(self._sidebar())
+        layout.addWidget(content, 1)
         self.setCentralWidget(surface)
         self._add_page("home", Catalog(self.select))
         self.select("home")
@@ -143,6 +152,7 @@ class CalculatorWindow(QMainWindow):
         scroll.setWidget(rows)
         self._nav_scroll = scroll
         layout.addWidget(scroll)
+        layout.addWidget(self.math_keyboard.toggle)
         return sidebar
 
     def _navigation(self, key: str, title: str) -> QPushButton:
@@ -197,6 +207,10 @@ class CalculatorWindow(QMainWindow):
         self._nav[key].setChecked(True)
         self._nav_scroll.ensureWidgetVisible(self._nav[key], 0, 8)
         self.stack.setCurrentWidget(self._scroll[key])
+        self.math_keyboard.refresh()
+
+    def set_plot_overlay(self, overlay: QWidget | None) -> None:
+        self.math_keyboard.set_plot_overlay(overlay)
 
     def _apply_theme(self, dark: bool) -> None:
         self._dark = dark
