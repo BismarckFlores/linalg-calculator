@@ -88,6 +88,7 @@ class FunctionPlot(QWidget):
         self.result: BracketResult | None = None
         self.select_x = select_x
         self.markers: tuple[tuple[float, str], ...] = ()
+        self.solution: tuple[float, float, bool] | None = None
         self.dark = False
         self._view = (-10.0, 10.0, -1.0, 1.0)
         self._reference_span = self._view[1] - self._view[0]
@@ -114,6 +115,7 @@ class FunctionPlot(QWidget):
         self.function = function
         self.result = None
         self.markers = ()
+        self.solution = None
         if function is None:
             self._samples = ()
             self.update()
@@ -155,6 +157,23 @@ class FunctionPlot(QWidget):
     def set_markers(self, markers: tuple[tuple[float, str], ...]) -> None:
         self.markers = markers
         self.update()
+
+    def show_solution(self, x: float, value: float, *, converged: bool) -> None:
+        y = 0.0 if converged else value
+        self.solution = (x, y, converged)
+        left, right, bottom, top = self._view
+        if converged and not (left <= x <= right and bottom <= 0 <= top):
+            half = (right - left) / 2
+            if not left <= x <= right:
+                left, right = x - half, x + half
+            center_y = bottom + (top - bottom) / 2 if bottom <= 0 <= top else 0.0
+            self._fit_view(left, right, center_y)
+        self.update()
+
+    def clear_solution(self) -> None:
+        if self.solution is not None:
+            self.solution = None
+            self.update()
 
     def _plot_rect(self) -> QRectF:
         return QRectF(64, 48, self.width() - 116, self.height() - 82)
@@ -315,6 +334,33 @@ class FunctionPlot(QWidget):
                 label_width = painter.fontMetrics().horizontalAdvance(name)
                 text_x = min(point.x() + 4, rect.right() - label_width - 4)
                 painter.drawText(QPointF(text_x, point.y() + 14), name)
+
+        if self.solution is not None:
+            x, y, converged = self.solution
+            if low <= x <= high and bottom <= y <= top:
+                self._draw_solution(painter, rect, position(x, y), x, converged)
+
+    def _draw_solution(
+        self, painter: QPainter, rect: QRectF, point: QPointF, x: float, converged: bool,
+    ) -> None:
+        color = QColor(theme.GREEN if self.dark else "#17743d") if converged else QColor(theme.ORANGE)
+        painter.setPen(QPen(QColor(theme.CARD[int(self.dark)]), 2))
+        painter.setBrush(color)
+        painter.drawEllipse(point, 5, 5)
+        name = "Raíz" if converged else "Última aprox."
+        caption = f"{name} ≈ {scientific_notation(f'{x:.10g}')}"
+        metrics = painter.fontMetrics()
+        width = metrics.horizontalAdvance(caption) + 12
+        height = metrics.height() + 6
+        left = max(rect.left() + 2, min(point.x() + 10, rect.right() - width - 2))
+        top = point.y() - height - 8
+        if top < rect.top() + 2:
+            top = min(point.y() + 8, rect.bottom() - height - 2)
+        badge = QRectF(left, top, width, height)
+        painter.setPen(QPen(color, 1))
+        painter.setBrush(QColor(theme.CARD[int(self.dark)]))
+        painter.drawRoundedRect(badge, 6, 6)
+        painter.drawText(badge, Qt.AlignmentFlag.AlignCenter, caption)
 
     def _continuous_crossing(self, left: float, right: float, expected: float, span: float) -> bool:
         if self.function is None:

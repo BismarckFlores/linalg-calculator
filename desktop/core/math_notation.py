@@ -93,8 +93,11 @@ def _number_latex(text: str) -> str:
 
 def from_ascii(text: str, kind: str) -> str:
     if kind in ("function", "constant"):
-        for name in ("abs", "arcsec", "arccsc", "arccot"):
-            text = text.replace(f"{' '.join(name)} (", f"{name}(")
+        names = (*(f"arc{name}" for name in TRIG_FUNCTIONS), "arcsen", *TRIG_FUNCTIONS, "sen", "abs", "exp", "ln", "log", "sqrt")
+        for name in names:
+            # MathLive separa las letras si se escribieron como símbolos sueltos.
+            spelled = r"\s+".join(name)
+            text = re.sub(rf"\b{spelled}\s*(?=[(^])", name, text)
         return text.replace("l o g10 (", "log10(")
 
     def fraction(match: re.Match) -> str:

@@ -149,6 +149,7 @@ class OpenMethodsPage(QWidget):
     def _clear_result(self) -> None:
         self.result_card.hide()
         self.solve_error.hide()
+        self.plot.clear_solution()
 
     def _invalidate(self) -> None:
         self.plot.set_function(None)
@@ -242,6 +243,7 @@ class OpenMethodsPage(QWidget):
         self.iterations.select_iteration(1)
         self.procedure_card.setVisible(bool(result.steps))
         self.table_card.setVisible(bool(result.steps))
+        self.plot.show_solution(result.root, result.value, converged=result.converged)
         self.result_card.show()
         self.graph_card.finish(self.result_card)
 

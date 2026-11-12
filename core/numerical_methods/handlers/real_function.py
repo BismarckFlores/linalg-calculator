@@ -110,6 +110,7 @@ class RealFunction:
             raise RootInputError("Escribe f(x) con entre 1 y 1024 caracteres.")
         normalized = self.text.replace("^", "**").replace("−", "-").replace("×", "*")
         normalized = _SUPERSCRIPT.sub(lambda match: "**" + match[0].translate(_SUPERSCRIPT_DIGITS), normalized)
+        normalized = re.sub(r"\b(arc)?sen\b", lambda match: (match[1] or "") + "sin", normalized)
         normalized = _expand_trig_powers(normalized)
         normalized = explicit_products(normalized, _ROOT_FUNCTIONS)
         self._source = normalized
@@ -153,7 +154,7 @@ class RealFunction:
             return
         raise RootInputError(
             "Expresión no admitida. Usa x, números, + - * / ^, pi, e y "
-            "sin, cos, tan, sec, csc, cot, sus inversas (arcsin, etc.), "
+            "sin (o sen), cos, tan, sec, csc, cot y sus inversas (arcsin, etc.), "
             "exp, ln, log, log10, sqrt o abs con un argumento, "
             "o log(base, argumento) para indicar la base."
         )

@@ -94,7 +94,14 @@ class QtRootTests(unittest.TestCase):
         self.click(page, "Cargar ejemplo de Semana 13")
         self.click(page, "Graficar función")
         self.assertEqual(page.plot.markers, ((1.5, "x₀"),))
+        page.plot._fit_view(10, 30, 4)
         self.click(page, "Calcular raíz")
+        root, ordinate, converged = page.plot.solution
+        self.assertAlmostEqual(root, 1.5213797068)
+        self.assertEqual(ordinate, 0)
+        self.assertTrue(converged)
+        self.assertLess(page.plot._range[0], root)
+        self.assertGreater(page.plot._range[1], root)
         self.assertIn("1.5213797068", page.answer.value())
         self.assertIn("Iteraciones: 3", page.answer.value())
         self.assertIn("Se alcanzó la tolerancia", page.answer.value())
@@ -103,8 +110,10 @@ class QtRootTests(unittest.TestCase):
         self.assertEqual(self.window._scroll["open_methods"].horizontalScrollBar().maximum(), 0)
         page.limit.setValue(1)
         self.assertFalse(page.result_card.isVisible())
+        self.assertIsNone(page.plot.solution)
         self.click(page, "Calcular raíz")
         self.assertIn("Se alcanzó el máximo", page.answer.value())
+        self.assertFalse(page.plot.solution[2])
         self.assertEqual(page.table.rowCount(), 1)
 
         page.editor.set_value("x^2+1")
@@ -154,6 +163,8 @@ class QtRootTests(unittest.TestCase):
         self.click(page, "Calcular raíz")
         self.assertIn("1.5213797068", page.answer.value())
         self.assertIn("1.33333333333", page.walk.output.value())
+        self.assertAlmostEqual(page.plot.solution[0], 1.5213797068)
+        self.assertTrue(page.plot.solution[2])
         self.assertEqual(page.table.rowCount(), 7)
         self.assertEqual(page.table.horizontalHeaderItem(7).text(), "|f(xₙ₊₁)|")
 
@@ -368,3 +379,22 @@ class QtRootTests(unittest.TestCase):
         keyboard.toggle.setChecked(False)
         self.assertEqual(page.editor.value(), "")
         self.assertTrue(page.a.value())
+
+    def test_trigonometric_identity_accepts_split_function_names(self):
+        page = self.open_page("open_methods")
+        page.method.setCurrentIndex(0)
+        editor = page.editor
+        editor.clear()
+        editor.web.page().runJavaScript(r'''
+            document.querySelector("math-field").insert(
+                "sen^{2}(x)+\\cos^{2}(x)", {format: "latex"}
+            );
+        ''')
+        QTest.qWait(150)
+        self.click(page, "Graficar función")
+        self.assertFalse(page.graph_error.isVisible(), page.graph_error.text())
+        self.assertAlmostEqual(page.plot.function(0.42), 1)
+        page.initial.set_value("0.42")
+        self.click(page, "Calcular raíz")
+        self.assertIn("La derivada vale cero", page.answer.value())
+        self.assertFalse(page.plot.solution[2])

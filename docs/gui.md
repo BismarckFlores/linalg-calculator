@@ -90,6 +90,8 @@ un resultado simbólico, la página muestra un mensaje.
    `|xₙ₊₁ − xₙ| ≤ E` o alcanzan el máximo de iteraciones. Si una
    evaluación da cero, el cálculo termina ahí. La tabla muestra el
    cambio absoluto y el residuo `|f(xₙ₊₁)|` de cada aproximación.
+   La gráfica marca la raíz aproximada en el eje x. Si el cálculo
+   termina sin converger, distingue la última aproximación válida.
 
 **Cargar ejemplo de Semana 13** usa `x^3 - x - 2`. Newton parte de
 `x₀ = 1.5` y llega a `x ≈ 1.5213797068` en 3 iteraciones.
@@ -123,7 +125,8 @@ expresiones como `5x^3` o `sqrt(x+1)/2`. El botón **log** coloca el cursor en
 la base del logaritmo. Pulsa **Tab** para pasar al argumento. El botón
 **|x|** inserta las barras de valor absoluto. El teclado también incluye
 las seis funciones trigonométricas y sus inversas. El editor acepta el
-exponente sobre el nombre de la función, como en `cos^2(2x)`.
+exponente sobre el nombre de la función, como en `cos^2(2x)`, y
+reconoce `sen` como alias de `sin`.
 **Graficar función** integra los parámetros de resolución debajo de la
 gráfica. En el borde derecho del lienzo están los iconos para acercar,
 alejar, restablecer y maximizar. También puedes usar la rueda para hacer

@@ -286,3 +286,16 @@ En la gráfica maximizada, el teclado se abre y se pliega desde un
 botón fijo y usa el estilo del panel de parámetros. El arrastre queda
 reservado al modo flotante de la ventana normal. Se verificaron el
 plegado, la escritura de π y el regreso al acople. Pasaron las 75 pruebas.
+
+### Raíces de métodos abiertos en la gráfica
+
+Newton–Raphson y Secante marcan el resultado en la gráfica y quitan
+la marca al cambiar los datos. También se corrigió la lectura de
+funciones trigonométricas cuyas letras MathLive exporta por separado.
+Se verificó que sin²(x) + cos²(x) se grafica en y = 1 y que Newton
+distingue la derivada nula de una raíz.
+
+El lector numérico acepta `sen` y `arcsen` como alias de `sin` y
+`arcsin`. Se comprobó la escritura de la identidad con `sen` desde
+MathLive y la convergencia de ambos métodos abiertos para una función
+trigonométrica con raíces.
