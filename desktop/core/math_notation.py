@@ -131,12 +131,16 @@ def _result_latex(text: str) -> str:
     text = text.replace("f(b)(a - b) / (f(a) - f(b))", r"\frac{f(b)(a-b)}{f(a)-f(b)}")
     text = re.sub(r"(?<![\w.])\(([^()]+)\) / \(([^()]+)\)", r"\\frac{\1}{\2}", text)
     text = re.sub(r"(f\([^()]+\)) / (f′\([^()]+\))", r"\\frac{\1}{\2}", text)
+    text = re.sub(
+        r"^(x_\{n\+1\} = .+? - )(.+) / \[(.+)\]",
+        r"\1\\frac{\2}{\3}", text,
+    )
     text = re.sub(r"\b(det|rango)(?=\b)", r"\\operatorname{\1}", text)
     text = re.sub(r"\b[A-Z]{2,}(?=_(?:\{|\d)|\s*[=+]|$)", r"\\mathrm{\g<0>}", text)
     return (text.replace("×", r"\times ").replace("→", r"\to ")
             .replace("↔", r"\leftrightarrow ").replace("′", "'")
             .replace("…", r"\dots ").replace("<", r"\lt ")
-            .replace("%", r"\%"))
+            .replace("%", r"\%").replace("≤", r"\le "))
 
 
 _FACT_CAPTIONS = {
@@ -168,9 +172,10 @@ def _result_line(line: str) -> list[tuple[str, object]]:
         return [("line", "Matriz aumentada"), ("latex", r"\left[A\mid b\right]")]
     if line.startswith("Iteraciones: ") and " · " in line:
         count, threshold = line.split(" · ", 1)
-        criterion, separator, tolerance = threshold.partition(" < ")
-        if separator:
-            return _result_line(count) + [("fact", (criterion, _result_latex(f"E < {tolerance}"), "", True))]
+        comparison = re.fullmatch(r"(.+) ([<≤]) (.+)", threshold)
+        if comparison:
+            criterion, operator, tolerance = comparison.groups()
+            return _result_line(count) + [("fact", (criterion, _result_latex(f"E {operator} {tolerance}"), "", True))]
     if line.startswith(("Sistema Consistente", "Sistema Inconsistente")):
         return [("status", line)]
     if line in _SECTION_TITLES:

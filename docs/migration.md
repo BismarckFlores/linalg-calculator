@@ -6,12 +6,10 @@ Consulta [la guía de la interfaz](gui.md) para ejecutar y usar la versión actu
 
 ## Estado de la migración
 
-- Newton–Raphson está disponible en Qt desde Inicio y el menú lateral.
-  Se verificaron la selección de x₀ en la gráfica normal y ampliada,
-  la tabla, la sustitución por iteración y ambas condiciones de parada
-  con el ejemplo de Semana 13. También se comprobó el caso de derivada
-  nula, la edición, la limpieza y ambos temas. La versión en `main` incluye
-  la presentación unificada y las capturas actualizadas del README.
+- **Métodos Abiertos** reúne Newton–Raphson y Secante en una herramienta
+  de Qt. Los dos métodos tienen un ejemplo guiado de Semana 13, la
+  práctica integradora, selección de puntos en la gráfica, traza, tabla
+  y parada por cambio absoluto o máximo de iteraciones.
 
 - Se agregó **Derivadas e integrales** al catálogo Qt con derivación
   simbólica, evaluación opcional, antiderivada e integral definida.
@@ -238,3 +236,14 @@ los parámetros flotan en un formulario plegable. Se corrigió el icono
 de restablecer el zoom. Se comprobó el cálculo desde la vista ampliada
 en los tres métodos y la navegación al resultado. Pasaron `check.py`
 y las 69 pruebas.
+
+### Secante y selección de métodos abiertos
+
+Secante parte de dos puntos y usa sus evaluaciones para calcular cada
+aproximación. La tabla incluye el cambio absoluto y el residuo del
+nuevo punto en ambos métodos. Se comprobaron el ejemplo guiado, la
+práctica integradora, el denominador nulo, los límites de parada y el
+cálculo desde la gráfica ampliada. Pasaron `check.py` y las 73 pruebas.
+
+En Inicio, Métodos Abiertos ocupa las dos columnas cuando el catálogo
+usa una cuadrícula de dos columnas.

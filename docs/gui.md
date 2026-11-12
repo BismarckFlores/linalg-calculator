@@ -12,6 +12,7 @@ ilustrado que sigue el tema activo. El botón junto a **Álgebra Lineal** abre e
 **Apariencia**. El monitor indica **Automático** y sigue el modo del sistema.
 El sol indica **Claro** y la luna, **Oscuro**. El menú marca la opción
 seleccionada y la conserva al volver a abrir la aplicación.
+Cuando una tarjeta queda sola en la última fila, ocupa todo el ancho.
 
 Una luz azul difusa nace en la esquina superior izquierda del fondo de puntos
 y símbolos matemáticos. Las tarjetas y el menú lateral tienen una superficie
@@ -61,7 +62,7 @@ del teclado matemático borra el campo que estás editando.
 | Aritmética Romana | Suma, resta y producto, lectura por piezas y suma repetida opcional. |
 | Método de Bisección | Punto medio, criterios configurables, gráfica, tabla y procedimiento. |
 | Regula Falsi | Cruce de la secante, cambio relativo o residuo, gráfica, tabla y procedimiento. |
-| Newton–Raphson | Derivación automática, selección de x₀ en la gráfica, cambio absoluto, tabla y sustitución por iteración. |
+| Métodos Abiertos | Newton–Raphson con derivada automática o Secante con dos puntos. Selección gráfica, cambio absoluto, residuo, tabla y sustitución por iteración. |
 | Derivadas e integrales | Derivada simbólica con evaluación opcional, antiderivada con constante e integral definida exacta. |
 
 ### Derivadas e integrales
@@ -77,23 +78,28 @@ debe ser real y continua en el intervalo. Por ejemplo, `x^2` de `0` a
 `1` da `1/3`. Si el motor no puede verificar el dominio u obtener
 un resultado simbólico, la página muestra un mensaje.
 
-### Newton–Raphson
+### Métodos Abiertos
 
-1. En **Métodos Numéricos → Newton–Raphson**, escribe `f(x)` y pulsa
-   **Graficar función** para localizar visualmente un cruce con el eje x.
-2. Haz clic en la gráfica para seleccionar y marcar **x₀**, o escribe
-   su valor en **Aproximación inicial x₀**. La vista ampliada también
-   permite seleccionarlo.
-3. Ajusta la tolerancia y el máximo de iteraciones. Pulsa **Calcular
-   raíz** y consulta el motivo de parada, la sustitución en cada paso
-   y la tabla con el cambio absoluto `|xₙ₊₁ − xₙ|`. Al avanzar en el
-   paso a paso, la tabla selecciona la fila de esa iteración. Puedes
-   cambiar el formato numérico y la cantidad de decimales.
+1. En **Métodos Numéricos → Métodos Abiertos**, elige **Newton–Raphson**
+   o **Secante**. Escribe la función y pulsa **Graficar función**.
+2. Con Newton–Raphson, haz clic para elegir **x₀**. Con Secante, haz
+   clic para elegir **x₀** y luego **x₁**. El selector permite ajustar
+   cualquiera de los dos puntos. También puedes escribirlos en los
+   campos. La vista ampliada conserva los controles y las marcas.
+3. Pulsa **Calcular raíz**. Ambos métodos se detienen cuando
+   `|xₙ₊₁ − xₙ| ≤ E` o alcanzan el máximo de iteraciones. Si una
+   evaluación da cero, el cálculo termina ahí. La tabla muestra el
+   cambio absoluto y el residuo `|f(xₙ₊₁)|` de cada aproximación.
 
-**Cargar ejemplo de Semana 13** prepara `x^3 - x - 2`, `x₀ = 1.5`
-y tolerancia `0.000001`. Grafica y calcula para obtener
-`x ≈ 1.5213797068` en tres iteraciones. Cambia el máximo a uno
-para comprobar la otra condición de parada.
+**Cargar ejemplo de Semana 13** usa `x^3 - x - 2`. Newton parte de
+`x₀ = 1.5` y llega a `x ≈ 1.5213797068` en 3 iteraciones.
+Secante parte de `x₀ = 1` y `x₁ = 2`, obtiene `x₂ ≈ 1.333333333`
+en el primer paso y llega a la misma raíz en 7 iteraciones.
+
+**Práctica integradora** carga `x^3 - 2x - 5`. Con tolerancia
+`10⁻⁶`, Newton parte de `x₀ = 2` y tarda 4 iteraciones. Secante
+parte de `2` y `3` y tarda 6. Ambos dan `x ≈ 2.09455148154`.
+Cambia el máximo a uno para comprobar la otra condición de parada.
 
 ## Editor de funciones
 

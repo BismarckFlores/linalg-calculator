@@ -24,6 +24,7 @@ class RootStop(Enum):
     TOLERANCE = "tolerance"
     LIMIT = "limit"
     STAGNATION = "stagnation"
+    ZERO_DENOMINATOR = "zero_denominator"
     ZERO_DERIVATIVE = "zero_derivative"
     EVALUATION_ERROR = "evaluation_error"
     NONFINITE_STEP = "nonfinite_step"

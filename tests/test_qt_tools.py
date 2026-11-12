@@ -75,6 +75,9 @@ class QtToolTests(unittest.TestCase):
             self.window.resize(width, 640)
             QTest.qWait(100)
             self.assertEqual(home._columns, columns)
+            grid, tiles = home._grids[-1]
+            spans = [grid.getItemPosition(grid.indexOf(tile))[3] for tile in tiles]
+            self.assertEqual(spans, [1, 1, columns])
         shortcut = next(button for button in home.findChildren(QPushButton)
                         if button.accessibleName() == "Abrir Regula Falsi")
         shortcut.click()

@@ -65,7 +65,8 @@ class Catalog(QWidget):
             for index, tile in enumerate(tiles):
                 grid.removeWidget(tile)
                 row, column = divmod(index, columns)
-                grid.addWidget(tile, row, column, 1, columns if len(tiles) == 1 else 1)
+                span = columns - column if index == len(tiles) - 1 else 1
+                grid.addWidget(tile, row, column, 1, span)
 
 
 class CalculatorWindow(QMainWindow):

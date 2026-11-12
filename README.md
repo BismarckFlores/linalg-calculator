@@ -32,11 +32,11 @@
 <table>
   <tr>
     <th>Eliminación gaussiana · Tema claro</th>
-    <th>Newton–Raphson · Tema oscuro</th>
+    <th>Métodos Abiertos · Tema oscuro</th>
   </tr>
   <tr>
     <td><a href="docs/images/gauss-paso-a-paso.png"><img src="docs/images/gauss-paso-a-paso.png" width="450" alt="Ecuación matricial y primer paso de Gauss con la matriz aumentada en LaTeX"></a></td>
-    <td><a href="docs/images/newton-raphson.png"><img src="docs/images/newton-raphson.png" width="450" alt="Newton–Raphson con el editor MathLive y la aproximación inicial marcada en la gráfica"></a></td>
+    <td><a href="docs/images/metodos-abiertos.png"><img src="docs/images/metodos-abiertos.png" width="450" alt="Método de la secante con x₀ y x₁ marcados en la gráfica"></a></td>
   </tr>
 </table>
 
@@ -44,7 +44,7 @@
 
 - **Sistemas lineales.** Ingresa coeficientes o ecuaciones, aplica Gauss o Gauss–Jordan y revisa las operaciones por filas, los pivotes y la clasificación de la solución.
 - **Matrices y vectores.** Calcula inversas, factorizaciones LU, determinantes y combinaciones lineales. Las operaciones de álgebra lineal conservan las fracciones exactas.
-- **Búsqueda de raíces.** Usa Bisección, Regula Falsi o Newton–Raphson, explora la gráfica y revisa la tabla de iteraciones.
+- **Búsqueda de raíces.** Usa Bisección, Regula Falsi, Newton–Raphson o Secante, explora la gráfica y revisa la tabla de iteraciones.
 - **Cálculo.** Obtén derivadas, antiderivadas e integrales definidas con resultados simbólicos.
 - **Conversiones.** Convierte entre decimal, bases de 2 a 36 y números romanos. La aritmética romana incluye suma, resta y multiplicación.
 - **Escritorio en español.** Trece herramientas con temas claro, oscuro y automático. El editor y sus fuentes se cargan localmente, por lo que puedes usar la app sin conexión después de instalarla.
@@ -92,7 +92,7 @@ La versión **CustomTkinter** se conserva como referencia histórica en la
 - [Índice de documentación](docs/README.md) · Guías, ejercicios y referencia.
 - [Guía de uso](docs/usage.md) · Primeros ejercicios e instalación.
 - [Un sistema resuelto de principio a fin](docs/how-it-works.md) · Eliminación, despeje y comprobación.
-- [Newton–Raphson](docs/gui.md#newtonraphson) · Selección de la aproximación inicial en la gráfica.
+- [Métodos Abiertos](docs/gui.md#métodos-abiertos) · Ejemplos de Newton–Raphson y Secante.
 - [Bisección y Regula Falsi](docs/bisection.md) · Criterios de parada y ejemplos.
 - [Diseño y arquitectura](docs/design.md) · Motor, interfaz y registro de operaciones.
 

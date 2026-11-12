@@ -59,9 +59,9 @@ class QtRootTests(unittest.TestCase):
         self.window.resize(960, 640)
         self.window.select("home")
         shortcut = next(button for button in self.window.pages["home"].findChildren(QPushButton)
-                        if button.accessibleName() == "Abrir Newton–Raphson")
+                        if button.accessibleName() == "Abrir Métodos Abiertos")
         shortcut.click()
-        page = self.open_page("newton_raphson")
+        page = self.open_page("open_methods")
         self.assertFalse(page.controls.isVisible())
         self.click(page, "Graficar función")
         self.assertTrue(page.controls.isVisible())
@@ -100,7 +100,7 @@ class QtRootTests(unittest.TestCase):
         self.assertIn("Se alcanzó la tolerancia", page.answer.value())
         self.assertEqual(page.table.rowCount(), 3)
         self.assertIn("− (-0.125) / (5.75)", page.walk.output.value())
-        self.assertEqual(self.window._scroll["newton_raphson"].horizontalScrollBar().maximum(), 0)
+        self.assertEqual(self.window._scroll["open_methods"].horizontalScrollBar().maximum(), 0)
         page.limit.setValue(1)
         self.assertFalse(page.result_card.isVisible())
         self.click(page, "Calcular raíz")
@@ -120,7 +120,7 @@ class QtRootTests(unittest.TestCase):
             for theme in (True, False):
                 self.window._apply_theme(theme)
                 self.window.select("home")
-                self.window._nav["newton_raphson"].click()
+                self.window._nav["open_methods"].click()
                 self.assertTrue(page.result_card.isVisible())
                 self.assertEqual(page.plot.dark, theme)
         finally:
@@ -133,6 +133,38 @@ class QtRootTests(unittest.TestCase):
         self.assertFalse(page.graph_card.isVisible())
         self.click(page, "Graficar función")
         self.assertTrue(page.graph_error.isVisible())
+
+    def test_secant_selection_and_guided_examples(self):
+        page = self.open_page("open_methods")
+        page.method.setCurrentIndex(1)
+        self.click(page, "Cargar ejemplo de Semana 13")
+        page.initial.clear()
+        page.second.clear()
+        self.click(page, "Graficar función")
+        self.assertTrue(page.second.isVisible())
+        self.assertTrue(page.point.isVisible())
+        rect = page.plot._plot_rect()
+        for dx in (35, 70):
+            QTest.mouseClick(page.plot, Qt.MouseButton.LeftButton, pos=rect.center().toPoint() + QPoint(dx, 0))
+        self.assertEqual([label for _, label in page.plot.markers], ["x₀", "x₁"])
+
+        self.click(page, "Cargar ejemplo de Semana 13")
+        self.click(page, "Graficar función")
+        self.assertEqual(page.plot.markers, ((1.0, "x₀"), (2.0, "x₁")))
+        self.click(page, "Calcular raíz")
+        self.assertIn("1.5213797068", page.answer.value())
+        self.assertIn("1.33333333333", page.walk.output.value())
+        self.assertEqual(page.table.rowCount(), 7)
+        self.assertEqual(page.table.horizontalHeaderItem(7).text(), "|f(xₙ₊₁)|")
+
+        self.click(page, "Práctica integradora")
+        self.click(page, "Graficar función")
+        self.assertEqual(page.plot.markers, ((2.0, "x₀"), (3.0, "x₁")))
+        self.click(page, "Calcular raíz")
+        self.assertIn("2.09455148154", page.answer.value())
+        page.method.setCurrentIndex(0)
+        self.assertFalse(page.second.isVisible())
+        self.assertFalse(page.result_card.isVisible())
 
     def test_1_regula_falsi_flow_and_plot(self):
         page = self.open_page("regula_falsi")

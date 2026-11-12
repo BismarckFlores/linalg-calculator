@@ -129,11 +129,11 @@ mismo panel y lo devuelve a la página al cerrar. El lienzo ocupa toda
 el área de la ventana y el formulario pasa a una capa flotante que se
 puede plegar.
 
-`NewtonRaphsonPage` usa `FunctionPlot` en modo de selección de x.
-Un clic actualiza x₀ y su marca en ambas vistas. El arrastre sigue
-moviendo la vista. La página conecta el motor de Newton con `StepView`
-y la tabla paginada `IterationTable`, que comparte con Bisección y Regula
-Falsi. La página invalida los resultados al editar los parámetros.
+`OpenMethodsPage` usa `FunctionPlot` para elegir x₀ en Newton–Raphson
+y x₀ y x₁ en Secante. El arrastre mueve la vista. Ambos métodos comparten
+el formulario, `StepView` y la tabla paginada `IterationTable`. Cada
+algoritmo conserva su traza en `core/`. Cambiar el método o editar los
+parámetros invalida el resultado anterior.
 
 `calculus_page` reutiliza `ToolPage` y presenta tres operaciones con el
 mismo editor de funciones. Muestra el punto opcional en Derivada y el

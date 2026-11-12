@@ -17,7 +17,7 @@ from .linear_algebra.vectors import vectors_page
 from .number_systems.conversions import bases_page
 from .number_systems.roman import roman_page
 from .numerical_methods.bisection import BisectionPage
-from .numerical_methods import newton_raphson as newton
+from .numerical_methods import open_methods
 from .numerical_methods.regula_falsi import RegulaFalsiPage
 
 
@@ -56,6 +56,6 @@ TOOLS = (
          "Escribe con el editor matemático, grafica y aproxima una raíz.", BisectionPage),
     Tool("regula_falsi", "Métodos Numéricos", "RF", "Regula Falsi",
          "Aproxima una raíz por el cruce de la secante con el eje x.", RegulaFalsiPage),
-    Tool("newton_raphson", "Métodos Numéricos", newton.GLYPH, newton.TITLE, newton.SUBTITLE,
-         newton.NewtonRaphsonPage),
+    Tool("open_methods", "Métodos Numéricos", open_methods.GLYPH, open_methods.TITLE, open_methods.SUBTITLE,
+         open_methods.OpenMethodsPage),
 )

@@ -13,6 +13,8 @@
 - [Matriz inversa](inverse.md). Calcula una inversa y resuelve sistemas con ejercicios guiados.
 - [Bisección y Regula Falsi](bisection.md). Compara los criterios de parada y revisa ejemplos de búsqueda de raíces.
 
+- [Métodos Abiertos](gui.md#métodos-abiertos). Ejemplos guiados de Newton–Raphson y Secante.
+
 ## Entender el código
 
 - [Decisiones de diseño](design.md). Explora cómo se organizan el motor, los manejadores y la aplicación de escritorio.

@@ -31,7 +31,9 @@ class IterationTable(QWidget):
         self.decimals.valueChanged.connect(self._fill)
         self.page.valueChanged.connect(self._fill)
 
-    def set_rows(self, rows: list[tuple]) -> None:
+    def set_rows(self, rows: list[tuple], *, headers: tuple[str, ...] | None = None) -> None:
+        if headers is not None:
+            self._headers = headers
         self._rows = rows
         self.page.setRange(1, max(1, (len(rows) + self.PAGE_SIZE - 1) // self.PAGE_SIZE))
         self.page.setValue(1)

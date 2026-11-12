@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from core.calculus import differentiate
 from core.scalar import NumberLike
 
+from .handlers.open_root import open_tolerance
 from .handlers.real_function import RealFunction, RootInputError
 from .handlers.root_bracket import RootStop, read_root_number
 
@@ -55,11 +56,7 @@ def newton_raphson(
     if isinstance(function, str):
         function = RealFunction(function)
     initial_x = x = read_root_number(x0)
-    tolerance = read_root_number(tolerance)
-    if tolerance <= 0:
-        raise RootInputError("La tolerancia E debe ser mayor que cero.")
-    if type(max_iterations) is not int or not 1 <= max_iterations <= 1000:
-        raise RootInputError("El máximo de iteraciones debe ser un entero entre 1 y 1000.")
+    tolerance = open_tolerance(tolerance, max_iterations)
     fx = function(x)
     steps: list[NewtonStep] = []
 

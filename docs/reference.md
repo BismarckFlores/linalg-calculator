@@ -42,11 +42,12 @@ La [guía de raíces](bisection.md) explica las condiciones y ejemplos.
 | `core/numerical_methods/handlers/real_function.py` | `sample_function(function, a, b, count=401)` | Devuelve muestras. Los puntos indefinidos se representan como `(x, None)`. |
 | `core/numerical_methods/handlers/root_bracket.py` | `read_root_number(value)` | Usa `to_scalar` y convierte a un `float` finito. |
 | `core/numerical_methods/handlers/root_bracket.py` | `RootCriterion` | `WIDTH`, `RESIDUAL` y `RELATIVE` (porcentaje). |
-| `core/numerical_methods/handlers/root_bracket.py` | `RootStop` | `ZERO`, `TOLERANCE`, `LIMIT` y `STAGNATION`. |
+| `core/numerical_methods/handlers/root_bracket.py` | `RootStop` | `ZERO`, `TOLERANCE`, `LIMIT`, `STAGNATION` y motivos de fallo de los métodos abiertos. |
 | `core/numerical_methods/handlers/root_bracket.py` | `solve_bracket(function, a, b, tolerance, criterion, max_iterations, estimate)` | Recibe una función de estimación. Comprueba los extremos, conserva el cambio de signo y guarda la traza. |
 | `core/numerical_methods/bisection.py` | `bisect(function, a, b, tolerance="0.0001", *, criterion=WIDTH, max_iterations=100)` | Usa el punto medio y devuelve un `BracketResult`. |
 | `core/numerical_methods/regula_falsi.py` | `regula_falsi(function, a, b, tolerance="0.01", *, criterion=RELATIVE, max_iterations=100)` | Usa la intersección de la secante y devuelve un `BracketResult`. |
 | `core/numerical_methods/newton_raphson.py` | `newton_raphson(function, x0, tolerance="0.000001", *, max_iterations=100)` | Reutiliza la derivación simbólica, parte de un solo valor y devuelve un `NewtonResult`. |
+| `core/numerical_methods/secant.py` | `secant(function, x0, x1, tolerance="0.000001", *, max_iterations=100)` | Desplaza las últimas dos aproximaciones y devuelve un `SecantResult`. |
 
 `BracketStep` guarda `index`, `a`, `b`, `c`, `fa`, `fb`, `fc` y
 `relative_error`. Expone el ancho, cota, residuo y decisión de signo.
@@ -64,6 +65,12 @@ máximo de iteraciones. También reconoce un cero evaluado y conserva la
 última aproximación válida si un paso falla. `NewtonResult.iterations`
 cuenta los pasos completados y `detail` explica las interrupciones
 por derivada nula, error de evaluación, paso no finito o estancamiento.
+
+`SecantStep` guarda ambos puntos, sus evaluaciones, la nueva aproximación
+y su evaluación. `absolute_error` aplica el mismo criterio que Newton.
+Secante acepta puntos con el mismo signo. Un denominador nulo, un paso
+no finito o un fallo al evaluar conservan la última aproximación válida
+y los pasos completos.
 
 Para el ejemplo de Semana 13, usa `f(x) = x^3 - x - 2`, `x0 = 1.5`
 y tolerancia `0.000001`. La primera sustitución es

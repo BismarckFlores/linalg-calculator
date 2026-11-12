@@ -363,6 +363,9 @@ class PlotPanel(QWidget):
         self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         self.plot.expand_button.clicked.connect(self._toggle_expanded)
 
+    def set_hint(self, hint: str) -> None:
+        self._hint.setText(hint)
+
     def parameters(self, title: str) -> tuple[QFrame, QVBoxLayout]:
         self._parameters = QFrame()
         self._parameters.setObjectName("plotParameters")
