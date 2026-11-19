@@ -10,6 +10,7 @@ from .calculus import calculus_page
 from .linear_algebra.determinant import determinant_page
 from .linear_algebra.echelon import echelon_page
 from .linear_algebra.gauss import gauss_page
+from .linear_algebra.iterative import iterative_page
 from .linear_algebra.inverse import inverse_page
 from .linear_algebra.lu import lu_page
 from .linear_algebra.operations import operations_page
@@ -34,6 +35,8 @@ class Tool:
 TOOLS = (
     Tool("gauss", "Sistemas Lineales", "▦", "Eliminación Gaussiana",
          "Resuelve sistemas por Gauss o Gauss–Jordan y verifica la solución.", gauss_page),
+    Tool("iterative", "Sistemas Lineales", "JS", "Jacobi y Gauss–Seidel",
+         "Aproxima la solución de Ax = b con tabla, errores y sustituciones.", iterative_page),
     Tool("echelon", "Sistemas Lineales", "▧", "Formas Escalonadas",
          "Comprueba las propiedades de una matriz y localiza sus pivotes.", echelon_page),
     Tool("operations", "Matrices", "⊞", "Operaciones Matriciales",

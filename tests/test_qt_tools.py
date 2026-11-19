@@ -3,6 +3,7 @@
 import os
 import sys
 import unittest
+from fractions import Fraction
 
 if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY") or sys.platform != "linux"):
     raise unittest.SkipTest("Qt WebEngine requiere una sesión gráfica.")
@@ -15,9 +16,11 @@ try:
 except ImportError as problem:
     raise unittest.SkipTest("Instala las dependencias de la interfaz Qt.") from problem
 
-from desktop.tools.linear_algebra.core.inputs import MatrixInput
+from desktop.tools.linear_algebra.core.inputs import MatrixInput, read_equations
 from desktop.core.math_input import MathInput
-from desktop.core.widgets import SegmentedControl
+from desktop.core.math_notation import from_ascii
+from core.linear_algebra.handlers.equations import parse_equation
+from desktop.core.widgets import SegmentedControl, Stepper
 from desktop.tools.registry import TOOLS
 from desktop.window import CalculatorWindow
 
@@ -56,7 +59,7 @@ class QtToolTests(unittest.TestCase):
         self.assertIn(expected, "\n".join((*visible_results, page.result_title.text(), page.result_badge.text())))
 
     def test_catalog_and_matrix_operations(self):
-        self.assertEqual(len(TOOLS), 13)
+        self.assertEqual(len(TOOLS), 14)
         page = self.open_page("operations")
         select = page.findChild(SegmentedControl)
         for index, expected in enumerate(("[ 6; 8 ]", "[ -4; -4 ]", "[ 19; 22 ]", "[ 1/2; 1 ]", "[ 1; 3 ]")):
@@ -83,6 +86,67 @@ class QtToolTests(unittest.TestCase):
         shortcut.click()
         self.assertTrue(self.window._nav["regula_falsi"].isChecked())
         self.assertTrue(self.window.pages["regula_falsi"].isVisible())
+
+    def test_iterative_systems_modes_and_validation(self):
+        self.window.select("home")
+        shortcut = next(button for button in self.window.pages["home"].findChildren(QPushButton)
+                        if button.accessibleName() == "Abrir Jacobi y Gauss–Seidel")
+        shortcut.click()
+        page = self.open_page("iterative")
+        controls = {control.accessibleName(): control for control in page.findChildren(SegmentedControl)}
+        method = controls["Método iterativo"]
+        mode = controls["Forma de entrada"]
+        examples = controls["Cargar ejemplo iterativo"]
+        examples.activated.emit(1)
+        self.calculate(page, "Jacobi")
+        self.assertEqual(page.table.columnCount(), 7)
+        self.assertIn("2.272727", page.walk.output.value())
+        method.setCurrentIndex(1)
+        self.assertFalse(page.result.isVisible())
+        self.calculate(page, "Gauss–Seidel")
+        self.assertIn("2.327272", page.walk.output.value())
+        mode.setCurrentIndex(1)
+        self.assertFalse(page.result.isVisible())
+        self.calculate(page, "Gauss–Seidel")
+        initial = next(field for field in page.findChildren(MathInput) if field.kind == "vector")
+        initial.set_value("1,2,-1,1")
+        self.calculate(page, "residuo del sistema es cero")
+        self.assertEqual(page.table.rowCount(), 1)
+        initial.set_value("0,0")
+        button = next(button for button in page.findChildren(QPushButton) if button.objectName() == "action")
+        button.click()
+        self.assertTrue(page.error.isVisible())
+        dark = self.window._dark
+        try:
+            for theme in (True, False):
+                self.window._apply_theme(theme)
+                self.window.select("home")
+                self.window._nav["iterative"].click()
+                self.assertTrue(page.isVisible())
+            self.window.resize(960, 640)
+            QTest.qWait(100)
+            self.assertEqual(self.window._scroll["iterative"].horizontalScrollBar().maximum(), 0)
+        finally:
+            self.window._apply_theme(dark)
+        clear = next(button for button in page.findChildren(QPushButton)
+                     if button.text() == "Limpiar" and button.isVisible())
+        clear.click()
+        self.assertFalse(page.result.isVisible())
+        self.assertFalse(page.error.isVisible())
+        self.assertEqual(initial.value(), "")
+        examples.activated.emit(0)
+        mode.setCurrentIndex(0)
+        limit = next(field for field in page.findChildren(Stepper)
+                     if field.accessibleName() == "Máximo de iteraciones")
+        limit.setValue(1)
+        self.calculate(page, "No convergió. Se detuvo en la iteración 1")
+        self.assertIn("Error absoluto máximo", page.output.value())
+        self.assertIn("Residuo máximo", page.output.value())
+        page.iterations.format.setCurrentIndex(1)
+        self.assertTrue(page.iterations.decimals.isVisible())
+        self.assertEqual(page.table.item(1, 1).text(), "0.70000")
+        controls["Criterio de parada"].setCurrentIndex(1)
+        self.assertFalse(page.result.isVisible())
 
     def test_calculus_modes_and_navigation(self):
         self.window.resize(960, 640)
@@ -162,6 +226,84 @@ class QtToolTests(unittest.TestCase):
         self.assertFalse(pi.isEnabled())
         self.assertTrue(all(not field.accepts_math_keys() for field in fields.values()))
         keyboard.toggle.setChecked(False)
+
+    def test_enter_keeps_equation_symbols_on_their_original_line(self):
+        for key in ("gauss", "echelon", "inverse", "lu", "determinant", "iterative"):
+            with self.subTest(page=key):
+                page = self.open_page(key)
+                field = next(field for field in page.findChildren(MathInput) if field.kind == "equations")
+                field.set_value("x_1 + x_2 = 6\nx_1 - x_2 = 2")
+                QTest.qWait(30)
+                exported = []
+                field.web.page().runJavaScript("""
+                    (() => {
+                        const field = document.querySelector('math-field');
+                        field.position = field.lastOffset;
+                        field.dispatchEvent(new KeyboardEvent('keydown', {
+                            key: 'Enter', bubbles: true, cancelable: true
+                        }));
+                        field.insert('x_1=4', {format: 'latex'});
+                        return MathLive.convertLatexToAsciiMath(field.value);
+                    })()
+                """, exported.append)
+                for _ in range(60):
+                    if exported:
+                        break
+                    QTest.qWait(20)
+                self.assertTrue(exported)
+                lines = from_ascii(exported[0], "equations").strip().splitlines()
+                self.assertEqual(len(lines), 3)
+                self.assertEqual([parse_equation(line).constant for line in lines], [6, 2, 4])
+                self.assertEqual(parse_equation(lines[-1]).terms, {"x_1": 1})
+
+    def test_system_modes_convert_in_both_directions(self):
+        for key in ("gauss", "iterative", "inverse", "lu", "determinant", "echelon"):
+            with self.subTest(page=key):
+                page = self.open_page(key)
+                mode = next(control for control in page.findChildren(SegmentedControl)
+                            if control.accessibleName() == "Forma de entrada")
+                field = next(field for field in page.findChildren(MathInput) if field.kind == "equations")
+                matrices = page.findChildren(MatrixInput)
+                a = matrices[0]
+                original_matrices = [matrix.value() for matrix in matrices]
+                original_equations = field.value()
+                original_names = list(a.variable_names)
+                original_mode = mode.currentIndex()
+                mode.setCurrentIndex(1)
+                self.assertEqual(mode.currentIndex(), 1)
+                field.set_value("(1/3)u_1 - 2u_2 = 5\n3u_1 + u_2 = -7")
+                mode.setCurrentIndex(0)
+                self.assertEqual(mode.currentIndex(), 0)
+                self.assertEqual(a.matrix().row(1)[:2], [Fraction(1, 3), -2])
+                self.assertEqual(a.matrix().row(2)[:2], [3, 1])
+                if len(matrices) > 1:
+                    self.assertEqual(matrices[1].matrix().data, [[5], [-7]])
+                before = a.matrix().data
+                mode.setCurrentIndex(1)
+                self.assertIn("u_1", field.value())
+                parsed = [parse_equation(line) for line in field.value().splitlines()]
+                self.assertEqual([equation.constant for equation in parsed], [5, -7])
+                field._changed_visual("u_1 + =")
+                mode.setCurrentIndex(0)
+                self.assertEqual(mode.currentIndex(), 1)
+                self.assertEqual(field.value(), "u_1 + =")
+                self.assertEqual(a.matrix().data, before)
+                field.set_value("0u_1 + u_2 = 2\n0u_1 + 2u_2 = 4")
+                mode.setCurrentIndex(0)
+                self.assertEqual(mode.currentIndex(), 0)
+                self.assertEqual(a.matrix().cols, 3 if key == "echelon" else 2)
+                mode.setCurrentIndex(1)
+                self.assertIn("0u_1", field.value())
+                matrix, names = read_equations(field, 10)
+                self.assertEqual(names, ["u_1", "u_2"])
+                self.assertEqual(matrix.data, [[0, 1, 2], [0, 2, 4]])
+                mode.setCurrentIndex(0)
+                for editor, value in zip(matrices, original_matrices):
+                    editor.set_value(value)
+                a.variable_names = original_names
+                if original_mode == 1:
+                    mode.setCurrentIndex(1)
+                field.set_value(original_equations)
 
     def test_docked_keyboard_stays_at_bottom_when_resized(self):
         self.window.select("open_methods")

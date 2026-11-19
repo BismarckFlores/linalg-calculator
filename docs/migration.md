@@ -6,6 +6,47 @@ Consulta [la guía de la interfaz](gui.md) para ejecutar y usar la versión actu
 
 ## Estado de la migración
 
+- La entrega del 19 de noviembre de 2026 reúne sistemas iterativos,
+  conversión de modos y mejoras del editor en `main`. Se agregaron
+  verificaciones de GitHub Actions para push, pull request y ejecución
+  manual. El workflow instala las dependencias y ejecuta `check.py`,
+  `pip check` y la suite completa con Qt y una pantalla virtual.
+
+- Los modos Coeficientes y Ecuaciones convierten la entrada en ambos
+  sentidos mediante un enlace compartido. Se verificaron fracciones,
+  nombres con subíndice, columnas nulas, términos independientes y
+  recuperación de entradas incompletas en los seis formularios.
+  Pasaron `python check.py` y las 85 pruebas.
+
+- Se corrigió Enter en el editor compartido de ecuaciones. La nueva
+  fila conserva el último símbolo en la ecuación anterior. La regresión
+  se verificó en Gauss, Formas Escalonadas, Inversa, LU, Determinante y
+  sistemas iterativos. El lector acepta subíndices numéricos Unicode,
+  como `x₁₂`, equivalentes a `x_12`. Pasaron `python check.py` y
+  las 84 pruebas.
+
+- El modo Ecuaciones representa los nombres indexados, como `x_1`,
+  con subíndices LaTeX. Los ejemplos de Jacobi y Gauss–Seidel usan
+  esa notación en la entrada y los resultados.
+
+- Los ejemplos de toda la interfaz usan nombres matemáticos o el tamaño
+  del sistema. Bisección muestra «Polinomio de grado 4», Regula Falsi
+  muestra «Polinomio cúbico», Métodos Abiertos identifica sus ejemplos
+  por la función y los sistemas iterativos por sus dimensiones.
+  Se actualizaron las guías y las pruebas que usan esas etiquetas.
+  Pasaron `python check.py` y las 83 pruebas.
+
+- **Jacobi y Gauss–Seidel** se integró en Sistemas Lineales reutilizando
+  entrada de sistemas, MathLive, ToolPage, StepView y la tabla paginada
+  de los métodos de raíces. Se centralizó esa tabla en
+  `desktop/core/iteration_table.py`. Los parámetros permiten seleccionar
+  cambio absoluto o residuo, tolerancia y máximo de iteraciones.
+  Se verificaron los ejemplos 3 × 3 y 4 × 4, las sustituciones del material,
+  la entrada por ecuaciones, errores, limpieza, navegación y ambos temas.
+  El sistema divergente de la práctica termina con «No convergió» en
+  la iteración 50 y muestra el error y residuo finales.
+  Pasaron `python check.py`, `pip check` y las 83 pruebas.
+
 - **Métodos Abiertos** reúne Newton–Raphson y Secante en una herramienta
   de Qt. Los dos métodos tienen un ejemplo guiado de Semana 13, la
   práctica integradora, selección de puntos en la gráfica, traza, tabla

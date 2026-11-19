@@ -45,6 +45,7 @@
 - **Sistemas lineales.** Ingresa coeficientes o ecuaciones, aplica Gauss o Gauss–Jordan y revisa las operaciones por filas, los pivotes y la clasificación de la solución.
 - **Matrices y vectores.** Calcula inversas, factorizaciones LU, determinantes y combinaciones lineales. Las operaciones de álgebra lineal conservan las fracciones exactas.
 - **Búsqueda de raíces.** Usa Bisección, Regula Falsi, Newton–Raphson o Secante, explora la gráfica y revisa la tabla de iteraciones.
+- **Sistemas iterativos.** Usa Jacobi o Gauss–Seidel con vector inicial, dominancia diagonal, sustituciones y tabla de errores y residuos.
 - **Cálculo.** Obtén derivadas, antiderivadas e integrales definidas con resultados simbólicos.
 - **Conversiones.** Convierte entre decimal, bases de 2 a 36 y números romanos. La aritmética romana incluye suma, resta y multiplicación.
 - **Escritorio en español.** Trece herramientas con temas claro, oscuro y automático. El editor y sus fuentes se cargan localmente, por lo que puedes usar la app sin conexión después de instalarla.
@@ -88,6 +89,11 @@ La versión **CustomTkinter** se conserva como referencia histórica en la
 [guía de la interfaz heredada](docs/legacy-gui.md).
 
 ## 📚 Documentación
+
+GitHub Actions ejecuta automáticamente las verificaciones del motor y las
+pruebas de Qt en cada push y pull request. El workflow también se puede
+iniciar manualmente desde la pestaña Actions.
+Consulta [la configuración de verificaciones](.github/workflows/checks.yml).
 
 - [Índice de documentación](docs/README.md) · Guías, ejercicios y referencia.
 - [Guía de uso](docs/usage.md) · Primeros ejercicios e instalación.

@@ -237,10 +237,6 @@ customElements.whenDefined("math-field").then(() => {
           event.shiftKey || event.metaKey || field.mode !== "math") return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      if (field.value.startsWith("\\displaylines{") &&
-          field.position === field.lastOffset && field.selectionIsCollapsed) {
-        field.executeCommand("moveToPreviousChar");
-      }
       field.executeCommand("addRowAfter");
     }, true);
     field.addEventListener("paste", (event) => {

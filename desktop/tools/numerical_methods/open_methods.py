@@ -12,7 +12,7 @@ from desktop.core.math_input import MathInput
 from desktop.core.number_display import scientific_notation
 from desktop.core.widgets import SegmentedControl, Stepper, action, card, label, page_header
 
-from .core.iteration_table import IterationTable
+from desktop.core.iteration_table import IterationTable
 from .core.plot import FunctionPlot, PlotPanel
 
 
@@ -51,7 +51,7 @@ class OpenMethodsPage(QWidget):
         fields.addSpacing(6)
         fields.addWidget(label("Cargar ejemplo", "caption"))
         self.examples = SegmentedControl(
-            "Cargar ejemplo de Semana 13", "Práctica integradora", selected=-1,
+            "x³ − x − 2", "x³ − 2x − 5", selected=-1,
         )
         self.examples.setAccessibleName("Cargar ejemplo")
         self.examples.activated.connect(self._example)

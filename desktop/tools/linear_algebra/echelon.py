@@ -9,7 +9,7 @@ from desktop.core.forms import Result, ToolPage
 from desktop.core.math_input import MathInput
 from desktop.core.widgets import SegmentedControl, Toggle
 
-from .core.inputs import EQUATIONS, MatrixInput, read_equations
+from .core.inputs import EQUATIONS, MatrixInput, bind_system_modes, read_equations
 from .core.results import matrix_steps, matrix_text
 
 
@@ -19,6 +19,7 @@ def echelon_page() -> ToolPage:
     field = MatrixInput("1;-2;1;0\n0;2;-8;8\n-4;5;9;-9", "Matriz")
     equations = MathInput(EQUATIONS, "Ecuaciones · una por línea", "equations")
     augmented = Toggle("Es una matriz aumentada  [ A | b ]")
+    bind_system_modes(mode, field, equations, augmented=augmented)
 
     def show_fields() -> None:
         by_equations = mode.currentIndex() == 1
@@ -28,7 +29,7 @@ def echelon_page() -> ToolPage:
 
     def calculate() -> Result:
         by_equations = mode.currentIndex() == 1
-        matrix, names = read_equations(equations, 10) if by_equations else (field.matrix(), [])
+        matrix, names = read_equations(equations, 10) if by_equations else (field.matrix(), field.variable_names)
         form = analyse(matrix)
         reduction = to_rref(matrix)
         properties = (

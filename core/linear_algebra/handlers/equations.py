@@ -57,7 +57,7 @@ class Equation:
     constant: Scalar
     text: str
 
-def parse_equation(text: str) -> Equation:
+def parse_equation(text: str, *, keep_zero: bool = False) -> Equation:
     """
     Lee una ecuacion escrita.
 
@@ -65,18 +65,20 @@ def parse_equation(text: str) -> Equation:
     la derecha, de modo que 2x = 3y + 1 y 2x - 3y = 1 salen identicas. Un
     coeficiente que se cancela a cero se descarta: despues de x + y = x + 2 el
     sistema no menciona x, y fingir lo contrario seria inventarse una columna.
+    keep_zero conserva las variables escritas con coeficiente cero al
+    convertir entre ecuaciones y columnas de una matriz.
     """
     if text.count("=") != 1:
         raise MissingEquals("Una ecuación necesita exactamente un '='.")
 
     left_text, right_text = text.split("=")
-    left_terms, left_constant = _parse_side(left_text)
-    right_terms, right_constant = _parse_side(right_text)
+    left_terms, left_constant = _parse_side(left_text, keep_zero=keep_zero)
+    right_terms, right_constant = _parse_side(right_text, keep_zero=keep_zero)
 
     terms = dict(left_terms)
     for name, coefficient in right_terms.items():
         moved = terms.get(name, Scalar(0)) - coefficient
-        if moved == 0:
+        if moved == 0 and not keep_zero:
             terms.pop(name, None)
         else:
             terms[name] = moved
@@ -109,7 +111,7 @@ def to_augmented(equations: Sequence[Equation], names: Sequence[str]) -> Matrix:
         for equation in equations
     ])
 
-def _parse_side(text: str) -> tuple[dict[str, Scalar], Scalar]:
+def _parse_side(text: str, *, keep_zero: bool = False) -> tuple[dict[str, Scalar], Scalar]:
     """
     Lee un lado y lo separa en sus coeficientes y su constante.
 
@@ -119,6 +121,11 @@ def _parse_side(text: str) -> tuple[dict[str, Scalar], Scalar]:
     patron no consigue leer se informa junto al trozo que lo detuvo.
     """
     packed = re.sub(r"\s+", "", text).lower()
+    packed = re.sub(
+        r"(?<=[a-z0-9_])([₀₁₂₃₄₅₆₇₈₉]+)",
+        lambda match: "_" + match[1].translate(str.maketrans("₀₁₂₃₄₅₆₇₈₉", "0123456789")),
+        packed,
+    )
     packed = explicit_products(packed, scientific=False)
     terms: dict[str, Scalar] = {}
     constant = Scalar(0)
@@ -154,7 +161,7 @@ def _parse_side(text: str) -> tuple[dict[str, Scalar], Scalar]:
 
         position = match.end()
 
-    return {name: value for name, value in terms.items() if value != 0}, constant
+    return {name: value for name, value in terms.items() if value != 0 or keep_zero}, constant
 
 def _sort_key(name: str) -> tuple[str, int]:
     """Primero las letras, y luego los digitos finales como numero: x, x1, x2, x10, y."""

@@ -1,0 +1,44 @@
+name: Verificaciones
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Motor e interfaz Qt
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      QT_QPA_PLATFORM: offscreen
+      QTWEBENGINE_CHROMIUM_FLAGS: --process-per-site --disable-gpu
+      QT_QUICK_BACKEND: software
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Preparar Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Instalar bibliotecas de Qt y pantalla virtual
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends xvfb xauth libegl1 libopengl0 libnss3 libasound2t64 libxkbcommon0 libdbus-1-3 fonts-dejavu-core
+
+      - name: Instalar dependencias de Python
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip check
+
+      - name: Comprobar el motor
+        run: python check.py
+
+      - name: Probar motor e interfaz
+        run: xvfb-run -a python -m unittest discover -s tests -v

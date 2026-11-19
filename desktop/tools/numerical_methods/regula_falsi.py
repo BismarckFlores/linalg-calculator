@@ -14,7 +14,7 @@ class RegulaFalsiPage(RootBracketPage):
     criteria = (RootCriterion.RELATIVE, RootCriterion.RESIDUAL)
     solve = staticmethod(regula_falsi)
     presets = (
-        ("Ejercicio de la guía", "x^3 - 4.23603x^2 - 2.73620x - 13.09037",
+        ("Polinomio cúbico", "x^3 - 4.23603x^2 - 2.73620x - 13.09037",
          "4.95", "5.5", "0.01", RootCriterion.RELATIVE),
         ("Raíz de 2", "x^2 - 2", "1", "2", "0.0001", RootCriterion.RESIDUAL),
         ("Potencia décima", "x^10 - 1", "0", "1.3", "0.0001", RootCriterion.RESIDUAL),

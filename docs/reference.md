@@ -34,6 +34,30 @@ familias. `vectors` delega las combinaciones lineales en `solve`.
 
 ## Métodos numéricos
 
+### Sistemas por iteración
+
+`core/linear_algebra/iterative.py` implementa `solve_iterative(A, b)`
+con argumentos nombrados `method`, `criterion`, `initial`, `tolerance`
+y `max_iterations`. El método predeterminado es Jacobi y el criterio
+predeterminado es cambio absoluto. El vector inicial omitido es cero,
+la tolerancia es `0.0001` y el máximo es 50.
+
+`IterativeResult` conserva método, vectores inicial y final, comparaciones
+de dominancia por fila, traza y motivo de parada. Cada `IterativeStep`
+guarda índice, vector anterior, vector nuevo, cambio absoluto máximo
+y norma infinita del residuo. Las operaciones usan fracciones exactas.
+La interfaz redondea al presentar las sustituciones y la tabla.
+
+Se validan dimensiones, diagonal, tolerancia y límite de iteraciones.
+Los pasos completados se conservan si el siguiente excede el rango de
+presentación numérica. Una matriz sin dominancia estricta puede ejecutarse.
+
+En la segunda iteración de Gauss–Seidel del Word didáctico hay dos
+sustituciones incorrectas. La línea de x₂ debe usar x₁ nuevo = 1.030181818,
+x₃ anterior = −0.987272727 y x₄ anterior = 0.878863636. La línea de x₃
+también debe usar el x₄ anterior. La tabla del material es correcta
+y coincide con la traza de la app.
+
 La [guía de raíces](bisection.md) explica las condiciones y ejemplos.
 
 | Módulo | Nombre | Contrato |
@@ -72,7 +96,7 @@ Secante acepta puntos con el mismo signo. Un denominador nulo, un paso
 no finito o un fallo al evaluar conservan la última aproximación válida
 y los pasos completos.
 
-Para el ejemplo de Semana 13, usa `f(x) = x^3 - x - 2`, `x0 = 1.5`
+Para el ejemplo **x³ − x − 2**, usa `f(x) = x^3 - x - 2`, `x0 = 1.5`
 y tolerancia `0.000001`. La primera sustitución es
 `1.5 - (-0.125 / 5.75)`. Los valores de la tabla están redondeados.
 

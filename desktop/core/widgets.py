@@ -22,6 +22,7 @@ from .assets import ASSETS
 THEME_MENU_RADIUS = 15
 WORKSPACE_TEXTURE = ASSETS / "workspace-texture.svg"
 PAGE_ILLUSTRATIONS = {
+    "JS": "iterative",
     "⌂": "home", "▦": "gauss", "▧": "echelon", "⊞": "operations", "⁻¹": "inverse",
     "LU": "lu", "|A|": "determinant", "↗": "vectors", "⇄": "bases", "Ⅻ": "roman",
     "½": "bisection", "RF": "regula-falsi", "∫": "calculus", "MA": "open-methods",

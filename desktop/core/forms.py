@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
 )
 
 from .number_display import scientific_notation
+from .iteration_table import IterationTable
 from .math_input import MathInput
 from .widgets import ResultTable, SegmentedControl, Stepper, action, card, label, link, page_header
 
@@ -162,6 +163,7 @@ class ToolPage(QWidget):
         *, above: tuple[QWidget, ...] = (), before: tuple[str, ...] = (),
         between: tuple[str, ...] = (), after: tuple[str, ...] = (),
         answer_title: str = "Resultado", walk_title: str = "Paso a paso",
+        paginated_table: bool = False,
     ) -> None:
         super().__init__()
         layout = QVBoxLayout(self)
@@ -228,9 +230,15 @@ class ToolPage(QWidget):
         for heading in after:
             add_section(heading)
         self.table_card, table_layout = card()
-        table_layout.addWidget(label("Tabla", "heading"))
-        self.table = ResultTable()
-        table_layout.addWidget(self.table)
+        self.iterations = None
+        if paginated_table:
+            self.iterations = IterationTable(())
+            self.table = self.iterations.table
+            table_layout.addWidget(self.iterations)
+        else:
+            table_layout.addWidget(label("Tabla", "heading"))
+            self.table = ResultTable()
+            table_layout.addWidget(self.table)
         results.addWidget(self.table_card)
         layout.addWidget(self.result)
         self.result.hide()
@@ -276,6 +284,9 @@ class ToolPage(QWidget):
             panel.setVisible(bool(value))
         self.walk.set_steps(result.steps)
         self.walk_card.setVisible(bool(result.steps))
-        self.table.fill(result.headers, result.rows)
+        if self.iterations is None:
+            self.table.fill(result.headers, result.rows)
+        else:
+            self.iterations.set_rows(list(result.rows), headers=result.headers)
         self.table_card.setVisible(bool(result.headers))
         self.result.show()

@@ -20,6 +20,20 @@ al 75 % de opacidad sobre el patrón desenfocado, con más contraste en modo cla
 
 ## Entrada y resultados
 
+Al cambiar entre **Coeficientes** y **Ecuaciones**, la app convierte
+la entrada actual a la otra representación. Conserva fracciones,
+nombres de incógnitas, dimensiones y términos independientes. Si una
+columna es nula, aparece con un término de coeficiente cero para conservarla.
+Si la entrada está incompleta o no es válida, el cambio se cancela y
+se muestra el motivo junto al campo de origen.
+
+En Formas Escalonadas, **Es una matriz aumentada** determina si la
+última columna contiene los términos independientes. Al convertir
+ecuaciones a coeficientes, esa opción queda activada. Para una matriz
+sin vector b, las ecuaciones nuevas usan lado derecho cero.
+Si las ecuaciones ya tenían términos independientes, estos se conservan
+al regresar al modo Ecuaciones.
+
 En **Coeficientes** ajusta filas y columnas, edita las celdas o pega una
 matriz. Separa las filas con saltos de línea y los coeficientes con punto
 y coma. Para una entrada por **Ecuaciones**, escribe una ecuación por
@@ -52,6 +66,7 @@ del teclado matemático borra el campo que estás editando.
 | Herramienta | Controles y resultados |
 | --- | --- |
 | Eliminación Gaussiana | Gauss o Gauss–Jordan, entrada por coeficientes o ecuaciones, reducción, rangos, soluciones y comprobación. |
+| Jacobi y Gauss–Seidel | Vector inicial, dominancia por fila, despejes, sustituciones, parada por cambio absoluto o residuo y tabla paginada. |
 | Formas Escalonadas | Matriz o ecuaciones, cinco propiedades, posiciones pivote y libres, y recorrido de reducción. |
 | Operaciones Matriciales | Suma, resta, producto, escala y transpuesta con matrices de tamaño editable. |
 | Matriz Inversa | Invertir A o resolver Ax = b, reducción de [A \| I] y verificación exacta. |
@@ -78,6 +93,37 @@ debe ser real y continua en el intervalo. Por ejemplo, `x^2` de `0` a
 `1` da `1/3`. Si el motor no puede verificar el dominio u obtener
 un resultado simbólico, la página muestra un mensaje.
 
+### Jacobi y Gauss–Seidel
+
+Abre **Sistemas Lineales → Jacobi y Gauss–Seidel**. Elige el método e
+ingresa A y b, o cambia a **Ecuaciones**. El sistema debe ser cuadrado y
+tener diagonal distinta de cero en el orden ingresado. El vector inicial
+puede dejarse vacío para comenzar desde ceros.
+
+Los parámetros siguen la organización de las herramientas de raíces.
+Indica **Tolerancia E**, selecciona **Error absoluto** o **Residuo** y
+configura el máximo de iteraciones. El cambio absoluto es
+`maxᵢ |xᵢ⁽ᵏ⁾ − xᵢ⁽ᵏ⁻¹⁾|`. El residuo es `maxᵢ |bᵢ − (Ax)ᵢ|`.
+La parada ocurre cuando la medida elegida es menor que la tolerancia,
+cuando el residuo es cero o cuando se alcanza el máximo.
+
+**Sistema 3 × 3** carga un sistema con solución (1, −2, 1).
+**Sistema 4 × 4** carga uno con solución (1, 2, −1, 1). La tabla muestra el vector inicial en k = 0
+y permite elegir formato automático o decimal, precisión y página.
+El recorrido muestra los despejes y las sustituciones de cada iteración.
+
+En Ecuaciones, escribe variables indexadas como `x_1`, `x_2` y
+`x_12`. También puedes pegar `x₁` o `x₁₂` y usarlos en la entrada
+de texto. El motor interpreta esas formas como `x_1` y `x_12`.
+El editor las representa con subíndices LaTeX. Enter crea una nueva
+fila conservando el último símbolo en la ecuación anterior.
+
+Si no se cumple el criterio al alcanzar el máximo, el resultado dice
+**No convergió**, indica la iteración final y conserva la última
+aproximación, el error absoluto y el residuo. Si un paso sale del
+rango numérico de presentación, indica cuál falló y cuántos se completaron.
+La falta de dominancia estricta se informa y permite ejecutar el método.
+
 ### Métodos Abiertos
 
 1. En **Métodos Numéricos → Métodos Abiertos**, elige **Newton–Raphson**
@@ -93,12 +139,12 @@ un resultado simbólico, la página muestra un mensaje.
    La gráfica marca la raíz aproximada en el eje x. Si el cálculo
    termina sin converger, distingue la última aproximación válida.
 
-**Cargar ejemplo de Semana 13** usa `x^3 - x - 2`. Newton parte de
+**x³ − x − 2** usa `x^3 - x - 2`. Newton parte de
 `x₀ = 1.5` y llega a `x ≈ 1.5213797068` en 3 iteraciones.
 Secante parte de `x₀ = 1` y `x₁ = 2`, obtiene `x₂ ≈ 1.333333333`
 en el primer paso y llega a la misma raíz en 7 iteraciones.
 
-**Práctica integradora** carga `x^3 - 2x - 5`. Con tolerancia
+**x³ − 2x − 5** carga `x^3 - 2x - 5`. Con tolerancia
 `10⁻⁶`, Newton parte de `x₀ = 2` y tarda 4 iteraciones. Secante
 parte de `2` y `3` y tarda 6. Ambos dan `x ≈ 2.09455148154`.
 Cambia el máximo a uno para comprobar la otra condición de parada.

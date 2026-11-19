@@ -50,6 +50,7 @@ def to_latex(text: str, kind: str, *, paste: bool = False) -> str:
         for line in lines:
             parse_equation(line)
         lines = [_notation(re.sub(r"\((\d+/\d+)\)", r"\1", line)).replace(",", ".") for line in lines]
+        lines = [re.sub(r"(?<=[A-Za-z])\\_(\d+)", r"_{\1}", line) for line in lines]
         if paste and len(lines) == 1:
             return lines[0]
         return r"\displaylines{" + r"\\".join(lines) + "}"

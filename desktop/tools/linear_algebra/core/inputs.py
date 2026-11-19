@@ -1,12 +1,14 @@
 """Lectura de matrices y sistemas compartida por las herramientas de álgebra."""
 
+from PySide6.QtCore import QSignalBlocker
 from PySide6.QtWidgets import QHBoxLayout
 
 from core.linear_algebra.handlers.equations import parse_equation, to_augmented, unknown_names
 from core.linear_algebra.handlers.matrix import Matrix
+from core.scalar import format_scalar
 
 from desktop.core.math_input import MathInput
-from desktop.core.math_notation import matrix_rows
+from desktop.core.math_notation import matrix_rows, to_latex
 from desktop.core.widgets import SegmentedControl, Stepper, label
 
 
@@ -24,6 +26,7 @@ class MatrixInput(MathInput):
         self.text.setAccessibleName(name)
         self.max_size = max_size
         self.column = column
+        self.variable_names: list[str] = []
         self._cells: dict[tuple[int, int], str] = {}
         layout = QHBoxLayout()
         layout.setSpacing(6)
@@ -93,13 +96,104 @@ def read_equations(editor: MathInput, max_size: int) -> tuple[Matrix, list[str]]
     parsed = []
     for index, line in enumerate(lines, 1):
         try:
-            parsed.append(parse_equation(line))
+            parsed.append(parse_equation(line, keep_zero=True))
         except ValueError as problem:
             raise ValueError(f"Ecuación {index}. {problem}") from problem
     names = unknown_names(parsed)
     if not 1 <= len(names) <= max_size:
         raise ValueError(f"El sistema debe tener entre 1 y {max_size} incógnitas.")
     return to_augmented(parsed, names), names
+
+
+def bind_system_modes(mode, coefficients, equations, *, constants=None, augmented=None) -> None:
+    """Traduce el sistema al cambiar de representación, conservando nombres y ceros."""
+    active = mode.currentIndex()
+    saved_constants = None
+    errors = {}
+    for index, field in enumerate((coefficients, equations)):
+        error = label("", "inputError")
+        error.hide()
+        field.layout().addWidget(error)
+        errors[index] = error
+        field.changed.connect(error.hide)
+    try:
+        _, coefficients.variable_names = read_equations(equations, coefficients.max_size)
+    except ValueError:
+        pass
+
+    def matrix_text(matrix) -> str:
+        return "\n".join(";".join(format_scalar(value) for value in row) for row in matrix.data)
+
+    def convert(index: int) -> None:
+        nonlocal active, saved_constants
+        if index == active:
+            return
+        for error in errors.values():
+            error.hide()
+        try:
+            if index == 0:
+                system, names = read_equations(equations, coefficients.max_size)
+                a = system.take_columns(1, len(names))
+                b = system.take_columns(len(names) + 1, system.cols)
+                target = system if augmented is not None else a
+                if target.cols > coefficients.max_size:
+                    raise ValueError(f"La matriz convertida supera las {coefficients.max_size} columnas admitidas.")
+                a_text, b_text = matrix_text(target), matrix_text(b)
+            else:
+                matrix = coefficients.matrix()
+                if constants is not None:
+                    a, b = matrix, constants.matrix()
+                    if a.rows != b.rows:
+                        raise ValueError("A y b deben tener el mismo número de filas.")
+                elif augmented is not None and augmented.isChecked():
+                    if matrix.cols < 2:
+                        raise ValueError("La matriz aumentada debe tener al menos dos columnas.")
+                    a = matrix.take_columns(1, matrix.cols - 1)
+                    b = matrix.take_columns(matrix.cols, matrix.cols)
+                else:
+                    a = matrix
+                    b = saved_constants if saved_constants is not None and saved_constants.rows == a.rows else Matrix([[0]] * a.rows)
+                names = coefficients.variable_names
+                if len(names) != a.cols:
+                    names = [f"x_{i + 1}" for i in range(a.cols)]
+                zero_columns = {j for j in range(a.cols) if all(row[j] == 0 for row in a.data)}
+                lines = []
+                for i, row in enumerate(a.data):
+                    terms = []
+                    for j, value in enumerate(row):
+                        if value == 0 and not (i == 0 and j in zero_columns):
+                            continue
+                        magnitude = format_scalar(abs(value))
+                        if "/" in magnitude:
+                            magnitude = f"({magnitude})"
+                        term = ("" if abs(value) == 1 else magnitude) + names[j]
+                        sign = " - " if value < 0 else " + "
+                        terms.append((sign if terms else ("-" if value < 0 else "")) + term)
+                    left = "".join(terms) or f"0{names[0]}"
+                    lines.append(f"{left} = {format_scalar(b.data[i][0])}")
+                text = "\n".join(lines)
+                # Validar la notación antes de sustituir el contenido de destino.
+                to_latex(text, "equations")
+        except (ValueError, TypeError, ArithmeticError) as problem:
+            with QSignalBlocker(mode):
+                mode.setCurrentIndex(active)
+            errors[active].setText(f"No se pudo convertir el sistema. {problem}")
+            errors[active].show()
+            return
+
+        if index == 0:
+            coefficients.set_value(a_text)
+            if constants is not None:
+                constants.set_value(b_text)
+            if augmented is not None:
+                augmented.setChecked(True)
+            saved_constants = b
+        else:
+            equations.set_value(text)
+        coefficients.variable_names = list(names)
+        active = index
+
+    mode.currentIndexChanged.connect(convert)
 
 
 def system_input(
@@ -112,13 +206,16 @@ def system_input(
     equations = MathInput(example, "Una ecuación por línea", "equations")
     coefficients.changed.connect(lambda: constants.rows.setValue(coefficients.rows.value()))
     constants.changed.connect(lambda: coefficients.rows.setValue(constants.rows.value()))
+    bind_system_modes(mode, coefficients, equations, constants=constants)
     return mode, coefficients, constants, equations
 
 
 def read_system(mode, coefficients, constants, equations) -> tuple[Matrix, list[str]]:
     if mode.currentIndex() == 1:
         return read_equations(equations, coefficients.max_size)
-    return coefficients.matrix().augment(constants.matrix()), []
+    matrix = coefficients.matrix()
+    names = coefficients.variable_names if len(coefficients.variable_names) == matrix.cols else []
+    return matrix.augment(constants.matrix()), names
 
 
 class MatrixTaskFields:
@@ -149,4 +246,6 @@ class MatrixTaskFields:
             coefficients = augmented.take_columns(1, len(names))
             constants = augmented.take_columns(len(names) + 1, augmented.cols) if solve_system else None
             return coefficients, constants, names
-        return self.coefficients.matrix(), self.constants.matrix() if solve_system else None, []
+        matrix = self.coefficients.matrix()
+        names = self.coefficients.variable_names if len(self.coefficients.variable_names) == matrix.cols else []
+        return matrix, self.constants.matrix() if solve_system else None, names

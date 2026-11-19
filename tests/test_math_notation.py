@@ -43,10 +43,16 @@ class MathNotationTests(unittest.TestCase):
         self.assertEqual(to_latex("2*3", "function"), r"2\cdot 3")
 
     def test_linear_coefficients_and_variable_names_survive_export(self):
+        self.assertEqual(
+            to_latex("(1/2)x_12 + y = 3/5", "equations"),
+            r"\displaylines{\frac{1}{2}x_{12} + y = \frac{3}{5}}",
+        )
         equation = from_ascii("((1)/(2))x_(12)+y=(3)/(5)", "equations")
         parsed = parse_equation(equation)
         self.assertEqual(parsed.terms, {"x_12": Fraction(1, 2), "y": Fraction(1)})
         self.assertEqual(parsed.constant, Fraction(3, 5))
+        self.assertEqual(parse_equation("2x₁ + 3x₁₂ = 7").terms, {"x_1": 2, "x_12": 3})
+        self.assertEqual(to_latex("2x₁ = 7", "equations"), r"\displaylines{2x_{1} = 7}")
 
     def test_matrix_cells_keep_decimal_comma_and_exact_fractions(self):
         exported = "0,5;(1)/(3)\n(2)/(-5);4"

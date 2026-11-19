@@ -1,4 +1,4 @@
-"""Tabla paginada y formato numérico para métodos de búsqueda de raíces."""
+"""Tabla paginada y formato numérico para métodos iterativos."""
 
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 

@@ -115,7 +115,7 @@ Para `x^4 - 5x^3 + 0.5x^2 - 11x + 10` en `[0.6, 1]` y E = 0.0001:
 | Residuo | 15 | 0.76392822265625 | 0.000065382481667 |
 
 Con ancho, la cota en x es aproximadamente 0.000048828125. El ejemplo
-**Polinomio del Excel** usa residuo y reproduce los 15 puntos medios de
+**Polinomio de grado 4** usa residuo y reproduce los 15 puntos medios de
 la hoja. También se incluyen `x^2 - 2` en `[1, 2]` y `x^10 - 1` en `[0, 1.3]`.
 
 ## Regula Falsi
@@ -135,7 +135,7 @@ como en `x^10 - 1`. La gráfica y el residuo ayudan a interpretar ese caso.
 La tolerancia inicial es 0.01 % de cambio relativo y también se puede
 seleccionar residuo.
 
-**Ejercicio de la guía** usa `x^3 - 4.23603x^2 - 2.73620x - 13.09037` en
+**Polinomio cúbico** usa `x^3 - 4.23603x^2 - 2.73620x - 13.09037` en
 `[4.95, 5.5]`, de la sección 1.2 de `guia-busqueda-raices.pdf`. La tabla
 impresa difiere de los resultados del polinomio. Evaluar la función da
 `f(4.95) = -9.140510075` y `f(5.5) = 10.0956225`. La primera estimación

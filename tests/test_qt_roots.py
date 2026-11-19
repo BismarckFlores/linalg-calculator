@@ -91,7 +91,7 @@ class QtRootTests(unittest.TestCase):
         self.assertEqual(expanded.markers, ((float(page.initial.value()), "x₀"),))
         self.click(overlay, "Cerrar")
 
-        self.click(page, "Cargar ejemplo de Semana 13")
+        self.click(page, "x³ − x − 2")
         self.click(page, "Graficar función")
         self.assertEqual(page.plot.markers, ((1.5, "x₀"),))
         page.plot._fit_view(10, 30, 4)
@@ -146,7 +146,7 @@ class QtRootTests(unittest.TestCase):
     def test_secant_selection_and_guided_examples(self):
         page = self.open_page("open_methods")
         page.method.setCurrentIndex(1)
-        self.click(page, "Cargar ejemplo de Semana 13")
+        self.click(page, "x³ − x − 2")
         page.initial.clear()
         page.second.clear()
         self.click(page, "Graficar función")
@@ -157,7 +157,7 @@ class QtRootTests(unittest.TestCase):
             QTest.mouseClick(page.plot, Qt.MouseButton.LeftButton, pos=rect.center().toPoint() + QPoint(dx, 0))
         self.assertEqual([label for _, label in page.plot.markers], ["x₀", "x₁"])
 
-        self.click(page, "Cargar ejemplo de Semana 13")
+        self.click(page, "x³ − x − 2")
         self.click(page, "Graficar función")
         self.assertEqual(page.plot.markers, ((1.0, "x₀"), (2.0, "x₁")))
         self.click(page, "Calcular raíz")
@@ -168,7 +168,7 @@ class QtRootTests(unittest.TestCase):
         self.assertEqual(page.table.rowCount(), 7)
         self.assertEqual(page.table.horizontalHeaderItem(7).text(), "|f(xₙ₊₁)|")
 
-        self.click(page, "Práctica integradora")
+        self.click(page, "x³ − 2x − 5")
         self.click(page, "Graficar función")
         self.assertEqual(page.plot.markers, ((2.0, "x₀"), (3.0, "x₁")))
         self.click(page, "Calcular raíz")

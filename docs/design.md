@@ -118,6 +118,23 @@ conserva los nombres de incógnitas. `StepView` navega las trazas de
 álgebra y raíces. `ResultTable` comparte la presentación tabular de
 conversiones e iteraciones.
 
+`bind_system_modes` conecta los modos de coeficientes y ecuaciones
+en los seis formularios de sistemas y matrices. Valida la conversión
+antes de sustituir los campos de destino y revierte el selector cuando
+el origen es inválido. `MatrixInput.variable_names` conserva la
+identidad de las columnas durante los cambios de modo.
+El lector de ecuaciones de la interfaz usa `keep_zero=True` para
+conservar columnas nulas. El lector del motor mantiene por defecto
+su comportamiento de descartar términos que se cancelan.
+
+`iterative_page` compone la entrada compartida de sistemas,
+`ToolPage` y `StepView` para Jacobi y Gauss–Seidel. Los parámetros
+agrupan vector inicial y tolerancia, seguidos por criterio de parada y
+máximo de iteraciones. `desktop/core/iteration_table.py` centraliza
+`IterationTable`, usada por sistemas iterativos, Bisección, Regula Falsi
+y Métodos Abiertos. `ToolPage` puede habilitar esta tabla paginada con
+`paginated_table=True`.
+
 El visor de resultados de MathLive agrupa fórmulas y explicaciones por
 sección. `StepView` usa el mismo encabezado numerado en el recorrido
 individual y en la vista completa. El banner, el acceso de Inicio y el

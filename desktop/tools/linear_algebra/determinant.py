@@ -7,7 +7,7 @@ from desktop.core.forms import Result, ToolPage
 from desktop.core.math_input import MathInput
 from desktop.core.widgets import SegmentedControl, label
 
-from .core.inputs import MatrixInput, read_equations
+from .core.inputs import MatrixInput, bind_system_modes, read_equations
 from .core.results import factorization_text, matrix_steps, matrix_text
 
 
@@ -35,6 +35,7 @@ def determinant_page() -> ToolPage:
     field = MatrixInput("1;-4;2\n-2;8;-9\n-1;7;0", "Matriz A")
     equations = MathInput("x - 4y + 2z = 0\n-2x + 8y - 9z = 0\n-x + 7y = 0",
                           "Una ecuación por línea", "equations")
+    bind_system_modes(mode, field, equations)
     advice = label("", "advice")
 
     def read_matrix() -> Matrix:

@@ -13,7 +13,7 @@ from desktop.core.math_input import MathInput
 from desktop.core.number_display import scientific_notation
 from desktop.core.widgets import SegmentedControl, Stepper, action, card, label, page_header
 
-from .iteration_table import IterationTable
+from desktop.core.iteration_table import IterationTable
 from .plot import FunctionPlot, PlotPanel
 
 
