@@ -90,7 +90,7 @@ La versión **CustomTkinter** se conserva como referencia histórica en la
 
 ## 📚 Documentación
 
-GitHub Actions ejecuta automáticamente las verificaciones del motor y las
+GitHub Actions usa Python 3.15 y ejecuta automáticamente las verificaciones del motor y las
 pruebas de Qt en cada push y pull request. El workflow también se puede
 iniciar manualmente desde la pestaña Actions.
 Consulta [la configuración de verificaciones](.github/workflows/checks.yml).

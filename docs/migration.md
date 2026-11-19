@@ -9,7 +9,7 @@ Consulta [la guía de la interfaz](gui.md) para ejecutar y usar la versión actu
 - La entrega del 19 de noviembre de 2026 reúne sistemas iterativos,
   conversión de modos y mejoras del editor en `main`. Se agregaron
   verificaciones de GitHub Actions para push, pull request y ejecución
-  manual. El workflow instala las dependencias y ejecuta `check.py`,
+  manual. El workflow usa Python 3.15, instala las dependencias y ejecuta `check.py`,
   `pip check` y la suite completa con Qt y una pantalla virtual.
 
 - Los modos Coeficientes y Ecuaciones convierten la entrada en ambos
