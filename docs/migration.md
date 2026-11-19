@@ -11,6 +11,9 @@ Consulta [la guía de la interfaz](gui.md) para ejecutar y usar la versión actu
   verificaciones de GitHub Actions para push, pull request y ejecución
   manual. El workflow usa Python 3.15, instala las dependencias y ejecuta `check.py`,
   `pip check` y la suite completa con Qt y una pantalla virtual.
+  La prueba del teclado espera la activación del campo y la devolución
+  del editor mediante QWebChannel para ejecutarse en runners con distinta
+  velocidad.
 
 - Los modos Coeficientes y Ecuaciones convierten la entrada en ambos
   sentidos mediante un enlace compartido. Se verificaron fracciones,

@@ -317,6 +317,12 @@ class QtRootTests(unittest.TestCase):
         keyboard = self.window.math_keyboard
         keyboard.toggle.setChecked(True)
         keys = {button.text(): button for button in keyboard.keys.findChildren(QPushButton)}
+        for _ in range(150):
+            if keyboard._target is editor and keys["log"].isEnabled():
+                break
+            QTest.qWait(20)
+        self.assertIs(keyboard._target, editor)
+        self.assertTrue(keys["log"].isEnabled())
         editor.set_value("")
         keys["log"].click()
         editor.web.page().runJavaScript('''
@@ -327,7 +333,10 @@ class QtRootTests(unittest.TestCase):
                 field.insert("x", {format: "latex"});
             }
         ''')
-        QTest.qWait(150)
+        for _ in range(150):
+            if editor.value().strip():
+                break
+            QTest.qWait(20)
         self.assertAlmostEqual(RealFunction(editor.value())(8), 3)
 
         editor.set_value("")
@@ -335,7 +344,10 @@ class QtRootTests(unittest.TestCase):
         editor.web.page().runJavaScript('''
             document.querySelector("math-field").insert("x-4", {format: "latex"});
         ''')
-        QTest.qWait(150)
+        for _ in range(150):
+            if editor.value().strip():
+                break
+            QTest.qWait(20)
         self.assertEqual(RealFunction(editor.value())(1), 3)
         keyboard.toggle.setChecked(False)
 
